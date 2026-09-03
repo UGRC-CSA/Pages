@@ -1,0 +1,220 @@
+// =============================================================================
+// OCS CHAT LIST
+// =============================================================================
+//   <nav class="ocs-chat-list" aria-label="Conversations">
+//     <div class="ocs-chat-list__header">
+//       <h2 class="ocs-chat-list__title">Messages</h2>
+//       <button class="ocs-btn ocs-btn--primary ocs-btn--sm">New</button>
+//     </div>
+//     <div class="ocs-chat-list__search">…an .ocs-input…</div>
+//     <a class="ocs-chat-list__item ocs-chat-list__item--active" aria-current="page">
+//       <span class="ocs-chat__avatar ocs-chat__avatar--tint-2">JS</span>
+//       <div class="ocs-chat-list__item-body">
+//         <div class="ocs-chat-list__item-top">
+//           <span class="ocs-chat-list__item-name">Jordan Smith</span>
+//           <span class="ocs-chat-list__item-time">9:15 AM</span>
+//         </div>
+//         <span class="ocs-chat-list__item-preview">Sounds good, I'll see you then.</span>
+//       </div>
+//     </a>
+//   </nav>
+//
+// The sidebar beside a direct-message thread. Avatars are the .ocs-chat__avatar
+// from _chat.scss, so a person's initials and tint match between the list and
+// the thread.
+//
+// Pair it with a thread using .ocs-split, or any two-column layout.
+// =============================================================================
+
+@use "../core/functions" as fn;
+
+.ocs-chat-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(xl);
+  background: var(--ocs-surface-base);
+  font-family: var(--ocs-font-sans);
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: fn.space(3);
+    padding: fn.space(4) fn.space(4) fn.space(3);
+  }
+
+  &__title {
+    margin: 0;
+    padding: 0;
+    // The site's global heading rule adds a rule-line; the list does not want
+    // one, because the first conversation row already provides the boundary.
+    border-bottom: 0;
+    color: var(--ocs-text);
+    font-size: fn.typo(h2);
+    font-weight: fn.typo(h2, weight);
+    letter-spacing: fn.typo(h2, tracking);
+    line-height: 1;
+  }
+
+  // The magnifier sits on top of the field, so it is taken out of the flow and
+  // the input is padded to leave room. Without the pointer-events reset a
+  // click on the icon would miss the field underneath it.
+  &__search {
+    position: relative;
+    padding: 0 fn.space(4) fn.space(3);
+
+    svg, i {
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-start: calc(#{fn.space(4)} + #{fn.space(3)});
+      transform: translateY(-50%);
+      margin-top: calc(-1 * #{fn.space(3)} / 2);
+      color: var(--ocs-text-muted);
+      pointer-events: none;
+    }
+
+    .ocs-input {
+      width: 100%;
+      padding-inline-start: fn.space(8);
+    }
+  }
+
+  &__items {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 fn.space(2) fn.space(2);
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--ocs-border) transparent;
+
+    &::-webkit-scrollbar { width: 0.5rem; }
+    &::-webkit-scrollbar-thumb {
+      background: var(--ocs-border);
+      border-radius: fn.radius(sm);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // One conversation
+  // ---------------------------------------------------------------------------
+  &__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: fn.space(3);
+    padding: fn.space(3);
+
+    border-radius: fn.radius(lg);
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+
+    transition: background fn.duration(fast) fn.easing(standard);
+
+    &:hover { background: var(--ocs-surface-raised); }
+
+    &:focus-visible {
+      outline: 2px solid var(--ocs-accent);
+      outline-offset: -2px;
+    }
+  }
+
+  // The open conversation. The bar is a second channel for the same fact as
+  // aria-current, which the markup carries; colour alone never says which row
+  // is open, and the raised background says it again for anyone who cannot
+  // separate the coral from the surface behind it.
+  &__item--active {
+    background: var(--ocs-surface-raised);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: fn.space(2);
+      inset-inline-start: 0;
+      width: 3px;
+      border-radius: fn.radius(full);
+      background: var(--ocs-accent);
+    }
+  }
+
+  &__item-body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__item-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: fn.space(2);
+  }
+
+  &__item-name {
+    color: var(--ocs-text);
+    font-size: fn.typo(body);
+    font-weight: 600;
+    // Truncate the name rather than the timestamp: a wrapped name would push
+    // the preview line down and break the even row rhythm the list depends on.
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__item-time {
+    flex: 0 0 auto;
+    color: var(--ocs-text-muted);
+    font-family: var(--ocs-font-mono);
+    font-size: fn.typo(small);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__item-preview {
+    display: block;
+    margin-top: fn.space(1);
+    color: var(--ocs-text-muted);
+    font-size: fn.typo(small);
+    line-height: fn.typo(small, line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Unread. The count badge is the fact; brighter text is reinforcement, not
+  // the only signal, so a row still reads as unread without colour vision.
+  &__item--unread {
+    .ocs-chat-list__item-name    { color: var(--ocs-text); font-weight: 700; }
+    .ocs-chat-list__item-preview { color: var(--ocs-text-secondary); }
+  }
+
+  &__item-badge {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  &__empty {
+    padding: fn.space(8) fn.space(4);
+    color: var(--ocs-text-muted);
+    font-size: fn.typo(small);
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ocs-chat-list__item { transition: none; }
+}
+
+// A narrow screen cannot hold a list and a thread at once. This only sets the
+// list's own shape; which of the two panes is shown is the page's decision,
+// not the component's.
+@media (max-width: fn.breakpoint(mobile)) {
+  .ocs-chat-list {
+    border-radius: fn.radius(lg);
+
+    &__items { max-height: 20rem; }
+  }
+}

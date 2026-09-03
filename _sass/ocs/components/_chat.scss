@@ -21,6 +21,10 @@
 //   .ocs-chat__unfurl  -thumb  -body  -site  -title  -desc
 //   .ocs-chat__composer   holds an .ocs-input and an .ocs-btn--primary
 //   .ocs-chat__summary    -icon  -title  -caret   (collapsible only)
+//   .ocs-chat__receipt  __presence (--active)  __unread  __typing  __actions
+//
+// Variants:
+//   .ocs-chat--bubbles    a two-person thread; sides replace the sender name
 //
 // Three surfaces share this component:
 //   .ocs-chat                  a full panel, always open
@@ -606,13 +610,231 @@ $micro-size: 0.6875rem;
   .ocs-chat__body { border-top: 1px solid var(--ocs-border-subtle); }
 }
 
+
+// -----------------------------------------------------------------------------
+// Bubbles — the direct-message thread
+// -----------------------------------------------------------------------------
+// A 1:1 thread reads better as alternating sides than as a uniform log: with
+// only two people, side already says who spoke, so the name can go.
+//
+//   <div class="ocs-chat__msg">
+//     <span class="ocs-chat__avatar …">JS</span>
+//     <div class="ocs-chat__main">
+//       <span class="ocs-chat__text">…</span>
+//       <span class="ocs-chat__time">9:12 AM</span>
+//     </div>
+//   </div>
+//
+// Never use this for a group chat. Sides only carry meaning when there are
+// two people, and the announcement log drops the sender's name nowhere.
+.ocs-chat--bubbles {
+  .ocs-chat__msg { padding: fn.space(2) 0; }
+
+  .ocs-chat__main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    // Leave room for the other side, so a long message cannot fill the row
+    // and destroy the alternation that carries the meaning here.
+    max-width: 72%;
+  }
+
+  .ocs-chat__text {
+    padding: fn.space(3) fn.space(4);
+    border: 1px solid var(--ocs-border-subtle);
+    border-radius: fn.radius(lg);
+    background: var(--ocs-surface-elevated);
+    color: var(--ocs-text);
+  }
+
+  .ocs-chat__time {
+    margin-top: fn.space(1);
+    padding-inline: fn.space(1);
+  }
+
+  // The sender's name is redundant in a two-person thread.
+  .ocs-chat__meta { display: none; }
+
+  .ocs-chat__msg--self {
+    flex-direction: row-reverse;
+
+    .ocs-chat__avatar { display: none; }
+    .ocs-chat__main   { align-items: flex-end; }
+
+    .ocs-chat__text {
+      background: var(--ocs-brand-bg);
+    }
+  }
+
+  // A run from the same person keeps the bubbles together instead of drawing
+  // the rule the group log uses; in a thread the side already groups them.
+  .ocs-chat__msg--continued {
+    padding-top: 0;
+
+    .ocs-chat__avatar { visibility: hidden; }
+
+    .ocs-chat__main {
+      margin-inline-start: 0;
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+  }
+
+  .ocs-chat__unfurl { max-width: 100%; }
+}
+
+// Delivery state, under the reader's own last message. Text, not an icon:
+// a single grey tick means nothing without a legend.
+.ocs-chat__receipt {
+  margin-top: fn.space(1);
+  padding-inline: fn.space(1);
+  color: var(--ocs-text-muted);
+  font-size: fn.typo(small);
+}
+
+// -----------------------------------------------------------------------------
+// Presence
+// -----------------------------------------------------------------------------
+// Same rule as the connection pill: the dot repeats the word beside it, so
+// nothing depends on telling green from grey.
+.ocs-chat__presence {
+  display: inline-flex;
+  align-items: center;
+  gap: fn.space(2);
+  color: var(--ocs-text-muted);
+  font-size: fn.typo(small);
+
+  &::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: fn.radius(full);
+    background: var(--ocs-text-muted);
+  }
+
+  &--active {
+    &::before { background: var(--ocs-success); }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Unread count
+// -----------------------------------------------------------------------------
+// White on the accent is 2.98:1 and fails AA. The accent's paired foreground
+// is 6.28:1, and it is the same pairing .ocs-btn--primary uses.
+.ocs-chat__unread {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: fn.space(1) + 0.125rem;
+
+  border-radius: fn.radius(full);
+  background: var(--ocs-brand);
+  color: var(--ocs-accent-contrast);
+
+  font-size: $micro-size;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+// -----------------------------------------------------------------------------
+// Typing indicator
+// -----------------------------------------------------------------------------
+// Give the live region a text alternative, e.g.
+//   <span class="ocs-chat__typing" role="status" aria-label="Jordan is typing">
+// The dots are decorative and the animation is the only thing that moves.
+.ocs-chat__typing {
+  display: inline-flex;
+  align-items: center;
+  gap: fn.space(1);
+  margin: fn.space(2) 0;
+  padding: fn.space(2) fn.space(3);
+
+  border-radius: fn.radius(full);
+  background: var(--ocs-surface-elevated);
+
+  span {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: fn.radius(full);
+    background: var(--ocs-text-muted);
+    animation: ocs-chat-typing 1.2s infinite ease-in-out;
+
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+  }
+}
+
+@keyframes ocs-chat-typing {
+  0%, 60%, 100% { opacity: 0.3; }
+  30%           { opacity: 1; }
+}
+
+// -----------------------------------------------------------------------------
+// Message actions
+// -----------------------------------------------------------------------------
+// A row of .ocs-btn--icon .ocs-btn--ghost buttons that appears on the hovered
+// or focused message. Every button needs an aria-label: they are icon-only.
+// Give a destructive one .ocs-btn--danger, so deleting a message does not look
+// like replying to it:
+//
+//   <button class="ocs-btn ocs-btn--danger ocs-btn--icon ocs-btn--sm"
+//           aria-label="Delete message">…</button>
+//
+// Hidden with opacity rather than display:none so a keyboard user can tab into
+// it — :focus-within cannot fire on a subtree that is not rendered.
+.ocs-chat__actions {
+  position: absolute;
+  // Above the message, not across its first line. The negative offset is half
+  // the toolbar's height, so it straddles the message's top edge.
+  inset-block-start: calc(-1 * #{fn.space(4)});
+  inset-inline-end: fn.space(2);
+  z-index: fn.z(dropdown);
+
+  display: flex;
+  gap: fn.space(1);
+  padding: fn.space(1);
+
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(md);
+  background: var(--ocs-surface-elevated);
+  box-shadow: fn.shadow(md);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity fn.duration(fast) fn.easing(standard);
+}
+
+.ocs-chat__msg {
+  position: relative;
+
+  &:hover > .ocs-chat__actions,
+  &:focus-within > .ocs-chat__actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  // The first message has nothing above it to overlap, so its toolbar sits
+  // inside the row rather than hanging off the top of the log.
+  &:first-child > .ocs-chat__actions { inset-block-start: 0; }
+}
+
 // -----------------------------------------------------------------------------
 // Motion
 // -----------------------------------------------------------------------------
 @media (prefers-reduced-motion: reduce) {
   .ocs-chat__unfurl,
   .ocs-chat__summary,
-  .ocs-chat__summary-caret { transition: none; }
+  .ocs-chat__summary-caret,
+  .ocs-chat__actions { transition: none; }
+
+  // The dots stop moving, but the indicator still has to be visible - the
+  // point is that someone is typing, not that something is animating.
+  .ocs-chat__typing span { animation: none; opacity: 0.7; }
 }
 
 // -----------------------------------------------------------------------------
