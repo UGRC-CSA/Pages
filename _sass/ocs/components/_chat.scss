@@ -39,6 +39,7 @@
 
 @use "sass:map";
 @use "../core/functions" as fn;
+@use "../core/legacy-guard" as guard;
 
 // -----------------------------------------------------------------------------
 // Sender tints
@@ -124,16 +125,37 @@ $micro-size: 0.6875rem;
     font-weight: 700;
   }
 
+  // The title is an <h2>, and the site's own stylesheet styles bare headings
+  // hard. Measured on /navigation/courses/csa/, four rules outrank a plain
+  // .ocs-chat__title at (0,1,0):
+  //
+  //   .post-content h2, .post-content h3  border-bottom: 1px solid #eee
+  //   .post-content h2                    font-size: 1.75rem
+  //   .post-content h1..h6                margin-top: 30px
+  //   h2                                  display: flex; gap: .5rem
+  //
+  // The first put a rule-line under the title when the header already has
+  // one, and the last turned the heading into a flex container, which broke
+  // the header layout outright.
+  //
+  // Self-chaining to (0,2,0) is the system's documented escalation for this,
+  // and it is enough: it beats (0,1,1) on class count without !important, so
+  // a page author can still override with one extra class.
   &__title {
-    margin: 0;
-    padding: 0;
-    // The site's global h2 rule adds a rule-line underneath; the header
-    // already has one, and two would read as a double border.
-    border-bottom: 0;
-    color: var(--ocs-text);
-    font-size: fn.typo(h3);
-    font-weight: fn.typo(h3, weight);
-    line-height: fn.typo(h3, line);
+    @include guard.outrank-legacy {
+      display: block;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+      // `h2 { color: white !important }` in the legacy sheet still wins here.
+      // White is correct on every surface this component currently sits on,
+      // and the alternative is answering !important with !important, which
+      // would take the override away from page authors for no gain today.
+      color: var(--ocs-text);
+      font-size: fn.typo(h3);
+      font-weight: fn.typo(h3, weight);
+      line-height: fn.typo(h3, line);
+    }
   }
 
   &__subtitle {

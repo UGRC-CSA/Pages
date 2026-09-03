@@ -27,6 +27,7 @@
 // =============================================================================
 
 @use "../core/functions" as fn;
+@use "../core/legacy-guard" as guard;
 
 .ocs-chat-list {
   display: flex;
@@ -47,17 +48,21 @@
     padding: fn.space(4) fn.space(4) fn.space(3);
   }
 
+  // Same collision as .ocs-chat__title - this is an <h2> too, and the site
+  // styles bare headings with rules that outrank a single class. See the note
+  // there for the measurements.
   &__title {
-    margin: 0;
-    padding: 0;
-    // The site's global heading rule adds a rule-line; the list does not want
-    // one, because the first conversation row already provides the boundary.
-    border-bottom: 0;
-    color: var(--ocs-text);
-    font-size: fn.typo(h2);
-    font-weight: fn.typo(h2, weight);
-    letter-spacing: fn.typo(h2, tracking);
-    line-height: 1;
+    @include guard.outrank-legacy {
+      display: block;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+      color: var(--ocs-text);
+      font-size: fn.typo(h2);
+      font-weight: fn.typo(h2, weight);
+      letter-spacing: fn.typo(h2, tracking);
+      line-height: 1;
+    }
   }
 
   // The magnifier sits on top of the field, so it is taken out of the flow and
