@@ -9,44 +9,44 @@
 <!-- "preview" mode backed by localStorage, matching _includes/week_chat.html, -->
 <!-- so the feature is visible and testable without a login. -->
 
-<section id="announcementChat" class="announcement-chat" data-course="{{ page.course }}" aria-labelledby="announcementChatTitle">
-  <div class="chat-header">
-    <div class="chat-heading">
-      <span class="chat-badge" aria-hidden="true"><i class="fas fa-bullhorn"></i></span>
-      <div class="chat-heading-text">
-        <h2 class="chat-title" id="announcementChatTitle">{{ page.course | upcase }} Announcements</h2>
-        <p class="chat-subtitle">Class-wide chat for this course — announcements, questions, anything that isn't week-specific.</p>
+<section id="announcementChat" class="ocs-chat" data-course="{{ page.course }}" aria-labelledby="announcementChatTitle">
+  <div class="ocs-chat__header">
+    <div class="ocs-chat__heading">
+      <span class="ocs-chat__icon" aria-hidden="true"><i class="fas fa-bullhorn"></i></span>
+      <div class="ocs-chat__heading-text">
+        <h2 class="ocs-chat__title" id="announcementChatTitle">{{ page.course | upcase }} Announcements</h2>
+        <p class="ocs-chat__subtitle">Class-wide chat for this course — announcements, questions, anything that isn't week-specific.</p>
       </div>
     </div>
-    <span class="chat-status-pill" id="announcementChatStatusPill">
-      <span class="chat-status-dot" aria-hidden="true"></span>
-      <span class="chat-status" id="announcementChatStatus">loading…</span>
+    <span class="ocs-chat__status" id="announcementChatStatusPill">
+      <span class="ocs-chat__status-dot" aria-hidden="true"></span>
+      <span class="ocs-chat__status-label" id="announcementChatStatus">loading…</span>
     </span>
   </div>
 
-  <div class="chat-body">
-    <p class="chat-preview-note" id="announcementChatNote" hidden>
+  <div class="ocs-chat__body">
+    <p class="ocs-chat__banner ocs-chat__banner--warning" id="announcementChatNote" hidden>
       <i class="fas fa-flask" aria-hidden="true"></i><span id="announcementChatNoteText"></span>
     </p>
-    <div class="chat-publish-banner" id="announcementChatPublishBanner" hidden>
-      <div class="chat-publish-banner-text">
+    <div class="ocs-chat__banner ocs-chat__banner--accent" id="announcementChatPublishBanner" hidden>
+      <div class="ocs-chat__banner-text">
         <i class="fas fa-box-archive" aria-hidden="true"></i>
         <span id="announcementChatPublishBannerText"></span>
       </div>
-      <button type="button" class="chat-publish-btn" id="announcementChatPublishBtn">
+      <button type="button" class="ocs-btn ocs-btn--sm" id="announcementChatPublishBtn">
         <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i><span>Publish to class chat</span>
       </button>
     </div>
-    <div class="chat-messages" id="announcementChatMessages" role="log" aria-live="polite">
-      <div class="chat-empty" id="announcementChatEmpty">
+    <div class="ocs-chat__log" id="announcementChatMessages" role="log" aria-live="polite">
+      <div class="ocs-chat__empty" id="announcementChatEmpty">
         <i class="fas fa-bullhorn" aria-hidden="true"></i>
-        <p class="chat-empty-title">No announcements yet</p>
-        <span class="chat-empty-hint">Class-wide messages will appear here.</span>
+        <p class="ocs-chat__empty-title">No announcements yet</p>
+        <span class="ocs-chat__empty-hint">Class-wide messages will appear here.</span>
       </div>
     </div>
-    <form class="chat-form" id="announcementChatForm" autocomplete="off">
-      <input class="chat-input" id="announcementChatInput" type="text" placeholder="Message the class…" maxlength="2000" disabled>
-      <button class="chat-send" id="announcementChatSend" type="submit" disabled>
+    <form class="ocs-chat__composer" id="announcementChatForm" autocomplete="off">
+      <input class="ocs-input" id="announcementChatInput" type="text" placeholder="Message the class…" maxlength="2000" disabled>
+      <button class="ocs-btn ocs-btn--primary" id="announcementChatSend" type="submit" disabled>
         <i class="fas fa-paper-plane" aria-hidden="true"></i><span>Send</span>
       </button>
     </form>
@@ -127,7 +127,7 @@
 
   function setStatus(text, tone) {
     statusEl.textContent = text;
-    statusPillEl.classList.remove('is-live', 'is-preview', 'is-error');
+    statusPillEl.classList.remove('ocs-chat__status--live', 'ocs-chat__status--preview', 'ocs-chat__status--error');
     if (tone) statusPillEl.classList.add(tone);
   }
 
@@ -177,7 +177,7 @@
     const text = String(name || '');
     let hash = 0;
     for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
-    return `tint-${(hash % 5) + 1}`;
+    return `ocs-chat__avatar--tint-${(hash % 5) + 1}`;
   }
 
   function clearEmpty() {
@@ -201,7 +201,7 @@
       const key = dayKey(when);
       if (key !== state.lastDayKey) {
         const separator = document.createElement('div');
-        separator.className = 'chat-day';
+        separator.className = 'ocs-chat__day';
         separator.setAttribute('role', 'separator');
         separator.textContent = dayLabel(when);
         messagesEl.appendChild(separator);
@@ -215,32 +215,32 @@
     }
 
     const row = document.createElement('div');
-    row.className = ['chat-msg', isSelf ? 'is-self' : '', continued ? 'is-continued' : '']
+    row.className = ['ocs-chat__msg', isSelf ? 'ocs-chat__msg--self' : '', continued ? 'ocs-chat__msg--continued' : '']
       .filter(Boolean).join(' ');
 
     const avatar = document.createElement('span');
-    avatar.className = ['chat-avatar', isSelf ? '' : tintFor(who)].filter(Boolean).join(' ');
+    avatar.className = ['ocs-chat__avatar', isSelf ? '' : tintFor(who)].filter(Boolean).join(' ');
     avatar.textContent = initialsFor(isSelf ? (state.currentUserDisplayName || 'You') : who);
     avatar.setAttribute('aria-hidden', 'true');
 
     const main = document.createElement('div');
-    main.className = 'chat-msg-main';
+    main.className = 'ocs-chat__main';
 
     const meta = document.createElement('div');
-    meta.className = 'chat-msg-meta';
+    meta.className = 'ocs-chat__meta';
     const senderEl = document.createElement('span');
-    senderEl.className = 'chat-msg-sender';
+    senderEl.className = 'ocs-chat__sender';
     senderEl.textContent = who;
     meta.appendChild(senderEl);
     if (when) {
       const timeEl = document.createElement('span');
-      timeEl.className = 'chat-msg-time';
+      timeEl.className = 'ocs-chat__time';
       timeEl.textContent = formatTime(when);
       meta.appendChild(timeEl);
     }
 
     const body = document.createElement('span');
-    body.className = 'chat-msg-body';
+    body.className = 'ocs-chat__text';
     renderMessageBody(body, message);
 
     main.append(meta, body);
@@ -294,13 +294,13 @@
       if (!preview || !preview.title || !afterEl.isConnected) return;
 
       const card = document.createElement('a');
-      card.className = 'chat-link-preview';
+      card.className = 'ocs-chat__unfurl';
       card.href = preview.url || url;
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
 
       const thumb = document.createElement('div');
-      thumb.className = 'chat-link-preview-thumb';
+      thumb.className = 'ocs-chat__unfurl-thumb';
       if (preview.image) {
         const img = document.createElement('img');
         img.src = preview.image;
@@ -313,17 +313,17 @@
       }
 
       const previewBody = document.createElement('div');
-      previewBody.className = 'chat-link-preview-body';
+      previewBody.className = 'ocs-chat__unfurl-body';
       const siteEl = document.createElement('span');
-      siteEl.className = 'chat-link-preview-site';
+      siteEl.className = 'ocs-chat__unfurl-site';
       siteEl.textContent = preview.siteName || new URL(preview.url || url).hostname;
       const titleEl = document.createElement('span');
-      titleEl.className = 'chat-link-preview-title';
+      titleEl.className = 'ocs-chat__unfurl-title';
       titleEl.textContent = preview.title;
       previewBody.append(siteEl, titleEl);
       if (preview.description) {
         const descEl = document.createElement('span');
-        descEl.className = 'chat-link-preview-desc';
+        descEl.className = 'ocs-chat__unfurl-desc';
         descEl.textContent = preview.description;
         previewBody.appendChild(descEl);
       }
@@ -338,7 +338,7 @@
   function appendSystem(text) {
     clearEmpty();
     const el = document.createElement('p');
-    el.className = 'chat-system';
+    el.className = 'ocs-chat__system';
     el.textContent = text;
     messagesEl.appendChild(el);
     state.lastSender = null;
@@ -478,7 +478,7 @@
   function enterPreviewMode(reason) {
     state.mode = 'preview';
     state.currentUserDisplayName = 'You';
-    setStatus('preview', 'is-preview');
+    setStatus('preview', 'ocs-chat__status--preview');
     showNote(`${reason} This is a local preview — messages stay in this browser and are not sent to the class.`);
 
     readPreviewMessages().forEach((msg) => {
@@ -597,7 +597,7 @@
 
       client.connect({}, () => {
         state.connected = true;
-        setStatus('connected', 'is-live');
+        setStatus('connected', 'ocs-chat__status--live');
         state.subscription = client.subscribe(`/topic/group/${state.backboneGroupId}`, (frame) => {
           try { handleIncoming(JSON.parse(frame.body)); }
           catch (err) { console.warn('Announcement chat: bad frame', err); }
@@ -612,7 +612,7 @@
       socket.onclose = () => {
         if (!state.connected) return;
         state.connected = false;
-        setStatus('disconnected', 'is-error');
+        setStatus('disconnected', 'ocs-chat__status--error');
         setComposerEnabled(false);
       };
     });

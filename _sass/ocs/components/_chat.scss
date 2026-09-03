@@ -1,0 +1,639 @@
+// =============================================================================
+// OCS CHAT
+// =============================================================================
+//   <section class="ocs-chat">
+//     <header class="ocs-chat__header">…</header>
+//     <div class="ocs-chat__log">…</div>
+//     <form class="ocs-chat__composer">…</form>
+//   </section>
+//
+// The message log for class announcements, per-week discussion, and direct
+// messages. Everything visual comes from tokens; the only values named here
+// are the sender tints, and the note above them says why they are not tokens.
+//
+// GRAMMAR
+//   .ocs-chat__header  __heading  __heading-text  __icon  __title  __subtitle
+//   .ocs-chat__status  __status-dot  __status-label   (--live --preview --error)
+//   .ocs-chat__body    __banner (--warning --accent)  __banner-text
+//   .ocs-chat__log     __day  __system  __empty  __empty-title  __empty-hint
+//   .ocs-chat__msg     (--self --continued)
+//                      __avatar (--tint-1…5)  __main  __meta  __sender  __time  __text
+//   .ocs-chat__unfurl  -thumb  -body  -site  -title  -desc
+//   .ocs-chat__composer   holds an .ocs-input and an .ocs-btn--primary
+//   .ocs-chat__summary    -icon  -title  -caret   (collapsible only)
+//
+// Three surfaces share this component:
+//   .ocs-chat                  a full panel, always open
+//   .ocs-chat--compact         a smaller log for a card or sidebar
+//   .ocs-chat--collapsible     a <details> whose <summary> is the closed row
+//
+// The composer reuses .ocs-input and .ocs-btn--primary rather than restyling
+// a text field and a button: the send control gets the accent pairing, and
+// the focus ring, disabled state and hit area, from the components that
+// already solved them.
+// =============================================================================
+
+@use "sass:map";
+@use "../core/functions" as fn;
+
+// -----------------------------------------------------------------------------
+// Sender tints
+// -----------------------------------------------------------------------------
+// Assigned by hashing the sender's name, so the same person keeps the same
+// colour and the log stays scannable. These are NOT tokens and must not be
+// used for anything else: they are decorative identity, and a reader who
+// cannot distinguish them loses nothing, because the sender's name is always
+// written next to the avatar.
+//
+// Deliberately not drawn from the semantic palette. The stylesheet this
+// replaces tinted avatars with $green, $orange and $blue, which meant a
+// message could read as a success or a warning purely because of who sent it.
+//
+// Generated at a fixed L*44 / C*16 in CIELAB with hues spread evenly and the
+// coral hue (27 deg) left out, since coral marks the reader's own messages.
+// White initials land at 5.56-5.60:1 on every one of them, and each clears
+// 3.35:1 against the base surface so the circle itself stays visible.
+$tints: (
+  1: #73674E,
+  2: #566E59,
+  3: #426F73,
+  4: #566A82,
+  5: #786177,
+);
+
+// The reader's own avatar. Not --ocs-accent: white initials on the accent are
+// 3.36:1, below the 4.5:1 AA floor. coral-600 is the first step down the ramp
+// that clears it, at 4.97:1.
+$self-tint: fn.coral(600);
+
+// Uppercase micro-labels — the day divider and the unfurl's site name — sit
+// below `small`, the smallest step in the type scale.
+$micro-size: 0.6875rem;
+
+// -----------------------------------------------------------------------------
+// Panel
+// -----------------------------------------------------------------------------
+.ocs-chat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(xl);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  font-family: var(--ocs-font-sans);
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: fn.space(4);
+    padding: fn.space(4) fn.space(5);
+    border-bottom: 1px solid var(--ocs-border-subtle);
+  }
+
+  &__heading {
+    display: flex;
+    align-items: flex-start;
+    gap: fn.space(3);
+    min-width: 0;
+  }
+
+  &__heading-text {
+    min-width: 0;
+  }
+
+  // Rounded-square tile, so it never reads as a person's avatar.
+  &__icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: fn.radius(lg);
+    background: var(--ocs-accent);
+    color: var(--ocs-accent-contrast);
+    font-size: fn.typo(small);
+    font-weight: 700;
+  }
+
+  &__title {
+    margin: 0;
+    padding: 0;
+    // The site's global h2 rule adds a rule-line underneath; the header
+    // already has one, and two would read as a double border.
+    border-bottom: 0;
+    color: var(--ocs-text);
+    font-size: fn.typo(h3);
+    font-weight: fn.typo(h3, weight);
+    line-height: fn.typo(h3, line);
+  }
+
+  &__subtitle {
+    margin: fn.space(1) 0 0;
+    color: var(--ocs-text-muted);
+    font-size: fn.typo(small);
+    line-height: fn.typo(small, line);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Connection status
+  // ---------------------------------------------------------------------------
+  // The dot repeats what the label already says. It is a second channel for
+  // the same fact, not the only one, so colour is never load-bearing.
+  &__status {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: fn.space(2);
+    padding: fn.space(1) fn.space(3);
+    border: 1px solid var(--ocs-border);
+    border-radius: fn.radius(full);
+    background: var(--ocs-surface-base);
+    color: var(--ocs-text-muted);
+    font-size: $micro-size;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &--live    { border-color: var(--ocs-success-border); color: var(--ocs-success); }
+    &--preview { border-color: var(--ocs-warning-border); color: var(--ocs-warning); }
+    &--error   { border-color: var(--ocs-danger-border);  color: var(--ocs-danger); }
+  }
+
+  // Colour alone never carries the connection state - the label beside this
+  // dot always spells it out. The dot is aria-hidden for that reason.
+  &__status-dot {
+    flex: 0 0 auto;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: fn.radius(full);
+    background: currentcolor;
+  }
+
+  &__status-label {
+    color: inherit;
+    white-space: nowrap;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: fn.space(4) fn.space(5);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Message log
+  // ---------------------------------------------------------------------------
+  &__log {
+    flex: 1 1 auto;
+    min-height: 10rem;
+    max-height: 26rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--ocs-border) transparent;
+
+    &::-webkit-scrollbar { width: 0.5rem; }
+    &::-webkit-scrollbar-thumb {
+      background: var(--ocs-border);
+      border-radius: fn.radius(sm);
+    }
+  }
+
+  // Day boundary: a centred label with a rule running out to both sides.
+  &__day {
+    display: flex;
+    align-items: center;
+    gap: fn.space(3);
+    margin: fn.space(4) 0 fn.space(3);
+
+    color: var(--ocs-text-muted);
+    font-size: $micro-size;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    &:first-child { margin-top: 0; }
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1 1 auto;
+      height: 1px;
+      background: var(--ocs-border-subtle);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // One message
+  // ---------------------------------------------------------------------------
+  &__msg {
+    display: flex;
+    align-items: flex-start;
+    gap: fn.space(3);
+    padding: fn.space(2) 0;
+  }
+
+  // A run from the same sender drops the avatar and the name, and marks the
+  // body with a rule down its inside edge. The rule is what keeps the run
+  // legible: a bare indent would be ambiguous next to a quote or a list.
+  &__msg--continued {
+    padding-top: 0;
+
+    .ocs-chat__avatar { display: none; }
+    .ocs-chat__meta   { display: none; }
+
+    .ocs-chat__main {
+      margin-inline-start: calc(2.5rem + #{fn.space(3)});
+      padding-inline-start: fn.space(3);
+      border-inline-start: 2px solid var(--ocs-border-subtle);
+    }
+  }
+
+  &__avatar {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: fn.radius(full);
+
+    background: var(--ocs-surface-elevated);
+    color: #FFFFFF;
+    font-size: fn.typo(small);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    user-select: none;
+
+    @each $n, $colour in $tints {
+      &--tint-#{$n} { background: $colour; }
+    }
+  }
+
+  &__main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: baseline;
+    gap: fn.space(2);
+    margin-bottom: fn.space(1);
+  }
+
+  // The sender's name is white, not accent-coloured: in a log where every
+  // name is coral, coral stops meaning anything, and the reader's own
+  // messages lose the one marker that distinguishes them.
+  &__sender {
+    color: var(--ocs-text);
+    font-size: fn.typo(body);
+    font-weight: 600;
+  }
+
+  // Monospace so timestamps in a column line up digit for digit.
+  &__time {
+    color: var(--ocs-text-muted);
+    font-family: var(--ocs-font-mono);
+    font-size: fn.typo(small);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__text {
+    display: block;
+    color: var(--ocs-text-secondary);
+    font-size: fn.typo(body);
+    line-height: fn.typo(body, line);
+    // Preserve the sender's own line breaks, and break inside a long
+    // unspaced string rather than letting it widen the whole log.
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+
+    a {
+      color: var(--ocs-info);
+      text-decoration: underline;
+      text-underline-offset: 0.125em;
+
+      &:hover { color: var(--ocs-info-border); }
+    }
+  }
+
+  &__msg--self {
+    .ocs-chat__avatar { background: $self-tint; }
+    .ocs-chat__text   { color: var(--ocs-text); }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Link unfurl
+  // ---------------------------------------------------------------------------
+  &__unfurl {
+    display: flex;
+    gap: fn.space(3);
+    margin-top: fn.space(2);
+    padding: fn.space(3);
+    max-width: 30rem;
+
+    border: 1px solid var(--ocs-border-subtle);
+    border-radius: fn.radius(lg);
+    background: var(--ocs-surface-base);
+    color: inherit;
+    text-decoration: none;
+
+    transition: border-color fn.duration(base) fn.easing(standard),
+                background   fn.duration(base) fn.easing(standard);
+
+    &:hover {
+      border-color: var(--ocs-accent-border);
+      background: var(--ocs-accent-bg);
+    }
+
+    &-thumb {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 4rem;
+      height: 4rem;
+      overflow: hidden;
+
+      border-radius: fn.radius(md);
+      // Tinted rather than grey, so a link with no image still reads as a
+      // deliberate card instead of a failed one.
+      background: var(--ocs-accent-bg);
+      color: var(--ocs-accent);
+      font-size: fn.typo(h4);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    }
+
+    &-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: fn.space(1);
+      min-width: 0;
+    }
+
+    &-site {
+      color: var(--ocs-text-muted);
+      font-size: $micro-size;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    &-title {
+      color: var(--ocs-text);
+      font-size: fn.typo(small);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-desc {
+      color: var(--ocs-text-muted);
+      font-size: fn.typo(small);
+      line-height: fn.typo(small, line);
+      // Two lines, then clip. -webkit- prefixed because the unprefixed
+      // line-clamp is still not in Safari.
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Non-message rows
+  // ---------------------------------------------------------------------------
+  &__system {
+    margin: fn.space(3) 0;
+    color: var(--ocs-text-muted);
+    font-size: fn.typo(small);
+    font-style: italic;
+    text-align: center;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: fn.space(1);
+    min-height: 8rem;
+    padding: fn.space(4);
+    text-align: center;
+
+    i, svg {
+      margin-bottom: fn.space(1);
+      color: var(--ocs-text-muted);
+      font-size: fn.typo(h2);
+      opacity: 0.6;
+    }
+
+    &-title {
+      margin: 0;
+      color: var(--ocs-text);
+      font-size: fn.typo(body);
+      font-weight: 600;
+    }
+
+    &-hint {
+      color: var(--ocs-text-muted);
+      font-size: fn.typo(small);
+    }
+  }
+
+  // Preview / publish notices above the log.
+  &__banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: fn.space(3);
+    margin-bottom: fn.space(3);
+    padding: fn.space(2) fn.space(3);
+
+    border: 1px solid var(--ocs-border);
+    border-radius: fn.radius(md);
+    font-size: fn.typo(small);
+    line-height: fn.typo(small, line);
+
+    &--warning {
+      border-color: var(--ocs-warning-border);
+      background: var(--ocs-warning-bg);
+      color: var(--ocs-warning);
+    }
+
+    &--accent {
+      border-color: var(--ocs-accent-border);
+      background: var(--ocs-accent-bg);
+      color: var(--ocs-text);
+    }
+
+    &[hidden] { display: none; }
+  }
+
+  &__banner-text {
+    display: flex;
+    align-items: flex-start;
+    gap: fn.space(2);
+    min-width: 0;
+
+    i, svg { flex: 0 0 auto; margin-top: 0.125rem; }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Composer
+  // ---------------------------------------------------------------------------
+  &__composer {
+    display: flex;
+    align-items: center;
+    gap: fn.space(3);
+    margin-top: fn.space(4);
+    padding-top: fn.space(4);
+    border-top: 1px solid var(--ocs-border-subtle);
+
+    .ocs-input { flex: 1 1 auto; min-width: 0; }
+    .ocs-btn   { flex: 0 0 auto; }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Compact — a smaller log for a week card or a sidebar
+// -----------------------------------------------------------------------------
+.ocs-chat--compact {
+  border-radius: fn.radius(lg);
+
+  .ocs-chat__body { padding: fn.space(3) fn.space(4); }
+  .ocs-chat__log  { min-height: 8rem; max-height: 16rem; }
+
+  .ocs-chat__avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: $micro-size;
+  }
+
+  .ocs-chat__msg--continued .ocs-chat__main {
+    margin-inline-start: calc(1.75rem + #{fn.space(3)});
+  }
+
+  .ocs-chat__sender,
+  .ocs-chat__text { font-size: fn.typo(small); }
+
+  // A week card is short. The full centred empty block would leave the widget
+  // mostly whitespace, so say the same thing in one line.
+  .ocs-chat__empty {
+    display: block;
+    min-height: 0;
+    padding: fn.space(1) 0;
+    text-align: start;
+    color: var(--ocs-text-muted);
+    font-size: fn.typo(small);
+    font-style: italic;
+
+    i, svg { display: none; }
+
+    .ocs-chat__empty-title {
+      display: inline;
+      color: inherit;
+      font-size: inherit;
+      font-weight: 400;
+    }
+
+    .ocs-chat__empty-hint { display: none; }
+  }
+
+  .ocs-chat__log { min-height: 6rem; }
+}
+
+// -----------------------------------------------------------------------------
+// Collapsible — a <details> whose <summary> is the closed row
+// -----------------------------------------------------------------------------
+.ocs-chat--collapsible {
+  &[open] { border-color: var(--ocs-accent-border); }
+
+  .ocs-chat__summary {
+    display: flex;
+    align-items: center;
+    gap: fn.space(2);
+    padding: fn.space(3) fn.space(4);
+
+    color: var(--ocs-text);
+    font-size: fn.typo(small);
+    cursor: pointer;
+    // Removes the disclosure triangle in both grammars; the caret at the end
+    // of the row is the affordance instead.
+    list-style: none;
+
+    transition: background fn.duration(base) fn.easing(standard);
+
+    &::-webkit-details-marker { display: none; }
+
+    &:hover { background: var(--ocs-surface-elevated); }
+
+    &:focus-visible {
+      outline: 2px solid var(--ocs-accent);
+      outline-offset: -2px;
+    }
+  }
+
+  .ocs-chat__summary-icon  { color: var(--ocs-accent); }
+  .ocs-chat__summary-title { font-weight: 600; }
+
+  .ocs-chat__summary-caret {
+    margin-inline-start: auto;
+    color: var(--ocs-text-muted);
+    font-size: $micro-size;
+    transition: transform fn.duration(base) fn.easing(standard);
+  }
+
+  &[open] .ocs-chat__summary-caret { transform: rotate(180deg); }
+
+  .ocs-chat__body { border-top: 1px solid var(--ocs-border-subtle); }
+}
+
+// -----------------------------------------------------------------------------
+// Motion
+// -----------------------------------------------------------------------------
+@media (prefers-reduced-motion: reduce) {
+  .ocs-chat__unfurl,
+  .ocs-chat__summary,
+  .ocs-chat__summary-caret { transition: none; }
+}
+
+// -----------------------------------------------------------------------------
+// Narrow screens
+// -----------------------------------------------------------------------------
+@media (max-width: fn.breakpoint(mobile)) {
+  .ocs-chat {
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: fn.space(2);
+      padding: fn.space(3) fn.space(4);
+    }
+
+    &__body { padding: fn.space(3) fn.space(4); }
+    &__log  { max-height: 18rem; }
+
+    &__avatar { width: 2rem; height: 2rem; font-size: $micro-size; }
+
+    &__msg--continued .ocs-chat__main {
+      margin-inline-start: calc(2rem + #{fn.space(3)});
+    }
+  }
+}
