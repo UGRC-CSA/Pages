@@ -803,6 +803,7 @@
   padding-inline: 0;
 }
 .ocs-card--interactive {
+  padding: 1rem;
   text-align: start;
   text-decoration: none;
   cursor: pointer;
