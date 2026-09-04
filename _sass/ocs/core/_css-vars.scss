@@ -177,6 +177,16 @@
   --ocs-border-strong: #{fn.neutral(300)};
   --ocs-border-subtle: #{fn.neutral(100)};
 
+  // Light mode overrode every token family EXCEPT this one, so a light page
+  // inherited shadows tuned for dark surfaces: rgba(0,0,0,0.30) up to 0.55.
+  // Under a white card that is a hard drop shadow, not a lift. Re-solved at
+  // the alpha a light surface actually needs, with a hairline ring so a card
+  // still has an edge where the shadow is too soft to read.
+  --ocs-shadow-sm: 0 1px 2px rgba(18, 18, 18, 0.06);
+  --ocs-shadow-md: 0 1px 3px rgba(18, 18, 18, 0.08), 0 4px 12px rgba(18, 18, 18, 0.05);
+  --ocs-shadow-lg: 0 2px 6px rgba(18, 18, 18, 0.08), 0 12px 28px rgba(18, 18, 18, 0.07);
+  --ocs-shadow-xl: 0 4px 10px rgba(18, 18, 18, 0.10), 0 24px 48px rgba(18, 18, 18, 0.09);
+
   // FULL semantic triplets, re-solved for light surfaces against the hardest
   // one (#E5E5E9 elevated). Declaring only the `fg` third -- as this block
   // originally did -- left every alert and badge carrying its DARK tint on a
