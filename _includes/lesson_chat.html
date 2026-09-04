@@ -4,15 +4,30 @@
 <!-- is achieved by tagging messages with a [[lesson:<url>]] marker and filtering -->
 <!-- on the client. All lessons share a single backbone group named "lessons". -->
 
-<details id="lessonChat" data-lesson-key="{{ page.url }}" style="margin-top:2em">
-  <summary>Lesson Chat — <span id="lessonChatStatus">click to open</span></summary>
-  <div id="lessonChatMessages" aria-live="polite" style="height:18em;overflow-y:auto;border:1px solid;padding:.5em;margin:.5em 0">
-    <p id="lessonChatEmpty"><em>No messages yet.</em></p>
+<details id="lessonChat" class="ocs-chat ocs-chat--compact ocs-chat--collapsible"
+         data-lesson-key="{{ page.url }}">
+  <summary class="ocs-chat__summary">
+    <span class="ocs-chat__summary-icon"><i class="fas fa-comments" aria-hidden="true"></i></span>
+    <span class="ocs-chat__summary-title">Lesson Chat</span>
+    <span class="ocs-chat__status" id="lessonChatStatusPill">
+      <span class="ocs-chat__status-dot" aria-hidden="true"></span>
+      <span class="ocs-chat__status-label" id="lessonChatStatus">click to open</span>
+    </span>
+    <span class="ocs-chat__summary-caret"><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+  </summary>
+
+  <div class="ocs-chat__body">
+    <div class="ocs-chat__log" id="lessonChatMessages" role="log" aria-live="polite">
+      <p class="ocs-chat__empty" id="lessonChatEmpty">No messages yet.</p>
+    </div>
+    <form class="ocs-chat__composer" id="lessonChatForm" autocomplete="off">
+      <input class="ocs-input" id="lessonChatInput" type="text"
+             placeholder="Message this lesson…" maxlength="2000" disabled>
+      <button class="ocs-btn ocs-btn--primary" id="lessonChatSend" type="submit" disabled>
+        <i class="fas fa-paper-plane" aria-hidden="true"></i><span>Send</span>
+      </button>
+    </form>
   </div>
-  <form id="lessonChatForm" autocomplete="off" style="display:flex;gap:.5em">
-    <input id="lessonChatInput" type="text" placeholder="Message this lesson…" maxlength="2000" disabled style="flex:1">
-    <button id="lessonChatSend" type="submit" disabled>Send</button>
-  </form>
 </details>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
@@ -51,8 +66,30 @@
   const sendBtn = document.getElementById('lessonChatSend');
   const formEl = document.getElementById('lessonChatForm');
 
-  function setStatus(text) {
+  const statusPillEl = document.getElementById('lessonChatStatusPill');
+
+  function setStatus(text, tone) {
     statusEl.textContent = text;
+    if (!statusPillEl) return;
+    statusPillEl.classList.remove('ocs-chat__status--live', 'ocs-chat__status--preview',
+                                  'ocs-chat__status--error');
+    if (tone) statusPillEl.classList.add(tone);
+  }
+
+  // Shared with announcement_chat.html and week_chat.html, so one person's
+  // initials and tint are the same in every chat on the site.
+  function initialsFor(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function tintFor(name) {
+    const text = String(name || '');
+    let hash = 0;
+    for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+    return `ocs-chat__avatar--tint-${(hash % 5) + 1}`;
   }
 
   function formatTimestamp(isoString) {
@@ -70,21 +107,52 @@
   function appendMessage({ sender, message, date }) {
     clearEmpty();
     const who = sender === state.currentUserDisplayName ? 'You' : (sender || 'Unknown');
+    const isSelf = who === 'You';
     const when = formatTimestamp(date);
-    const line = document.createElement('p');
-    const strong = document.createElement('strong');
-    strong.textContent = who;
-    line.append(strong, document.createTextNode(when ? ` · ${when}: ` : ': '), document.createTextNode(message));
-    messagesEl.appendChild(line);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Only follow the log down if the reader is already at the bottom, so
+    // scrolling back through history is not yanked away by a new message.
+    const atBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 40;
+
+    const row = document.createElement('div');
+    row.className = isSelf ? 'ocs-chat__msg ocs-chat__msg--self' : 'ocs-chat__msg';
+
+    const avatar = document.createElement('span');
+    avatar.className = ['ocs-chat__avatar', isSelf ? '' : tintFor(who)].filter(Boolean).join(' ');
+    avatar.textContent = initialsFor(who);
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const main = document.createElement('div');
+    main.className = 'ocs-chat__main';
+
+    const meta = document.createElement('div');
+    meta.className = 'ocs-chat__meta';
+    const senderEl = document.createElement('span');
+    senderEl.className = 'ocs-chat__sender';
+    senderEl.textContent = who;
+    meta.appendChild(senderEl);
+    if (when) {
+      const timeEl = document.createElement('span');
+      timeEl.className = 'ocs-chat__time';
+      timeEl.textContent = when;
+      meta.appendChild(timeEl);
+    }
+
+    const body = document.createElement('span');
+    body.className = 'ocs-chat__text';
+    body.textContent = message;
+
+    main.append(meta, body);
+    row.append(avatar, main);
+    messagesEl.appendChild(row);
+    if (atBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
   function appendSystem(text) {
     clearEmpty();
     const el = document.createElement('p');
-    const em = document.createElement('em');
-    em.textContent = text;
-    el.appendChild(em);
+    el.className = 'ocs-chat__system';
+    el.textContent = text;
     messagesEl.appendChild(el);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -188,7 +256,7 @@
     return new Promise((resolve) => {
       if (state.connected) return resolve(true);
       if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
-        setStatus('unavailable');
+        setStatus('unavailable', 'ocs-chat__status--error');
         return resolve(false);
       }
       setStatus('connecting…');
@@ -199,7 +267,7 @@
 
       client.connect({}, () => {
         state.connected = true;
-        setStatus('connected');
+        setStatus('connected', 'ocs-chat__status--live');
         state.subscription = client.subscribe(`/topic/group/${state.backboneGroupId}`, (frame) => {
           try { handleIncoming(JSON.parse(frame.body)); }
           catch (err) { console.warn('Lesson chat: bad frame', err); }
@@ -208,14 +276,14 @@
       }, (err) => {
         console.warn('Lesson chat: connection failed', err);
         state.connected = false;
-        setStatus('disconnected');
+        setStatus('disconnected', 'ocs-chat__status--error');
         resolve(false);
       });
 
       socket.onclose = () => {
         if (!state.connected) return;
         state.connected = false;
-        setStatus('disconnected');
+        setStatus('disconnected', 'ocs-chat__status--error');
         inputEl.disabled = true;
         sendBtn.disabled = true;
       };
@@ -249,7 +317,7 @@
     const ok = await resolveBackboneGroup();
     if (!ok) {
       console.warn('Lesson chat: backbone group could not be resolved; see prior warnings for cause');
-      setStatus('unavailable');
+      setStatus('unavailable', 'ocs-chat__status--error');
       appendSystem('Lesson chat is not available right now.');
       return;
     }

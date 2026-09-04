@@ -85,7 +85,17 @@
     .ocs-card__footer { padding-inline: 0; }
   }
 
+  // A card that is one control rather than a header/body/footer stack, so it
+  // carries its own padding: the whole point of this modifier is that there is
+  // no __body to put it on.
+  //
+  // Without this the card gets whatever the element defaults to, and when the
+  // element is a <button> that is the user-agent's `padding: 1px 6px`. The
+  // practice page shipped exactly that: quest cards with one pixel of space
+  // above and below three lines of text.
   &--interactive {
+    padding: fn.space(4);
+
     text-align: start;
     text-decoration: none;
     cursor: pointer;

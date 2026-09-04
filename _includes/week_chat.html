@@ -11,35 +11,35 @@
 <!-- leave the browser and are clearly labelled as such. -->
 {% assign wc_id = unitKey | append: '-' | append: index %}
 
-<details class="week-chat" data-week-key="{{ wc_id }}">
-  <summary class="chat-summary">
-    <span class="chat-summary-icon"><i class="fas fa-comments"></i></span>
-    <span class="chat-summary-title">Week {{ index }} Chat</span>
-    <span class="chat-status-pill" id="weekChatStatusPill-{{ wc_id }}">
-      <span class="chat-status-dot" aria-hidden="true"></span>
-      <span class="chat-status" id="weekChatStatus-{{ wc_id }}">click to open</span>
+<details class="ocs-chat ocs-chat--compact ocs-chat--collapsible" data-week-key="{{ wc_id }}">
+  <summary class="ocs-chat__summary">
+    <span class="ocs-chat__summary-icon"><i class="fas fa-comments"></i></span>
+    <span class="ocs-chat__summary-title">Week {{ index }} Chat</span>
+    <span class="ocs-chat__status" id="weekChatStatusPill-{{ wc_id }}">
+      <span class="ocs-chat__status-dot" aria-hidden="true"></span>
+      <span class="ocs-chat__status-label" id="weekChatStatus-{{ wc_id }}">click to open</span>
     </span>
-    <span class="chat-summary-caret"><i class="fas fa-chevron-down"></i></span>
+    <span class="ocs-chat__summary-caret"><i class="fas fa-chevron-down"></i></span>
   </summary>
-  <div class="chat-body">
-    <p class="chat-preview-note" id="weekChatNote-{{ wc_id }}" hidden>
+  <div class="ocs-chat__body">
+    <p class="ocs-chat__banner ocs-chat__banner--warning" id="weekChatNote-{{ wc_id }}" hidden>
       <i class="fas fa-flask"></i><span id="weekChatNoteText-{{ wc_id }}"></span>
     </p>
-    <div class="chat-publish-banner" id="weekChatPublishBanner-{{ wc_id }}" hidden>
-      <div class="chat-publish-banner-text">
+    <div class="ocs-chat__banner ocs-chat__banner--accent" id="weekChatPublishBanner-{{ wc_id }}" hidden>
+      <div class="ocs-chat__banner-text">
         <i class="fas fa-box-archive" aria-hidden="true"></i>
         <span id="weekChatPublishBannerText-{{ wc_id }}"></span>
       </div>
-      <button type="button" class="chat-publish-btn" id="weekChatPublishBtn-{{ wc_id }}">
+      <button type="button" class="ocs-btn ocs-btn--sm" id="weekChatPublishBtn-{{ wc_id }}">
         <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i><span>Publish</span>
       </button>
     </div>
-    <div class="chat-messages" id="weekChatMessages-{{ wc_id }}" aria-live="polite">
-      <p class="chat-empty" id="weekChatEmpty-{{ wc_id }}">No messages yet.</p>
+    <div class="ocs-chat__log" id="weekChatMessages-{{ wc_id }}" aria-live="polite">
+      <p class="ocs-chat__empty" id="weekChatEmpty-{{ wc_id }}">No messages yet.</p>
     </div>
-    <form class="chat-form" id="weekChatForm-{{ wc_id }}" autocomplete="off">
-      <input class="chat-input" id="weekChatInput-{{ wc_id }}" type="text" placeholder="Ask a question about Week {{ index }}…" maxlength="2000" disabled>
-      <button class="chat-send" id="weekChatSend-{{ wc_id }}" type="submit" disabled>
+    <form class="ocs-chat__composer" id="weekChatForm-{{ wc_id }}" autocomplete="off">
+      <input class="ocs-input" id="weekChatInput-{{ wc_id }}" type="text" placeholder="Ask a question about Week {{ index }}…" maxlength="2000" disabled>
+      <button class="ocs-btn ocs-btn--primary" id="weekChatSend-{{ wc_id }}" type="submit" disabled>
         <i class="fas fa-paper-plane"></i><span>Send</span>
       </button>
     </form>
@@ -104,7 +104,7 @@
     seenKeys: new Set(),
   };
 
-  const detailsEl = document.querySelector(`details.week-chat[data-week-key="${WC_ID}"]`);
+  const detailsEl = document.querySelector(`details.ocs-chat[data-week-key="${WC_ID}"]`);
   const statusEl = document.getElementById(`weekChatStatus-${WC_ID}`);
   const statusPillEl = document.getElementById(`weekChatStatusPill-${WC_ID}`);
   const noteEl = document.getElementById(`weekChatNote-${WC_ID}`);
@@ -119,7 +119,7 @@
 
   function setStatus(text, tone) {
     statusEl.textContent = text;
-    statusPillEl.classList.remove('is-live', 'is-preview', 'is-error');
+    statusPillEl.classList.remove('ocs-chat__status--live', 'ocs-chat__status--preview', 'ocs-chat__status--error');
     if (tone) statusPillEl.classList.add(tone);
   }
 
@@ -150,32 +150,60 @@
     const who = sender === state.currentUserDisplayName ? 'You' : (sender || 'Unknown');
     const when = formatTimestamp(date);
 
+  function initialsFor(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  // Stable per-sender tint, so the same person keeps the same avatar colour
+  // here and in the announcement chat.
+  function tintFor(name) {
+    const text = String(name || '');
+    let hash = 0;
+    for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+    return `ocs-chat__avatar--tint-${(hash % 5) + 1}`;
+  }
+
     const line = document.createElement('div');
-    line.className = who === 'You' ? 'chat-msg is-self' : 'chat-msg';
+    const isSelf = who === 'You';
+    line.className = isSelf ? 'ocs-chat__msg ocs-chat__msg--self' : 'ocs-chat__msg';
+
+    // Same shape as the announcement chat: an avatar in the gutter and a
+    // column beside it. One message shape means one set of styles.
+    const avatar = document.createElement('span');
+    avatar.className = ['ocs-chat__avatar', isSelf ? '' : tintFor(who)].filter(Boolean).join(' ');
+    avatar.textContent = initialsFor(who);
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const main = document.createElement('div');
+    main.className = 'ocs-chat__main';
 
     const meta = document.createElement('div');
-    meta.className = 'chat-msg-meta';
+    meta.className = 'ocs-chat__meta';
     const senderEl = document.createElement('span');
-    senderEl.className = 'chat-msg-sender';
+    senderEl.className = 'ocs-chat__sender';
     senderEl.textContent = who;
     meta.appendChild(senderEl);
     if (when) {
       const timeEl = document.createElement('span');
-      timeEl.className = 'chat-msg-time';
+      timeEl.className = 'ocs-chat__time';
       timeEl.textContent = when;
       meta.appendChild(timeEl);
     }
 
     const body = document.createElement('span');
-    body.className = 'chat-msg-body';
+    body.className = 'ocs-chat__text';
     renderMessageBody(body, message);
 
-    line.append(meta, body);
+    main.append(meta, body);
+    line.append(avatar, main);
     messagesEl.appendChild(line);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
     const previewUrl = firstUrlIn(message);
-    if (previewUrl) attachLinkPreview(previewUrl, line);
+    if (previewUrl) attachLinkPreview(previewUrl, main);
   }
 
   /* ── Link rendering + Slack-style unfurl ──────────────────────────────
@@ -218,13 +246,13 @@
       if (!preview || !preview.title || !afterEl.isConnected) return;
 
       const card = document.createElement('a');
-      card.className = 'chat-link-preview';
+      card.className = 'ocs-chat__unfurl';
       card.href = preview.url || url;
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
 
       const thumb = document.createElement('div');
-      thumb.className = 'chat-link-preview-thumb';
+      thumb.className = 'ocs-chat__unfurl-thumb';
       if (preview.image) {
         const img = document.createElement('img');
         img.src = preview.image;
@@ -237,17 +265,17 @@
       }
 
       const previewBody = document.createElement('div');
-      previewBody.className = 'chat-link-preview-body';
+      previewBody.className = 'ocs-chat__unfurl-body';
       const siteEl = document.createElement('span');
-      siteEl.className = 'chat-link-preview-site';
+      siteEl.className = 'ocs-chat__unfurl-site';
       siteEl.textContent = preview.siteName || new URL(preview.url || url).hostname;
       const titleEl = document.createElement('span');
-      titleEl.className = 'chat-link-preview-title';
+      titleEl.className = 'ocs-chat__unfurl-title';
       titleEl.textContent = preview.title;
       previewBody.append(siteEl, titleEl);
       if (preview.description) {
         const descEl = document.createElement('span');
-        descEl.className = 'chat-link-preview-desc';
+        descEl.className = 'ocs-chat__unfurl-desc';
         descEl.textContent = preview.description;
         previewBody.appendChild(descEl);
       }
@@ -262,7 +290,7 @@
   function appendSystem(text) {
     clearEmpty();
     const el = document.createElement('p');
-    el.className = 'chat-system';
+    el.className = 'ocs-chat__system';
     el.textContent = text;
     messagesEl.appendChild(el);
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -401,7 +429,7 @@
   function enterPreviewMode(reason) {
     state.mode = 'preview';
     state.currentUserDisplayName = 'You';
-    setStatus('preview', 'is-preview');
+    setStatus('preview', 'ocs-chat__status--preview');
     showNote(`${reason} This is a local preview — messages stay in this browser and are not sent to the class.`);
 
     readPreviewMessages().forEach((msg) => {
@@ -519,7 +547,7 @@
 
       client.connect({}, () => {
         state.connected = true;
-        setStatus('connected', 'is-live');
+        setStatus('connected', 'ocs-chat__status--live');
         state.subscription = client.subscribe(`/topic/group/${state.backboneGroupId}`, (frame) => {
           try { handleIncoming(JSON.parse(frame.body)); }
           catch (err) { console.warn('Week chat: bad frame', err); }
@@ -534,7 +562,7 @@
       socket.onclose = () => {
         if (!state.connected) return;
         state.connected = false;
-        setStatus('disconnected', 'is-error');
+        setStatus('disconnected', 'ocs-chat__status--error');
         setComposerEnabled(false);
       };
     });
