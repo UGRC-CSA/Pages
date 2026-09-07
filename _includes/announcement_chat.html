@@ -28,6 +28,15 @@
     <p class="chat-preview-note" id="announcementChatNote" hidden>
       <i class="fas fa-flask" aria-hidden="true"></i><span id="announcementChatNoteText"></span>
     </p>
+    <div class="chat-publish-banner" id="announcementChatPublishBanner" hidden>
+      <div class="chat-publish-banner-text">
+        <i class="fas fa-box-archive" aria-hidden="true"></i>
+        <span id="announcementChatPublishBannerText"></span>
+      </div>
+      <button type="button" class="chat-publish-btn" id="announcementChatPublishBtn">
+        <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i><span>Publish to class chat</span>
+      </button>
+    </div>
     <div class="chat-messages" id="announcementChatMessages" role="log" aria-live="polite">
       <div class="chat-empty" id="announcementChatEmpty">
         <i class="fas fa-bullhorn" aria-hidden="true"></i>
@@ -36,7 +45,6 @@
       </div>
     </div>
     <form class="chat-form" id="announcementChatForm" autocomplete="off">
-      <input class="chat-input" id="announcementChatInput" type="text" placeholder="Message the class…" maxlength="2000" disabled>
       <button class="chat-send" id="announcementChatSend" type="submit" disabled>
         <i class="fas fa-paper-plane" aria-hidden="true"></i><span>Send</span>
       </button>
@@ -46,12 +54,17 @@
 
 <script type="module">
   import { javaURI, pythonURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
+  import { createRichComposer, renderRichMessage } from '{{site.baseurl}}/assets/js/chat/rich-text.js';
 
   const COURSE = {{ page.course | jsonify }};
   const GROUP_NAME = `${COURSE}-announcements`;
   const CHAT_SOCKET_PORT = 8589;
   const PREVIEW_KEY = `ocs-chat-preview:${GROUP_NAME}`;
   const PREVIEW_LIMIT = 100;
+  const PUBLISHED_KEY = `ocs-chat-published:${GROUP_NAME}`;
+  const PUBLISHED_LIMIT = 500;
+  const URL_RE = /https?:\/\/[^\s<>()]+/g;
+  const linkPreviewCache = new Map();
 
   const SOCKJS_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js';
   const STOMP_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js';
@@ -105,9 +118,19 @@
   const noteEl = document.getElementById('announcementChatNote');
   const noteTextEl = document.getElementById('announcementChatNoteText');
   const messagesEl = document.getElementById('announcementChatMessages');
-  const inputEl = document.getElementById('announcementChatInput');
   const sendBtn = document.getElementById('announcementChatSend');
   const formEl = document.getElementById('announcementChatForm');
+  const publishBannerEl = document.getElementById('announcementChatPublishBanner');
+  const publishBannerTextEl = document.getElementById('announcementChatPublishBannerText');
+  const publishBtn = document.getElementById('announcementChatPublishBtn');
+
+  const composer = createRichComposer({
+    placeholder: 'Message the class…',
+    maxLength: 2000,
+    onSubmit: submitMessage,
+  });
+  formEl.classList.add('chat-form--rich');
+  formEl.insertBefore(composer.element, sendBtn);
 
   function setStatus(text, tone) {
     statusEl.textContent = text;
@@ -121,8 +144,13 @@
   }
 
   function setComposerEnabled(enabled) {
-    inputEl.disabled = !enabled;
+    composer.setEnabled(enabled);
     sendBtn.disabled = !enabled;
+  }
+
+  function submitMessage() {
+    if (composer.isEmpty() || composer.isOverLimit()) return;
+    if (sendMessage(composer.getHTML())) composer.clear();
   }
 
   function parseDate(isoString) {
@@ -225,7 +253,7 @@
 
     const body = document.createElement('span');
     body.className = 'chat-msg-body';
-    body.textContent = message;
+    renderRichMessage(body, message);
 
     main.append(meta, body);
     row.append(avatar, main);
@@ -233,6 +261,74 @@
 
     state.lastSender = who;
     if (wasAtBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    const previewUrl = firstUrlIn(message);
+    if (previewUrl) attachLinkPreview(previewUrl, main);
+  }
+
+  /* ── Slack-style link unfurl ─────────────────────────────────────────
+     renderRichMessage() (in rich-text.js) already turns bare URLs in a
+     message into links. On top of that, the first URL gets a preview card
+     (title/description/thumbnail) fetched server-side via /api/link-preview
+     — the browser can't read another site's Open Graph tags itself (CORS),
+     so this always goes through the backend. */
+
+  function firstUrlIn(text) {
+    const match = String(text || '').match(URL_RE);
+    return match ? match[0] : null;
+  }
+
+  async function attachLinkPreview(url, afterEl) {
+    try {
+      let preview = linkPreviewCache.get(url);
+      if (!preview) {
+        const res = await fetch(`${javaURI}/api/link-preview?url=${encodeURIComponent(url)}`, fetchOptions);
+        if (!res.ok) return;
+        preview = await res.json();
+        linkPreviewCache.set(url, preview);
+      }
+      if (!preview || !preview.title || !afterEl.isConnected) return;
+
+      const card = document.createElement('a');
+      card.className = 'chat-link-preview';
+      card.href = preview.url || url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'chat-link-preview-thumb';
+      if (preview.image) {
+        const img = document.createElement('img');
+        img.src = preview.image;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.onerror = () => { img.remove(); thumb.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i>'; };
+        thumb.appendChild(img);
+      } else {
+        thumb.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i>';
+      }
+
+      const previewBody = document.createElement('div');
+      previewBody.className = 'chat-link-preview-body';
+      const siteEl = document.createElement('span');
+      siteEl.className = 'chat-link-preview-site';
+      siteEl.textContent = preview.siteName || new URL(preview.url || url).hostname;
+      const titleEl = document.createElement('span');
+      titleEl.className = 'chat-link-preview-title';
+      titleEl.textContent = preview.title;
+      previewBody.append(siteEl, titleEl);
+      if (preview.description) {
+        const descEl = document.createElement('span');
+        descEl.className = 'chat-link-preview-desc';
+        descEl.textContent = preview.description;
+        previewBody.appendChild(descEl);
+      }
+
+      card.append(thumb, previewBody);
+      afterEl.appendChild(card);
+    } catch (err) {
+      console.warn('Announcement chat: link preview failed', err);
+    }
   }
 
   function appendSystem(text) {
@@ -274,6 +370,106 @@
       console.warn('Announcement chat: could not save preview message', err);
     }
   }
+
+  /* ── Publishing a local backup into the live chat ─────────────────────
+     Opt-in only: signed-in users who still have preview-mode messages
+     saved from before this chat was connected to the backend (e.g. from
+     the window when this widget ran localStorage-only) can push them into
+     the real, shared chat. Never runs automatically. */
+
+  function archivePublishedMessages(sentEntries) {
+    try {
+      const raw = window.localStorage.getItem(PUBLISHED_KEY);
+      const existing = raw ? JSON.parse(raw) : [];
+      const archive = Array.isArray(existing) ? existing : [];
+      window.localStorage.setItem(PUBLISHED_KEY, JSON.stringify([...archive, ...sentEntries].slice(-PUBLISHED_LIMIT)));
+    } catch (err) {
+      console.warn('Announcement chat: could not archive published messages', err);
+    }
+  }
+
+  function removeFromPreview(sentEntries) {
+    const sentKeys = new Set(sentEntries.map(eventKey));
+    const remaining = readPreviewMessages().filter((msg) => !sentKeys.has(eventKey(msg)));
+    try {
+      if (remaining.length) window.localStorage.setItem(PREVIEW_KEY, JSON.stringify(remaining));
+      else window.localStorage.removeItem(PREVIEW_KEY);
+    } catch (err) {
+      console.warn('Announcement chat: could not update local backup after publish', err);
+    }
+  }
+
+  // Publishing goes over REST, not the STOMP send path sendMessage() uses:
+  // /api/groups/** is enforced server-side by Spring Security (auth required),
+  // where the STOMP /app/groups.chat path currently has no server-side auth
+  // at all. REST still broadcasts live to everyone connected — it flows
+  // through the same GroupChatRealtimeService.publishMessage() either way.
+  async function sendLiveMessage(sender, text, date) {
+    if (!state.backboneGroupId) return false;
+    try {
+      const res = await fetch(`${javaURI}/api/groups/chat/${state.backboneGroupId}/messages`, {
+        ...fetchOptions,
+        method: 'POST',
+        body: JSON.stringify({ name: sender, message: text, date, image: null }),
+      });
+      return res.ok;
+    } catch (err) {
+      console.error('Announcement chat: publish send failed', err);
+      return false;
+    }
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function updatePublishBanner() {
+    const pending = readPreviewMessages();
+    const eligible = state.mode === 'live' && pending.length > 0;
+    publishBannerEl.hidden = !eligible;
+    if (eligible) {
+      publishBannerTextEl.textContent =
+        `Found ${pending.length} message${pending.length === 1 ? '' : 's'} saved locally from before this chat was connected.`;
+    }
+  }
+
+  async function publishLocalBackup() {
+    const pending = readPreviewMessages();
+    if (!pending.length || state.mode !== 'live') return;
+
+    const ok = window.confirm(
+      `Publish ${pending.length} message${pending.length === 1 ? '' : 's'} from your local backup to the live class chat, `
+      + `as ${state.currentUserDisplayName}, with their original timestamps? Everyone in the class will see them. This can't be undone.`
+    );
+    if (!ok) return;
+
+    publishBtn.disabled = true;
+    const sent = [];
+    for (const entry of pending) {
+      if (!(await sendLiveMessage(state.currentUserDisplayName, entry.message, entry.date))) break;
+      sent.push(entry);
+      await delay(120);
+    }
+
+    if (sent.length) {
+      archivePublishedMessages(sent);
+      removeFromPreview(sent);
+    }
+
+    // Don't call updatePublishBanner() here — it would re-hide the banner the
+    // instant a full batch succeeds (no pending messages left), hiding this
+    // confirmation with it. It's shown again on next load only if something
+    // is still pending.
+    const failedCount = pending.length - sent.length;
+    publishBannerEl.hidden = false;
+    publishBannerTextEl.textContent = failedCount > 0
+      ? `Published ${sent.length} of ${pending.length} — ${failedCount} failed. Try again to resend the rest.`
+      : `Published ${sent.length} message${sent.length === 1 ? '' : 's'}.`;
+    publishBtn.disabled = false;
+    publishBtn.hidden = failedCount === 0;
+  }
+
+  publishBtn.addEventListener('click', publishLocalBackup);
 
   function enterPreviewMode(reason) {
     state.mode = 'preview';
@@ -468,6 +664,7 @@
     if (connected) {
       state.mode = 'live';
       setComposerEnabled(true);
+      updatePublishBanner();
     } else {
       appendSystem('Live updates are unavailable right now.');
       enterPreviewMode('The class chat service is unreachable.');
@@ -476,9 +673,7 @@
 
   formEl.addEventListener('submit', (e) => {
     e.preventDefault();
-    const text = inputEl.value.trim();
-    if (!text) return;
-    if (sendMessage(text)) inputEl.value = '';
+    submitMessage();
   });
 
   window.addEventListener('beforeunload', () => {
