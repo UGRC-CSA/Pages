@@ -98,6 +98,9 @@
   border: 1px solid $bg-3;
   border-radius: 999px;
   white-space: nowrap;
+
+  /* Signed out there is no account to name, and an empty pill is just a mark. */
+  &:empty { display: none; }
 }
 
 /* ── Layout ───────────────────────────────────────────────────────────────
@@ -287,48 +290,39 @@
   }
 }
 
-/* ── Local-mode identity switcher ─────────────────────────────────────── */
-.dm-identity {
+/* ── Signed-out prompt ────────────────────────────────────────────────── */
+.dm-signin {
   padding: 14px 16px;
   border-top: 1px solid $bg-3;
-  background: rgba($warn, 0.05);
+  background: rgba($accent, 0.06);
+
+  &[hidden] { display: none; }
 }
 
-.dm-identity-list {
+.dm-signin-text {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.dm-identity-btn {
-  padding: 5px 10px;
-  border: 1px solid $bg-3;
-  border-radius: 999px;
-  background: transparent;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 10px 0;
   color: $text-muted;
-  font-family: inherit;
   font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
+  line-height: 1.45;
 
-  &:hover { border-color: $accent; color: $text; }
-
-  &[aria-pressed="true"] {
-    border-color: $accent;
-    background: rgba($accent, 0.15);
+  i {
+    flex-shrink: 0;
+    margin-top: 2px;
     color: $accent;
-    font-weight: 600;
   }
 }
 
-.dm-identity-clear {
+.dm-signin-link {
   @include text-button;
   gap: 6px;
-  margin-top: 10px;
-  border-color: $bg-3;
-  color: $text-muted;
+  border-color: $accent;
+  color: $accent;
+  text-decoration: none;
 
-  &:hover { border-color: $red; color: $red; }
+  &:hover { background: rgba($accent, 0.12); }
 }
 
 /* ── Conversation extras ──────────────────────────────────────────────── */

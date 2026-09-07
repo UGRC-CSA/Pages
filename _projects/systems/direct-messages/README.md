@@ -2,25 +2,16 @@
 
 Private one-to-one conversations, implemented for [UGRC-CSA/Pages #17](https://github.com/UGRC-CSA/Pages/issues/17).
 
-The page runs in two modes and picks between them on load:
+**Signing in is required.** A conversation is between two accounts and is stored
+on the server, so there is no offline or signed-out mode: without an account
+there is nobody to be, and nowhere to deliver to. A signed-out visitor gets a
+sign-in prompt and an inert panel; if the API is unreachable the page says so and
+stays inert. Neither state offers a composer, a search box, or a sandbox.
 
-| Mode | When | Where messages live |
-| --- | --- | --- |
-| **Local** | Nobody is signed in, or the API is unreachable | `localStorage`, this browser only |
-| **Live** | Signed in and Spring is reachable | The backend, shared between both people |
-
-This is the same arrangement the class announcement chat uses
-(`_includes/announcement_chat.html`): the feature never turns into an error
-screen, it just says what it is doing. Local mode needs no backend at all — no
-Spring, no database, no WebSocket — so the page can be developed, reviewed, and
-demonstrated on its own.
-
-**Local mode is per-browser.** Two different people on two different machines
-cannot message each other without the backend, because there is nowhere shared
-to put the message. What local mode gives you is the whole interface, working,
-with real conversations you can send, reload, and switch between — and a roster
-switcher so one browser can play both sides. Cross-user delivery is what the
-live backend is for.
+This is deliberately unlike the class announcement chat, which does fall back to
+a local browser-only mode. Announcements are one public room, so a local stand-in
+is harmless. A DM implies a specific other person and a private history, and a
+browser-only imitation of that would be misleading.
 
 ## UI
 
@@ -30,83 +21,77 @@ chats (`chat-header`, `chat-status-pill`, `chat-messages`, `chat-msg`,
 `chat-avatar`, `chat-day`, `chat-form`) and the same rich-text composer, all
 styled from `_sass/open-coding/chat-ui.scss`. That partial is shared: the
 courses stylesheet imports it too, so a change to the chat look lands on every
-chat surface at once.
+chat surface at once. The composer hides its list buttons here, via the `lists`
+option on `createRichComposer`; the class chats keep them.
 
 Around it, this project adds only what a conversation list needs — a page
 header, the two-column layout, the inbox, and the person search — in
 `sass/main.scss`, using the same tokens.
 
-Messages cannot be deleted, in either mode.
+Messages cannot be deleted.
 
 Entry points: the site header ("Messages"), the account menu, and the Student
 Toolkit.
 
 ## Run it locally
 
-No backend required:
+`make dm-preview` starts the page and a packaged Spring from `../Spring`
+(override with `SPRING_DIR`) on ports 4500, 8585, and 8589:
 
 ```sh
-make dm-local
+make dm-preview
 ```
 
 On Windows, use the tool-discovery wrapper from PowerShell:
 
 ```powershell
-.\scripts\make.ps1 dm-local
+.\scripts\make.ps1 dm-preview
 ```
 
-Open **http://127.0.0.1:4500/student/messages**. The status pill reads `local`
-and a banner explains that messages stay in this browser. Use **You are** in the
-sidebar to switch between You, Alice, Bob, and Charlie: send as Alice, switch to
-Bob to read it and reply, then switch to Charlie to confirm the conversation is
-not in their inbox. **Clear local conversations** empties the store.
+Open **http://localhost:4500/student/messages**. The preview profile seeds
+`dm-alice`, `dm-bob`, and `dm-charlie`, password `DmPreview123!`, in
+`volumes/dm-preview.db` with chat storage in `volumes/dm-preview-chat/`, separate
+from your normal database and S3. Sign in from separate browser profiles —
+ordinary tabs share cookies. Send as Alice, reply as Bob, and confirm Charlie
+sees none of it. Ctrl+C stops both servers.
 
-The preview builds **one page** and the JavaScript, SCSS, and layout it needs.
-It does not convert notebooks or build other projects, and it leaves the normal
-`_site` build alone; generated files live in `.dm-preview/`. Ctrl+C stops it.
+`make dm-frontend` serves the page alone, for chrome and layout work. With no
+backend it can only render its signed-out state.
 
-Its layout is a stand-in, not the real one, so it will not reproduce every
-site-wide CSS rule — the global `h1 { display: none }` and `.post-content h2`
-sizing both only show up in a real build. Check the page under `jekyll serve`
-before merging a change to the header or the page chrome.
-Restart after editing source. Requirements: Ruby with the repo's bundle, GNU
-Make/Bash, Python 3, and Node 18+ with Chrome for the browser checks. The
-Windows wrapper finds the existing Ruby/MSYS and Python installs; WSL is not
-needed.
+Both build **one page** and the JavaScript, SCSS, and layout it needs. They do
+not convert notebooks or build other projects, and they leave the normal `_site`
+build alone; generated files live in `.dm-preview/`. Restart after editing
+source.
 
-To exercise the signed-in path as well, `make dm-preview` additionally starts a
-packaged Spring from `../Spring` (override with `SPRING_DIR`) on ports 8585 and
-8589, with preview accounts `dm-alice`, `dm-bob`, and `dm-charlie`, password
-`DmPreview123!`, in `volumes/dm-preview.db`. Sign in from separate browser
-profiles — ordinary tabs share cookies.
+The preview layout is a stand-in, not the real one, so it will not reproduce
+every site-wide CSS rule — the global `h1 { display: none }` and
+`.post-content h2` sizing both only show up in a real build. Check page-chrome
+changes under a real `jekyll serve` too.
+
+Requirements: Ruby with the repo's bundle, GNU Make/Bash, Java 21, Python 3, and
+Node 18+ with Chrome for the browser checks. The Windows wrapper finds the
+existing Ruby/MSYS, Adoptium Java 21, and Python installs; WSL is not needed.
+Ports 4500, 8585, and 8589 must be free; the launcher reports a conflict rather
+than stopping unrelated servers.
 
 ## Verify
 
-With `make dm-local` serving, in a second terminal:
-
-```sh
-make dm-local-test
-```
-
-This drives the page in a real browser with nothing else running and checks:
-local-mode fallback and its banner; that the group-chat components and the page
-header are present; a conversation sent and replied to from both sides; unread
-counts that exclude your own messages; that no delete control exists; history
-surviving a reload; a third person seeing none of it; rich text rendering as
-text rather than executing; attachments staying hidden without a backend; and no
-horizontal overflow on a phone viewport. Screenshots land in
-`.dm-preview/local-desktop.png` and `.dm-preview/local-mobile.png`.
-
-For the backend path, with `make dm-preview` running:
+With `make dm-preview` running, in a second terminal:
 
 ```sh
 make dm-test     # Spring unit suite, then the live checks
-make dm-check    # just the live HTTP, WebSocket, browser, and migration checks
+make dm-check    # just the live migration, HTTP, WebSocket, and browser checks
 ```
+
+The browser pass covers two users searching, opening, replying, and reloading;
+literal rendering of text that looks like markup; attachment upload and download;
+a failed send keeping its draft; no horizontal overflow on a phone viewport; and
+a signed-out visitor getting the sign-in prompt with no composer, no search, and
+no roster. Screenshots land in `.dm-preview/`.
 
 Set `DM_BROWSER_PATH` for a Chromium other than installed Chrome.
 
-Manual checks worth repeating in live mode:
+Manual checks worth repeating:
 
 1. Search by name or username; yourself is excluded. Reopening a person returns
    the same conversation, including when both people open it at once.
@@ -121,7 +106,7 @@ Manual checks worth repeating in live mode:
    send keeps your draft. Reconnect and the history is the same, with no
    duplicate rows.
 
-## Data model (live mode)
+## Data model
 
 Any signed-in user can start a conversation with any other registered user;
 there is no invitation or class-membership prerequisite.
@@ -157,25 +142,20 @@ title; there is no email, push, or "seen by" indicator.
 | `/api/groups/chat/{groupId}/files` | Attachment list/upload, with membership checks |
 | `/api/ws-chat` | JWT-authenticated SockJS/STOMP handshake |
 
-Local mode mirrors this shape in `js/local.js`: the same create-or-reopen rule
-on a sorted pair key, the same membership check before reading or sending, the
-same unread rule, and the same refusal to move a read position backward.
-
 ## Files
 
 ```
 index.md            the page: group-chat markup plus the page header
 sass/main.scss      page header, layout, sidebar; imports the shared chat partial
-js/messages.js      rendering and state, one path for both modes
-js/live.js          backend adapter (Spring)
-js/local.js         localStorage adapter (no backend)
-js/api.js           low-level HTTP helper for live mode
-js/realtime.js      SockJS/STOMP connection for live mode
+js/messages.js      rendering, state, and the signed-out/unavailable states
+js/live.js          the backend calls, behind one object
+js/api.js           low-level HTTP helper
+js/realtime.js      SockJS/STOMP connection
 ```
 
 ## Deployment
 
-Local mode needs nothing deployed. For the backend path, deploy the Spring
+Deploy the Spring
 changes and the database migration before publishing the frontend. `ddl-auto`
 stays `none`. Stop Spring, back up the database, and run
 `python scripts/migrate_dm.py volumes/sqlite.db` from the Spring checkout for

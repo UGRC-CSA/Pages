@@ -12,9 +12,9 @@ search_exclude: true
      class announcement chat. Styles come from _sass/open-coding/chat-ui.scss,
      shared with _includes/announcement_chat.html and _includes/week_chat.html.
 
-     Works with or without the Spring backend: signed-out visitors, and anyone
-     visiting while the API is down, get a localStorage-backed local mode
-     instead of an error, the same way the announcement chat does.
+     Signing in is required: a conversation is between two accounts and is
+     stored on the server, so a signed-out visitor is shown a sign-in prompt and
+     an inert panel rather than a local sandbox.
 
      Uses `opencs` rather than `page`: the page supplies its own header, and the
      `page` layout would print the front-matter title above it as a second,
@@ -59,14 +59,15 @@ search_exclude: true
         </div>
       </div>
 
-      <!-- Local mode only: switch which roster member you are, so both sides of
-           a conversation can be exercised in one browser without a backend. -->
-      <div class="dm-identity" id="dmIdentity" hidden>
-        <h2 class="dm-sidebar-title">You are</h2>
-        <div class="dm-identity-list" id="dmIdentityList"></div>
-        <button class="dm-identity-clear" id="dmIdentityClear" type="button">
-          <i class="fas fa-trash-can" aria-hidden="true"></i><span>Clear local conversations</span>
-        </button>
+      <!-- Shown when there is no signed-in account to read messages as. -->
+      <div class="dm-signin" id="dmSignIn" hidden>
+        <p class="dm-signin-text">
+          <i class="fas fa-lock" aria-hidden="true"></i>
+          Messages are private between two accounts, so this page needs you signed in.
+        </p>
+        <a class="dm-signin-link" href="{{ '/login' | relative_url }}">
+          <i class="fas fa-right-to-bracket" aria-hidden="true"></i><span>Sign in</span>
+        </a>
       </div>
     </aside>
 

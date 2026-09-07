@@ -47,7 +47,10 @@ def main():
             ready = False
             try:
                 with urllib.request.urlopen("http://localhost:4500/student/messages", timeout=2) as response:
-                    ready = b'id="direct-messages"' in response.read()
+                    # The conversation panel, plus the surrounding document: a
+                    # missing layout still serves the panel, just unwrapped.
+                    body = response.read()
+                    ready = b'id="dmChat"' in body and b"<html" in body.lower()
                 request = urllib.request.Request("http://localhost:8585/authenticate", data=b'{"uid":"dm-alice","password":"DmPreview123!"}', headers={"Content-Type": "application/json"})
                 with urllib.request.urlopen(request, timeout=2) as response:
                     ready = ready and response.status == 200

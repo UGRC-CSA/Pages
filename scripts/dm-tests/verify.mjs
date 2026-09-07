@@ -145,18 +145,24 @@ try {
     await page.waitForFunction(who => document.querySelector('#dmAccount').textContent.includes(who), name);
   }
   await signIn(a, first, alice, 'Alice'); await signIn(b, second, bob, 'Bob'); await signIn(c, third, charlie, 'Charlie');
+  await a.locator('#dmStatusPill.is-live').waitFor();
   await a.locator('#dmSearch').fill('Bob');
   await a.locator('#dmResults button').filter({ hasText: 'Bob' }).click();
-  await a.locator('#dmStatusPill.is-live').waitFor();
+  // The status pill is live from page load, so it says nothing about whether a
+  // conversation is open. The composer is enabled only once one is.
+  const composerReady = (page) => page.locator('.rt-editor[contenteditable=true]').waitFor();
+  await composerReady(a);
   const text = `Browser hello ${stamp} <script>no HTML</script>`;
   await a.locator('.rt-editor').fill(text); await a.locator('#dmSend').click();
   await b.locator('#dmInbox button').filter({ hasText: 'Alice' }).waitFor();
   await b.locator('#dmInbox button').filter({ hasText: 'Alice' }).click();
+  await composerReady(b);
   await b.locator('.chat-msg-body').filter({ hasText: text }).waitFor();
   assert.equal(await b.locator('.chat-msg-body script').count(), 0);
   await b.locator('.rt-editor').fill(`Reply ${stamp}`); await b.locator('.rt-editor').press('Enter');
   await a.locator('.chat-msg-body').filter({ hasText: `Reply ${stamp}` }).waitFor();
   await a.reload(); await a.locator('#dmInbox button').filter({ hasText: 'Bob' }).click();
+  await composerReady(a);
   await a.locator('.chat-msg-body').filter({ hasText: `Reply ${stamp}` }).waitFor();
   assert.equal(await c.locator('#dmInbox').textContent().then(text => text.includes(`Browser hello ${stamp}`)), false);
   await a.locator('#dmAttachments summary').click();
@@ -175,6 +181,23 @@ try {
   await a.setViewportSize({ width: 390, height: 844 });
   assert(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile page must not overflow');
   await mkdir('.dm-preview', { recursive: true });
+
+  // Signed out, with the backend up: the page must refuse to work rather than
+  // offer a local sandbox, and must not leave any composer or search usable.
+  const anon = await browser.newContext();
+  const signedOut = await anon.newPage();
+  signedOut.on('pageerror', error => errors.push(error.message));
+  await signedOut.goto(pageUrl);
+  await signedOut.locator('#dmSignIn').waitFor({ state: 'visible' });
+  assert.match(await signedOut.locator('#dmStatus').textContent(), /signed out/i);
+  assert.equal(await signedOut.locator('.rt-editor[contenteditable=true]').count(), 0, 'Composer editable while signed out');
+  assert.equal(await signedOut.locator('#dmSend').isDisabled(), true, 'Send enabled while signed out');
+  assert.equal(await signedOut.locator('#dmSearch').isDisabled(), true, 'Search enabled while signed out');
+  assert.equal(await signedOut.locator('#dmIdentityList').count(), 0, 'Local identity roster still rendered');
+  assert.equal(await signedOut.locator('#dmAttachments').isHidden(), true, 'Attachments shown while signed out');
+  await signedOut.screenshot({ path: '.dm-preview/signed-out.png', fullPage: true });
+  console.log('PASS Signed out: sign-in prompt, no composer, no search, no local roster');
+
   await a.screenshot({ path: '.dm-preview/mobile.png', fullPage: true });
   await b.screenshot({ path: '.dm-preview/desktop.png', fullPage: true });
   assert.deepEqual(errors, [], 'No uncaught browser errors');

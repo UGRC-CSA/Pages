@@ -1,10 +1,9 @@
-/* Backend-backed direct messages.
+/* Backend calls for direct messages.
  *
- * Wraps the Spring routes (/api/dm/** plus the shared group-chat endpoints) in
- * the same interface js/local.js exposes, so messages.js renders both without
- * caring which one it got. Normalizes the wire format too: the chat endpoint
- * returns the sender's username in `name`, which this resolves to a display
- * name using the conversation's two known participants.
+ * Wraps the Spring routes (/api/dm/** plus the shared group-chat endpoints)
+ * behind one object for messages.js. Normalizes the wire format too: the chat
+ * endpoint returns the sender's username in `name`, which this resolves to a
+ * display name using the conversation's two known participants.
  */
 
 import { request, chatPath } from './api.js';
@@ -22,9 +21,6 @@ export function createLiveBackend() {
   });
 
   return {
-    mode: 'live',
-    supportsFiles: true,
-
     async me() {
       const me = await request('/api/dm/me');
       names.set(me.uid, me.name);

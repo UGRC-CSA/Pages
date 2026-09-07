@@ -5,6 +5,11 @@ import shutil
 pages = Path(__file__).resolve().parents[1]
 stage = pages / ".dm-preview/source"
 
+# The stage is reused between runs. A layout left over from a previous run under
+# a name the page no longer asks for is invisible until something renders wrong,
+# so clear the directory rather than copying over it.
+shutil.rmtree(stage / "_layouts", ignore_errors=True)
+
 
 def copy(source, destination):
     target = stage / destination
@@ -13,7 +18,10 @@ def copy(source, destination):
 
 
 copy("_projects/systems/direct-messages/index.md", "messages.md")
-copy("scripts/dm-preview-layout.html", "_layouts/page.html")
+# Named for the layout the page actually asks for. Jekyll silently renders an
+# unwrapped page when the layout is missing, which looks like broken CSS rather
+# than a missing file, so keep this in step with index.md's front matter.
+copy("scripts/dm-preview-layout.html", "_layouts/opencs.html")
 copy("assets/js/api/config.js", "assets/js/api/config.js")
 
 # The conversation panel is the site's shared chat component, so the preview

@@ -1,20 +1,18 @@
 /* Messages -- private one-to-one conversations.
  *
- * Two backends behind one interface (js/live.js, js/local.js). The page tries
- * Spring first; if nobody is signed in or the API is unreachable it drops into
- * a localStorage-backed local mode instead of showing an error, exactly like
- * _includes/announcement_chat.html does for the class chat. Local messages stay
- * in this browser and the page says so.
+ * Signing in is required. A conversation is between two accounts and lives on
+ * the server, so there is no offline or signed-out mode: without an account
+ * there is nobody to be, and nowhere to deliver to. When the page cannot reach
+ * an account it says why and stays inert rather than pretending to work.
  *
  * The conversation panel is the site's group-chat component -- same markup,
  * same classes, same styles (_sass/open-coding/chat-ui.scss), same rich-text
  * composer -- so Messages reads as part of the site rather than its own app.
- * Messages cannot be deleted in either mode.
+ * Messages cannot be deleted.
  */
 
 import { createRichComposer, renderRichMessage } from '../../chat/rich-text.js';
 import { createLiveBackend } from './live.js';
-import { createLocalBackend } from './local.js';
 import { ChatConnection } from './realtime.js';
 
 const POLL_MS = 4000;
@@ -65,6 +63,9 @@ function showNote(text) {
 }
 
 function showError(error) {
+  // A session can expire mid-use; that is the signed-out state, not an error
+  // to display over a page that no longer works.
+  if (error.status === 401) { requireSignIn(); return; }
   el('dmError').textContent = error.message;
   el('dmError').hidden = false;
 }
@@ -119,7 +120,7 @@ const composer = createRichComposer({
   onSubmit: () => submitMessage(),
   onInput: () => {
     if (state.active) state.drafts.set(state.active.id, composer.getHTML());
-    if (state.backend?.mode !== 'live') return;
+    if (!state.backend) return;
     if (!typingTimer) connection?.send('typingStart');
     clearTimeout(typingTimer);
     typingTimer = setTimeout(() => {
@@ -351,7 +352,7 @@ async function searchPeople() {
 
 async function refreshFiles() {
   const active = state.active;
-  if (!active || !state.backend.supportsFiles) return;
+  if (!active || !state.backend) return;
   const generation = state.generation;
   const files = await state.backend.files(active.id);
   if (generation !== state.generation || state.active?.id !== active.id) return;
@@ -376,7 +377,7 @@ async function refreshFiles() {
 async function select(conversation) {
   if (state.active?.id === conversation.id) return;
   if (state.active) state.drafts.set(state.active.id, composer.getHTML());
-  if (state.backend.mode === 'live') connection?.send('typingStop');
+  connection?.send('typingStop');
 
   state.active = conversation;
   state.generation += 1;
@@ -395,16 +396,13 @@ async function select(conversation) {
   restoreDraft(state.drafts.get(conversation.id));
   setComposerEnabled(true);
 
-  if (state.backend.supportsFiles) {
-    el('dmAttachments').hidden = false;
-    el('dmFiles').replaceChildren();
-  }
-
-  if (state.backend.mode === 'live') connection?.select(conversation.id);
+  el('dmAttachments').hidden = false;
+  el('dmFiles').replaceChildren();
+  connection?.select(conversation.id);
   renderInbox();
 
   await refreshMessages(true);
-  if (state.backend.supportsFiles) await refreshFiles().catch(showError);
+  await refreshFiles().catch(showError);
   composer.focus();
 }
 
@@ -425,7 +423,7 @@ async function submitMessage() {
     // a failed send must never lose a draft.
     if (state.active?.id === active.id && composer.getHTML() === html) composer.clear();
     state.drafts.delete(active.id);
-    if (state.backend.mode === 'live') connection?.send('typingStop');
+    connection?.send('typingStop');
     if (state.active?.id === active.id) await refreshMessages(true);
     await refreshInbox();
   } catch (error) {
@@ -450,62 +448,61 @@ async function poll() {
   }
 }
 
-/* -- local mode -------------------------------------------------------- */
+/* -- blocked states ----------------------------------------------------- */
 
-// Local mode's stand-in for signing in. Announcements only ever need one
-// identity; a conversation needs two, so this switches which roster member you
-// are, letting one browser exercise both sides of a thread.
-function renderIdentitySwitcher() {
-  const panel = el('dmIdentity');
-  panel.hidden = false;
-  const list = el('dmIdentityList');
-  list.replaceChildren(...state.backend.people().map((person) => {
-    const button = node('button', person.name, 'dm-identity-btn');
-    button.type = 'button';
-    button.setAttribute('aria-pressed', String(person.uid === state.me.uid));
-    button.addEventListener('click', async () => {
-      if (person.uid === state.me.uid) return;
-      state.backend.setIdentity(person.uid);
-      await startLocalSession();
-    });
-    return button;
-  }));
-
-  el('dmIdentityClear').onclick = async () => {
-    if (!window.confirm('Delete every local conversation stored in this browser?')) return;
-    state.backend.clear();
-    await startLocalSession();
-  };
-}
-
-async function startLocalSession() {
+// Messages are only ever stored and delivered by the backend, so there is no
+// offline or signed-out mode: when the page cannot reach an account, it says
+// why and stays inert rather than pretending to work.
+function blockAccess(title, hint, detail) {
+  state.backend = null;
+  state.me = null;
   state.active = null;
   state.messages = null;
+  state.inbox = [];
   state.generation += 1;
-  state.lastRead = null;
-  state.me = await state.backend.me();
-  el('dmAccount').textContent = `Local mode · you are ${state.me.name}`;
-  el('dmChatTitle').textContent = 'Messages';
-  el('dmChatSubtitle').textContent = 'Choose someone from the inbox, or search for a name to start.';
-  el('dmPeerAvatar').textContent = '';
-  el('dmPeerAvatar').classList.remove('dm-peer-badge');
-  el('dmMessages').replaceChildren(emptyLog(
-    'No conversation open',
-    'Search for a name, or pick a conversation from the inbox.',
-  ));
+  clearInterval(state.polling);
+
+  el('dmAccount').textContent = '';
+  el('dmSearch').disabled = true;
+  el('dmSearch').value = '';
+  el('dmResults').replaceChildren();
+  el('dmSearchStatus').textContent = 'Sign in to find people.';
+  el('dmInbox').replaceChildren(node('p', hint, 'dm-hint'));
+  el('dmUnread').hidden = true;
+  el('dmAttachments').hidden = true;
+  el('dmChatTitle').textContent = title;
+  el('dmChatSubtitle').textContent = detail;
+  // Back to an icon, not the empty box that clearing the initials would leave.
+  const badge = el('dmPeerAvatar');
+  badge.classList.remove('dm-peer-badge');
+  const lock = document.createElement('i');
+  lock.className = 'fas fa-lock';
+  lock.setAttribute('aria-hidden', 'true');
+  badge.replaceChildren(lock);
+  el('dmMessages').replaceChildren(emptyLog(title, detail, 'fa-lock'));
   composer.clear();
   setComposerEnabled(false);
-  renderIdentitySwitcher();
-  await refreshInbox();
+  document.title = 'Messages';
 }
 
-async function enterLocalMode(reason) {
-  state.backend = createLocalBackend();
-  setStatus('local', 'is-preview');
-  showNote(`${reason} This is a local space — conversations stay in this browser and are not sent to anyone.`);
-  el('dmSearch').disabled = false;
-  el('dmAttachments').hidden = true;
-  await startLocalSession();
+function requireSignIn() {
+  setStatus('signed out', 'is-preview');
+  el('dmSignIn').hidden = false;
+  blockAccess(
+    'Sign in to use Messages',
+    'Sign in to see your conversations.',
+    'Conversations are private between two accounts, so Messages needs you signed in.',
+  );
+}
+
+function serviceUnavailable() {
+  setStatus('unavailable', 'is-error');
+  showNote('Messages cannot reach the server right now. Your conversations are safe; try again in a moment.');
+  blockAccess(
+    'Messages is unavailable',
+    'Conversations will appear once the server is reachable.',
+    'The messages service is not responding.',
+  );
 }
 
 /* -- live mode --------------------------------------------------------- */
@@ -535,11 +532,9 @@ async function start() {
   try {
     me = await live.me();
   } catch (error) {
-    // 401 means signed out; anything else means the API is down. Either way the
-    // page stays usable rather than turning into an error screen.
-    await enterLocalMode(error.status === 401
-      ? 'You are not signed in.'
-      : 'The messages service is unreachable.');
+    // 401 is the ordinary signed-out case, not a fault; anything else means the
+    // service is down. Neither leaves the page usable.
+    if (error.status === 401) requireSignIn(); else serviceUnavailable();
     return;
   }
 

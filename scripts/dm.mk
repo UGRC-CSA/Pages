@@ -1,8 +1,10 @@
 # Focused DM workflow; all regular site targets keep their existing behavior.
 #
-# Messages works with or without Spring, so there are two preview paths:
-#   dm-local    the page on its own, no backend at all (the usual one)
-#   dm-preview  the page plus a packaged Spring, for the signed-in path
+# Messages requires a signed-in account, so dm-preview is the working target:
+#   dm-preview   the page plus a packaged Spring; the only way to hold a
+#                conversation, and what the checks in dm-test run against
+#   dm-frontend  the page alone, for chrome and layout work. Without a backend
+#                it can only ever show its signed-out state.
 DM_PYTHON ?= python3
 SPRING_DIR ?= ../Spring
 DM_PROJECT = _projects/systems/direct-messages
@@ -10,7 +12,7 @@ DM_JEKYLL = cd .dm-preview/source && BUNDLE_GEMFILE=../../Gemfile bundle exec je
 	--config ../../_config.yml,../../_config.dev.yml --source . --destination ../site \
 	--host 127.0.0.1 --port 4500 --no-watch
 
-.PHONY: dm-local dm-local-test dm-build dm-preview dm-frontend dm-test dm-check
+.PHONY: dm-build dm-preview dm-frontend dm-test dm-check
 
 # Build the page and its assets into the focused preview tree. No backend.
 # Calls the project's own Makefile rather than build-registered-projects: the
@@ -27,20 +29,14 @@ dm-build:
 	$(MAKE) -C $(DM_PROJECT) build
 	$(DM_PYTHON) scripts/prepare_dm_preview.py
 
-# Serve Messages with no backend running: the page falls into local mode.
-# Open http://localhost:4500/student/messages
-dm-local: dm-build
-	$(DM_JEKYLL)
-
-# Browser checks for local mode. Run in a second terminal while dm-local serves.
-dm-local-test:
-	cd scripts/dm-tests && npm install --no-audit --no-fund
-	node scripts/dm-tests/verify_local.mjs
-
 dm-preview:
 	$(DM_PYTHON) scripts/dm_preview.py --spring "$(SPRING_DIR)"
 
-dm-frontend: dm-local
+# The page on its own, for chrome and layout work. It cannot reach an account,
+# so it will only ever render its signed-out state.
+# Open http://localhost:4500/student/messages
+dm-frontend: dm-build
+	$(DM_JEKYLL)
 
 dm-test:
 	$(MAKE) -C "$(SPRING_DIR)" test
