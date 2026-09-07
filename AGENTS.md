@@ -153,3 +153,12 @@ while preserving all critical instructions. The agent must still communicate wit
 
 * **你需要它吗 (YAGNI)：** 除非现在需要，否则不要构建功能。避免推测性的泛化。
 * 仅在保证正确性后才进行优化（优化前进行性能分析）。
+
+
+## Direct message development
+
+- Messages runs with or without Spring. `make dm-local` serves just that page with no backend; it falls into a localStorage-backed local mode. `make dm-local-test` runs the browser checks against it.
+- `make dm-preview` additionally starts a packaged Spring for the signed-in path. `make dm-test` runs the Spring unit suite then the live checks; `make dm-check` reruns only the live checks. All of these build one page into an isolated Jekyll source/destination in `.dm-preview/`.
+- The preview layout is a stand-in and does not reproduce every site-wide CSS rule, so check page-chrome changes under a real `jekyll serve` too.
+- On native Windows, `scripts/make.ps1` discovers Ruby/MSYS GNU Make, Java 21, and Python. Run the staged Jekyll build from its source directory to avoid Jekyll 3.9 Windows layout path errors.
+- DM source and handoff: `_projects/systems/direct-messages/README.md`. Keep `_config.dev.yml` and Spring's `dm-preview` profile out of production builds.
