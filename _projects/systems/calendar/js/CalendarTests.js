@@ -426,6 +426,30 @@
     assert(T.canEditEvent({ individual: 'kid' }, { uid: 'kid', roles: [] }), 'a person may edit their own event');
     assert(!T.canEditEvent({ individual: 'someone' }, { uid: 'kid', roles: [] }), "not someone else's");
     assert(T.canEditEvent({ individual: 'someone' }, { uid: 't', roles: ['ROLE_ADMIN'] }), 'staff may edit any');
+
+    // LessonPanel.js, when it is loaded
+    if (T.announcementText) {
+      const saved = T.state;
+      T.state = { plan: { weeks: [{ n: 6, monday: '2026-09-21', friday: '2026-09-25' }], coursePageBase: '/navigation/courses/', editBase: 'https://github.com/x/y/edit/main/_data/teaching_plan/' }, slots: slots };
+      const a = slots.find(s => s.id === 'a');
+      assertEqual(T.formatDay('2026-09-22'), 'Tue 22 Sep', 'formatDay reads the date as local parts');
+      assertEqual(T.weekOf('2026-09-24'), 6, 'weekOf finds the school week');
+      const ann = T.announcementText(a);
+      assert(/Chat and WebSockets \u2014 CSA period 2 \u2014 Tue 22 Sep/.test(ann), 'announcement: first line has topic, class, period, day');
+      assert(/Teaching: UGRC: Sam/.test(ann), 'announcement: who teaches');
+      assert(/#homework-hack \u2014 due Thu 24 Sep, 8:35 AM/.test(ann), 'announcement: homework link and due time');
+      assert(/Week 6 chat/.test(ann), 'announcement: week chat');
+      const links = T.linkList(a);
+      assert(links.some(l => l[0] === 'Grading plan' && /#grading-plan$/.test(l[1]) && l[2]), 'links: grading plan anchor is on when the page exists');
+      assert(links.some(l => l[0] === 'Week 6 chat' && /\/navigation\/courses\/csa\/#week-6$/.test(l[1])), 'links: week chat lands on the week card');
+      const off = T.linkList(Object.assign({}, a, { lesson: '' }));
+      assert(off.filter(l => !l[2]).length === 7 && off.some(l => l[0] === 'Week 6 chat' && l[2]), 'links: without a page, the seven page links are off and the chat stays on');
+      const rows = T.factRows(a).map(r => r[0]);
+      assert(rows.includes('Homework due') && rows.includes('Teachers') && rows.includes('Period'), 'facts: the rows a student needs are there');
+      assertEqual(T.factRows(slots.find(s => s.id === 'c')).length, 3, 'facts: a checkpoint has day, period and who');
+      assert(!T.factRows({ topic: '<b>x</b>', period: '2', course: 'CSA', date: '2026-09-22', kind: 'lesson', team: '<i>t</i>', presenters: [] }).some(r => /<i>/.test(r[1])), 'facts: text is escaped');
+      T.state = saved;
+    }
     endSuite();
   }
 

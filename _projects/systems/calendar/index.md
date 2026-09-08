@@ -6,6 +6,10 @@ layout: aesthetihawk
 active_tab: calendar
 ---
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css">
+{% comment %} The design system, for the lesson panel. #35 adds this same link to the
+aesthetihawk layout; when it lands this line can go. A second link to the same file
+is harmless in the meantime. {% endcomment %}
+<link rel="stylesheet" href="{{ '/assets/css/ocs.css' | relative_url }}">
 
 <div class="calendar-dashboard-tabs" role="tablist" aria-label="Calendar Dashboard Tabs">
     <button type="button" class="dashboard-tab-btn active" data-dashboard-tab="calendar" role="tab" aria-selected="true">Calendar</button>
@@ -337,6 +341,8 @@ active_tab: calendar
     </div>
 </div>
 
+{% include lesson-modal.html %}
+
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -351,6 +357,12 @@ active_tab: calendar
 <script id="teaching-plan-json" type="application/json">
 {
   "built": {{ site.time | date: "%Y-%m-%d %H:%M" | jsonify }},
+  "coursePageBase": {{ '/navigation/courses/' | relative_url | jsonify }},
+  "editBase": {{ 'https://github.com/' | append: site.github_username | append: '/' | append: site.github_repo | append: '/edit/main/_data/teaching_plan/' | jsonify }},
+  "weeks": [
+    {% for wk in site.data.school_calendar.weeks %}{ "n": {{ wk[0] | jsonify }}, "monday": {{ wk[1].monday | jsonify }}, "friday": {{ wk[1].friday | jsonify }}, "notes": {{ wk[1].notes | jsonify }}, "skip": {{ wk[1].skip_week | default: false | jsonify }} }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
   "courses": {
   {% assign tp_first_course = true %}
   {% for tp_pair in site.data.teaching_plan %}{% assign tp_course = tp_pair[1] %}{% if tp_course.periods %}
@@ -399,6 +411,7 @@ active_tab: calendar
 </script>
 <script>var SITE_BASEURL = '{{ site.baseurl }}';</script>
 <script src="{{ site.baseurl }}/assets/js/projects/calendar/TeachingSlots.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonPanel.js"></script>
 <script type="module">
     import { javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
 

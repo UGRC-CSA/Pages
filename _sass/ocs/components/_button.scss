@@ -222,3 +222,11 @@
     &:focus-visible { z-index: 1; }
   }
 }
+
+// The site theme colors every <a> with !important, so a link dressed as a
+// button turned blue. The button's own text color wins here.
+a.ocs-btn,
+a.ocs-btn:visited,
+a.ocs-btn:hover {
+  color: var(--btn-fg) !important;
+}

@@ -1637,3 +1637,55 @@ td:has(> img[src*="logo.png"]) {
   color: var(--ocs-info, #5293ff);
   text-decoration: underline;
 }
+
+// ===========================
+// Lesson panel (lesson-modal.html + LessonPanel.js)
+// ===========================
+// The dialog is an ocs-modal; these are the few page-local pieces around it.
+// One-level var() fallbacks only: Ruby Sass compiles this file.
+
+.lesson-panel__heading { min-width: 0; }
+
+.lesson-panel__kicker {
+  margin: 0 0 2px;
+  color: var(--ocs-text-muted, #949498);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lesson-panel__section {
+  margin: 20px 0 8px;
+  color: var(--ocs-text-muted, #949498);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lesson-panel__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  [aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.lesson-panel__note {
+  margin: 20px 0 0;
+  color: var(--ocs-text-muted, #949498);
+  font-size: 0.8125rem;
+}
+
+.lesson-panel__dim { color: var(--ocs-text-muted, #949498); }
+
+.lesson-panel__copied {
+  margin-inline-end: auto;
+  color: var(--ocs-success, #34c759);
+  font-size: 0.8125rem;
+}

@@ -377,6 +377,12 @@
   z-index: 1;
 }
 
+a.ocs-btn, a.ocs__btn,
+a.ocs-btn:visited,
+a.ocs-btn:hover {
+  color: var(--btn-fg) !important;
+}
+
 .ocs-field {
   display: flex;
   flex-direction: column;
@@ -1151,6 +1157,7 @@
   border: 0;
   background: transparent;
   color: var(--ocs-text);
+  margin: auto;
   max-width: min(32rem, 100vw - 2rem);
   max-height: calc(100dvh - 2rem);
   overflow: visible;
