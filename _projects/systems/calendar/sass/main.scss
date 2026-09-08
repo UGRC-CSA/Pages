@@ -1784,3 +1784,11 @@ td:has(> img[src*="logo.png"]) {
   .lessons-tab__grid { display: none; }
   .lessons-tab__agenda { display: block; }
 }
+
+/* Teacher section inside the lesson panel (LessonActions.js) */
+.lesson-panel__actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ocs-border-subtle, #26262c);
+}
+.lesson-panel__actions .ocs-kv { margin-bottom: 10px; }

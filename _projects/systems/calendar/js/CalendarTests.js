@@ -497,6 +497,31 @@
       assert(/data-slot-id="a"/.test(html) && /data-slot-id="c"/.test(html), 'html: every row carries its slot id for the click');
       assert(!/<i>/.test(T.renderItem({ kind: 'lesson', mine: false, slot: { id: 'x', topic: '<i>x</i>', presenters: [] } })), 'html: plan text is escaped');
     }
+
+    // LessonActions.js, when it is loaded
+    if (T.findHomework) {
+      const a = slots.find(s => s.id === 'a'); // lesson: '/csa/sprint2/chat', presenter sam
+      const hwList = [
+        { id: '1', name: 'Other', description: '[CONTENT_URL: /csa/other] x' },
+        { id: '2', name: 'Chat and WebSockets', description: '[CONTENT_URL: csa/sprint2/chat] Created from lesson page' },
+        { id: '3', name: 'By title only', description: '' }
+      ];
+      assertEqual(T.findHomework(hwList, a).id, '2', 'findHomework: the marker without the leading slash matches');
+      assertEqual(T.findHomework([{ id: '4', name: 'x', description: '[CONTENT_URL: /csa/sprint2/chat]' }], a).id, '4', 'findHomework: the marker with the leading slash matches');
+      assertEqual(T.findHomework(hwList, Object.assign({}, a, { lesson: '/none', lessonTitle: 'By title only' })).id, '3', 'findHomework: falls back to the page title');
+      assertEqual(T.findHomework(hwList, Object.assign({}, a, { lesson: '' })), null, 'findHomework: nothing without a lesson page');
+      const groups = [{ id: 1, name: 'UGRC', members: [{ id: 11, uid: 'sam', name: 'Sam' }, { id: 12, uid: 'ak', name: 'Ak' }] }];
+      const c1 = T.graderCandidates(a, groups);
+      assertEqual(c1.via + ':' + c1.people.map(p => p.uid).join(','), 'presenters:sam', 'graders: presenters with login ids win');
+      const c2 = T.graderCandidates(Object.assign({}, a, { presenters: [{ name: 'Sam', uid: '' }] }), groups);
+      assertEqual(c2.via + ':' + c2.people.length, 'team:2', 'graders: without login ids, everyone in the team');
+      assertEqual(T.graderCandidates(a, []).via, 'none', 'graders: no group on the backend');
+      assert(T.canWriteHere('pages.opencodingsociety.com') && T.canWriteHere('localhost') && !T.canWriteHere('ugrc-csa.github.io'), 'writes: the main site and local only');
+      const rr = T.renderActionRows(a, { homework: hwList[1], graders: [{ id: 11, name: 'Sam' }], groups: groups, error: '' }, 'ugrc-csa.github.io');
+      assert(rr.rows.some(r => r[0] === 'Graders' && /Sam/.test(r[1])) && rr.canAssign && rr.writes === false, 'rows: record, graders, and read-only on a fork');
+      const esc = T.renderActionRows(Object.assign({}, a, { team: '<b>x</b>' }), { homework: null, graders: [], groups: [], error: '' }, 'localhost');
+      assert(!/<b>/.test(esc.rows.map(r => r[1]).join('')) && !esc.canAssign, 'rows: plan text is escaped; no record means no button');
+    }
     endSuite();
   }
 

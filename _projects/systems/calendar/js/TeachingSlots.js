@@ -317,7 +317,8 @@
     const slots = T.flattenSlots(plan);
     const viewer = (ctx && ctx.viewer) || null;
     const vis = T.visibleSlots(slots, viewer);
-    T.state = { plan: plan, slots: slots, visible: vis.slots, mode: vis.mode, viewer: viewer };
+    // api = { javaURI, fetchOptions } for the files that talk to the backend.
+    T.state = { plan: plan, slots: slots, visible: vis.slots, mode: vis.mode, viewer: viewer, api: (ctx && ctx.api) || null };
     return {
       events: T.buildEvents(vis.slots, viewer),
       mode: vis.mode,
