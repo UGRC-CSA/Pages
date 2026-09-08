@@ -13,6 +13,8 @@ permalink: /sprint2/teaching-lesson-template
 3. Keep every `##` heading on this page, with the same words. The calendar links to them by name.
 4. Open a pull request by 4:00 PM the day before you teach. Put your page's `permalink` into `_data/teaching_plan/csa.yml`, in your row's `lesson` field, in the same pull request.
 
+The [leader guide](/sprint2/leader-guide) lists every step around this page: claim the day, announce, teach, set graders, grade.
+
 The frontmatter for your copy:
 
 ```yaml

@@ -53,6 +53,10 @@ Two of those fit together. The direct-messages team wrote custom JPA queries for
 
 Before 4:00 PM the day before a lesson, this is the way. On the day itself, post the change in that week's chat on the course page.
 
+## Step by step
+
+The [leader guide](/sprint2/leader-guide) walks a teaching team through the two weeks, one step at a time, with a link for every step.
+
 ## What a lesson needs
 
 Copy the [lesson template](/sprint2/teaching-lesson-template). It has the frontmatter the site needs and every required section: learning objective, success criteria, LxD notes, Tech Talk, popcorn hack, homework hack, grading plan, revision log.
