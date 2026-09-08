@@ -40,6 +40,7 @@
 @use "sass:map";
 @use "../core/functions" as fn;
 @use "../core/legacy-guard" as guard;
+@use "../core/a11y" as a11y;
 
 // -----------------------------------------------------------------------------
 // Sender tints
@@ -350,6 +351,14 @@ $micro-size: 0.6875rem;
 
       &:hover { color: var(--ocs-info-border); }
     }
+
+    // Lists the rich-text composer can produce. Bold, italic and the
+    // .rt-font-* / .rt-size-* spans need nothing here — they inherit.
+    ul, ol {
+      margin: fn.space(1) 0;
+      padding-inline-start: 1.5em;
+    }
+    li { margin: 1px 0; }
   }
 
   &__msg--self {
@@ -536,6 +545,152 @@ $micro-size: 0.6875rem;
     .ocs-input { flex: 1 1 auto; min-width: 0; }
     .ocs-btn   { flex: 0 0 auto; }
   }
+
+  // ---------------------------------------------------------------------------
+  // Rich-text composer
+  // ---------------------------------------------------------------------------
+  // assets/js/chat/rich-text.js swaps the .ocs-input for a .rt-composer: a
+  // formatting toolbar over a contenteditable box. The script owns that markup
+  // and the .rt-* names; this block only gives them the system's colours and
+  // sizes. The send button sits on the composer's bottom edge, because the box
+  // grows as the message does and a button stretched to match it looks wrong.
+  &__composer--rich {
+    align-items: flex-end;
+  }
+
+  .rt-composer {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--ocs-border);
+    border-radius: fn.radius(md);
+    background: var(--ocs-surface-base);
+    transition: border-color fn.duration(fast) fn.easing(standard),
+                box-shadow fn.duration(fast) fn.easing(standard);
+
+    &:hover        { border-color: var(--ocs-border-strong); }
+    &:focus-within {
+      border-color: var(--ocs-accent);
+      box-shadow: 0 0 0 1px var(--ocs-accent);
+    }
+  }
+
+  .rt-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    padding: fn.space(1) fn.space(2);
+    border-bottom: 1px solid var(--ocs-border-subtle);
+  }
+
+  // Same box as .ocs-btn--ghost.ocs-btn--sm, without depending on that class
+  // being present on markup the script generates.
+  .rt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 fn.space(2);
+    border: 1px solid transparent;
+    border-radius: fn.radius(sm);
+    background: transparent;
+    color: var(--ocs-text-secondary);
+    font-family: var(--ocs-font-sans);
+    font-size: 0.8125rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background fn.duration(fast) fn.easing(standard),
+                color fn.duration(fast) fn.easing(standard);
+
+    &:hover:not(:disabled) {
+      background: var(--ocs-surface-elevated);
+      color: var(--ocs-text);
+    }
+
+    &:focus         { outline: none; }
+    &:focus-visible { @include a11y.focus-ring(1px); }
+
+    // The pressed state uses the tint plus a border, not the accent as text
+    // colour, so it stays readable on the raised surface.
+    &.is-active {
+      background: var(--ocs-accent-bg);
+      border-color: var(--ocs-accent-border);
+      color: var(--ocs-text);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .rt-select {
+    height: 1.75rem;
+    padding: 0 fn.space(1);
+    border: 1px solid var(--ocs-border);
+    border-radius: fn.radius(sm);
+    background: var(--ocs-surface-base);
+    color: var(--ocs-text);
+    font-family: var(--ocs-font-sans);
+    font-size: 0.75rem;
+    cursor: pointer;
+
+    &:focus         { outline: none; }
+    &:focus-visible { @include a11y.focus-ring(1px); }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .rt-sep {
+    width: 1px;
+    align-self: stretch;
+    margin: fn.space(1) 3px;
+    background: var(--ocs-border-subtle);
+  }
+
+  .rt-editor {
+    min-height: 2.5rem;
+    max-height: 14rem;
+    overflow-y: auto;
+    padding: fn.space(2) fn.space(3);
+    color: var(--ocs-text);
+    font-family: var(--ocs-font-sans);
+    font-size: fn.typo(body);
+    line-height: fn.typo(body, line);
+    text-align: start;
+    cursor: text;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ocs-border) transparent;
+
+    &:focus { outline: none; }   // the composer box shows focus instead
+
+    // The script sets data-placeholder and toggles is-empty.
+    &.is-empty::before {
+      content: attr(data-placeholder);
+      color: var(--ocs-text-muted);
+      pointer-events: none;
+    }
+
+    &.is-over-limit { box-shadow: inset 0 0 0 1px var(--ocs-danger-border); }
+
+    &.is-disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    p { margin: 0; }
+
+    ul, ol {
+      margin: fn.space(1) 0;
+      padding-inline-start: 1.6em;
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -559,6 +714,12 @@ $micro-size: 0.6875rem;
 
   .ocs-chat__sender,
   .ocs-chat__text { font-size: fn.typo(small); }
+
+  .rt-editor {
+    min-height: 2.25rem;
+    font-size: fn.typo(small);
+    line-height: fn.typo(small, line);
+  }
 
   // A week card is short. The full centred empty block would leave the widget
   // mostly whitespace, so say the same thing in one line.
@@ -879,5 +1040,61 @@ $micro-size: 0.6875rem;
     &__msg--continued .ocs-chat__main {
       margin-inline-start: calc(2rem + #{fn.space(3)});
     }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Rich-text: the two pieces that cannot live under .ocs-chat
+// -----------------------------------------------------------------------------
+// The emoji picker is appended to <body> while it is open, because the chat
+// widgets clip their overflow. The font and size spans travel inside a stored
+// message, so they must read the same wherever that message is rendered.
+// Both are therefore global. They are the only .rt-* rules outside .ocs-chat.
+.rt-emoji-panel {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  width: 18.75rem;
+  max-height: 15rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: fn.space(2);
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(lg);
+  background: var(--ocs-surface-overlay);
+  box-shadow: var(--ocs-shadow-lg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ocs-border) transparent;
+}
+
+.rt-emoji {
+  padding: fn.space(1);
+  border: 0;
+  border-radius: fn.radius(sm);
+  background: transparent;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover         { background: var(--ocs-surface-elevated); }
+  &:focus         { outline: none; }
+  &:focus-visible { @include a11y.focus-ring(1px); }
+}
+
+.rt-font-serif { font-family: Georgia, "Times New Roman", serif; }
+.rt-font-mono  { font-family: var(--ocs-font-mono); }
+.rt-size-sm    { font-size: 0.82em; }
+.rt-size-lg    { font-size: 1.3em; }
+.rt-size-xl    { font-size: 1.7em; }
+
+// Toolbar controls grow to a touch target on a phone.
+@media (max-width: fn.breakpoint(mobile)) {
+  .ocs-chat {
+    .rt-toolbar { gap: 1px; }
+    .rt-btn     { min-width: 2rem; height: 2rem; }
+    .rt-select  { height: 2rem; }
   }
 }

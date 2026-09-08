@@ -20,9 +20,7 @@
     <div class="ocs-chat__log" id="lessonChatMessages" role="log" aria-live="polite">
       <p class="ocs-chat__empty" id="lessonChatEmpty">No messages yet.</p>
     </div>
-    <form class="ocs-chat__composer" id="lessonChatForm" autocomplete="off">
-      <input class="ocs-input" id="lessonChatInput" type="text"
-             placeholder="Message this lesson…" maxlength="2000" disabled>
+    <form class="ocs-chat__composer ocs-chat__composer--rich" id="lessonChatForm" autocomplete="off">
       <button class="ocs-btn ocs-btn--primary" id="lessonChatSend" type="submit" disabled>
         <i class="fas fa-paper-plane" aria-hidden="true"></i><span>Send</span>
       </button>
@@ -35,6 +33,7 @@
 
 <script type="module">
   import { javaURI, pythonURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
+  import { createRichComposer, renderRichMessage } from '{{site.baseurl}}/assets/js/chat/rich-text.js';
 
   const LESSON_KEY = {{ page.url | jsonify }};
   const LESSON_MARKER = `[[lesson:${LESSON_KEY}]]`;
@@ -62,11 +61,22 @@
   const detailsEl = document.getElementById('lessonChat');
   const statusEl = document.getElementById('lessonChatStatus');
   const messagesEl = document.getElementById('lessonChatMessages');
-  const inputEl = document.getElementById('lessonChatInput');
   const sendBtn = document.getElementById('lessonChatSend');
   const formEl = document.getElementById('lessonChatForm');
 
   const statusPillEl = document.getElementById('lessonChatStatusPill');
+
+  const composer = createRichComposer({
+    placeholder: 'Message this lesson…',
+    maxLength: 2000,
+    onSubmit: submitMessage,
+  });
+  formEl.insertBefore(composer.element, sendBtn);
+
+  function submitMessage() {
+    if (composer.isEmpty() || composer.isOverLimit()) return;
+    if (sendMessage(composer.getHTML())) composer.clear();
+  }
 
   function setStatus(text, tone) {
     statusEl.textContent = text;
@@ -140,7 +150,7 @@
 
     const body = document.createElement('span');
     body.className = 'ocs-chat__text';
-    body.textContent = message;
+    renderRichMessage(body, message);
 
     main.append(meta, body);
     row.append(avatar, main);
@@ -284,7 +294,7 @@
         if (!state.connected) return;
         state.connected = false;
         setStatus('disconnected', 'ocs-chat__status--error');
-        inputEl.disabled = true;
+        composer.setEnabled(false);
         sendBtn.disabled = true;
       };
     });
@@ -324,9 +334,9 @@
     await loadHistory();
     const connected = await connect();
     if (connected) {
-      inputEl.disabled = false;
+      composer.setEnabled(true);
       sendBtn.disabled = false;
-      inputEl.focus();
+      composer.focus();
     }
   }
 
@@ -336,11 +346,7 @@
 
   formEl.addEventListener('submit', (e) => {
     e.preventDefault();
-    const text = inputEl.value.trim();
-    if (!text) return;
-    if (sendMessage(text)) {
-      inputEl.value = '';
-    }
+    submitMessage();
   });
 
   window.addEventListener('beforeunload', () => {

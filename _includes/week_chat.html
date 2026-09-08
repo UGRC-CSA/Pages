@@ -37,8 +37,7 @@
     <div class="ocs-chat__log" id="weekChatMessages-{{ wc_id }}" aria-live="polite">
       <p class="ocs-chat__empty" id="weekChatEmpty-{{ wc_id }}">No messages yet.</p>
     </div>
-    <form class="ocs-chat__composer" id="weekChatForm-{{ wc_id }}" autocomplete="off">
-      <input class="ocs-input" id="weekChatInput-{{ wc_id }}" type="text" placeholder="Ask a question about Week {{ index }}…" maxlength="2000" disabled>
+    <form class="ocs-chat__composer ocs-chat__composer--rich" id="weekChatForm-{{ wc_id }}" autocomplete="off">
       <button class="ocs-btn ocs-btn--primary" id="weekChatSend-{{ wc_id }}" type="submit" disabled>
         <i class="fas fa-paper-plane"></i><span>Send</span>
       </button>
@@ -48,6 +47,7 @@
 
 <script type="module">
   import { javaURI, pythonURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
+  import { createRichComposer, renderRichMessage } from '{{site.baseurl}}/assets/js/chat/rich-text.js';
 
   const COURSE = {{ page.course | jsonify }};
   const WEEK_INDEX = {{ index | jsonify }};
@@ -110,12 +110,18 @@
   const noteEl = document.getElementById(`weekChatNote-${WC_ID}`);
   const noteTextEl = document.getElementById(`weekChatNoteText-${WC_ID}`);
   const messagesEl = document.getElementById(`weekChatMessages-${WC_ID}`);
-  const inputEl = document.getElementById(`weekChatInput-${WC_ID}`);
   const sendBtn = document.getElementById(`weekChatSend-${WC_ID}`);
   const formEl = document.getElementById(`weekChatForm-${WC_ID}`);
   const publishBannerEl = document.getElementById(`weekChatPublishBanner-${WC_ID}`);
   const publishBannerTextEl = document.getElementById(`weekChatPublishBannerText-${WC_ID}`);
   const publishBtn = document.getElementById(`weekChatPublishBtn-${WC_ID}`);
+
+  const composer = createRichComposer({
+    placeholder: `Ask a question about Week ${WEEK_INDEX}…`,
+    maxLength: 2000,
+    onSubmit: submitMessage,
+  });
+  formEl.insertBefore(composer.element, sendBtn);
 
   function setStatus(text, tone) {
     statusEl.textContent = text;
@@ -129,8 +135,13 @@
   }
 
   function setComposerEnabled(enabled) {
-    inputEl.disabled = !enabled;
+    composer.setEnabled(enabled);
     sendBtn.disabled = !enabled;
+  }
+
+  function submitMessage() {
+    if (composer.isEmpty() || composer.isOverLimit()) return;
+    if (sendMessage(composer.getHTML())) composer.clear();
   }
 
   function formatTimestamp(isoString) {
@@ -195,7 +206,7 @@
 
     const body = document.createElement('span');
     body.className = 'ocs-chat__text';
-    renderMessageBody(body, message);
+    renderRichMessage(body, message);
 
     main.append(meta, body);
     line.append(avatar, main);
@@ -206,32 +217,16 @@
     if (previewUrl) attachLinkPreview(previewUrl, main);
   }
 
-  /* ── Link rendering + Slack-style unfurl ──────────────────────────────
-     URLs in a message become real links, and the first one gets a preview
-     card (title/description/thumbnail) fetched server-side via
-     /api/link-preview — the browser can't read another site's Open Graph
-     tags itself (CORS), so this always goes through the backend. */
+  /* ── Slack-style link unfurl ─────────────────────────────────────────
+     renderRichMessage() (in rich-text.js) already turns bare URLs in a
+     message into links. On top of that, the first URL gets a preview card
+     (title/description/thumbnail) fetched server-side via /api/link-preview
+     — the browser can't read another site's Open Graph tags itself (CORS),
+     so this always goes through the backend. */
 
   function firstUrlIn(text) {
     const match = String(text || '').match(URL_RE);
     return match ? match[0] : null;
-  }
-
-  function renderMessageBody(container, text) {
-    const value = String(text || '');
-    const urls = value.match(URL_RE) || [];
-    const parts = value.split(URL_RE);
-    parts.forEach((part, i) => {
-      if (part) container.appendChild(document.createTextNode(part));
-      if (urls[i]) {
-        const a = document.createElement('a');
-        a.href = urls[i];
-        a.textContent = urls[i];
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        container.appendChild(a);
-      }
-    });
   }
 
   async function attachLinkPreview(url, afterEl) {
@@ -440,7 +435,7 @@
     });
 
     setComposerEnabled(true);
-    inputEl.focus();
+    composer.focus();
   }
 
   async function resolveCurrentUser() {
@@ -618,7 +613,7 @@
     if (connected) {
       state.mode = 'live';
       setComposerEnabled(true);
-      inputEl.focus();
+      composer.focus();
       updatePublishBanner();
     } else {
       appendSystem('Live updates are unavailable right now.');
@@ -632,9 +627,7 @@
 
   formEl.addEventListener('submit', (e) => {
     e.preventDefault();
-    const text = inputEl.value.trim();
-    if (!text) return;
-    if (sendMessage(text)) inputEl.value = '';
+    submitMessage();
   });
 
   window.addEventListener('beforeunload', () => {
