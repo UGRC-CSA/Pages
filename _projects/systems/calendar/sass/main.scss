@@ -122,7 +122,7 @@ header {
 }
 
 .fc-toolbar-title {
-  color: var(--text) !important;
+  color: var(--ocs-text, #ffffff) !important;
 }
 
 .fc-view.fc-dayGridDay-view {
@@ -171,94 +171,84 @@ td:has(> img[src*="logo.png"]) {
 }
 
 // ===========================
-// FullCalendar Theme Overrides
+// FullCalendar on the design-system tokens
 // ===========================
-// All backgrounds and text derive from the active user theme so
-// light, sepia, dark, and custom presets work without modification.
-
-.fc {
-  background-color: var(--bg-0);
+// FullCalendar 5 reads its colours from these variables. Setting them on the
+// calendar replaces the !important overrides that used to repeat the theme
+// colours. The tokens follow the user's preset (--ocs-accent is
+// --pref-accent-color when one is chosen), so every preset keeps working.
+// One-level var() fallbacks only: Ruby Sass drops nested fallbacks.
+// FullCalendar puts its .fc class on the container itself, so the selectors
+// below are .calendar-stage.fc, not .calendar-stage .fc.
+.calendar-stage.fc {
+  --fc-page-bg-color: var(--ocs-surface-base, #121212);
+  --fc-neutral-bg-color: var(--ocs-surface-raised, #1c1c1e);
+  --fc-neutral-text-color: var(--ocs-text-muted, #a1a1aa);
+  --fc-border-color: var(--ocs-border-subtle, #2a2a30);
+  --fc-button-text-color: var(--ocs-text, #ffffff);
+  --fc-button-bg-color: var(--ocs-surface-elevated, #2c2c2e);
+  --fc-button-border-color: var(--ocs-border, #444448);
+  --fc-button-hover-bg-color: var(--ocs-surface-elevated, #2c2c2e);
+  --fc-button-hover-border-color: var(--ocs-accent, #e06665);
+  --fc-button-active-bg-color: var(--ocs-accent, #e06665);
+  --fc-button-active-border-color: var(--ocs-accent, #e06665);
+  --fc-event-bg-color: var(--ocs-accent-bg, #2a1c1c);
+  --fc-event-border-color: var(--ocs-accent-border, #e06665);
+  --fc-event-text-color: var(--ocs-text, #ffffff);
+  --fc-event-selected-overlay-color: var(--ocs-accent-bg, #2a1c1c);
+  --fc-more-link-bg-color: var(--ocs-surface-elevated, #2c2c2e);
+  --fc-more-link-text-color: var(--ocs-text, #ffffff);
+  --fc-highlight-color: var(--ocs-accent-bg, #2a1c1c);
+  --fc-today-bg-color: var(--ocs-accent-bg, #2a1c1c);
+  --fc-now-indicator-color: var(--ocs-accent, #e06665);
+  --fc-list-event-hover-bg-color: var(--ocs-surface-raised, #1c1c1e);
+  --fc-small-font-size: 0.8rem;
+  font-family: var(--ocs-font-sans, inherit);
+  color: var(--ocs-text, #ffffff);
 }
 
-.fc .fc-view-harness {
-  background-color: var(--bg-0);
+// What the variables do not cover. Under .calendar-stage so these rules win
+// over FullCalendar's own stylesheet, which loads after this one, without
+// !important.
+.calendar-stage.fc-theme-standard td,
+.calendar-stage.fc-theme-standard th {
+  background-color: var(--ocs-surface-base, #121212);
 }
-
-.fc-theme-standard td,
-.fc-theme-standard th {
-  background-color: var(--bg-0);
-  border-color: var(--ui-border);
+// Alternating rows. Today's cell still wins: FullCalendar's rule for it has
+// the same weight and comes later.
+.calendar-stage .fc-daygrid-day:nth-child(even) {
+  background-color: var(--ocs-surface-raised, #1c1c1e);
 }
-
-.fc-theme-standard .fc-scrollgrid {
-  border-color: var(--ui-border);
-}
-
-// Alternating row backgrounds
-.fc-daygrid-day {
-  background-color: var(--bg-0);
-
-  &:nth-child(even) {
-    background-color: var(--bg-1);
-  }
-}
-
-// Column header
-.fc .fc-col-header-cell {
-  background-color: var(--bg-2);
-  color: var(--text);
+.calendar-stage.fc .fc-col-header-cell {
+  background-color: var(--ocs-surface-elevated, #2c2c2e);
   border-bottom: none;
 }
-
-// Day numbers
-.fc .fc-daygrid-day-number {
-  color: var(--text);
+// Day numbers and weekday names are links, and the site theme colors every
+// link with !important. These two keep the text colour.
+.calendar-stage.fc .fc-col-header-cell-cushion,
+.calendar-stage.fc .fc-daygrid-day-number {
+  color: var(--ocs-text, #ffffff) !important;
 }
-
-// Remove top border from day grid body to prevent double line
-.fc .fc-daygrid-body {
+// No top border on the day grid body, so there is no double line.
+.calendar-stage.fc .fc-daygrid-body {
   border-top: none;
 }
-
-// Today highlighting — uses accent at low opacity for all themes
-.fc .fc-day-today {
-  background-color: color-mix(in srgb, var(--pref-accent-color) 15%, var(--bg-0) 85%) !important;
-}
-
-// ===========================
-// FullCalendar Button Overrides
-// ===========================
-// FullCalendar ships its own button styles that ignore our theme.
-// Override them so prev/next/today/view buttons match the user palette.
-
-.fc .fc-button {
-  background-color: var(--bg-2) !important;
-  border-color: var(--ui-border) !important;
-  color: var(--text) !important;
-  font-family: var(--pref-font-family);
+.calendar-stage.fc .fc-button {
+  font-family: var(--ocs-font-sans, inherit);
   transition: background-color 0.2s, border-color 0.2s;
-
-  &:hover {
-    background-color: var(--bg-3) !important;
-    border-color: var(--pref-accent-color) !important;
-    color: var(--text-strong, var(--text)) !important;
-  }
-
   &:focus {
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pref-accent-color) 40%, transparent 60%) !important;
+    box-shadow: 0 0 0 2px var(--ocs-accent-border, #e06665);
   }
-
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 }
-
-.fc .fc-button-primary:not(:disabled).fc-button-active,
-.fc .fc-button-primary:not(:disabled):active {
-  background-color: var(--pref-accent-color) !important;
-  border-color: var(--pref-accent-color) !important;
-  color: var(--pref-bg-color) !important;
+// The active button sits on the accent, so its text takes the accent's
+// contrast colour; FullCalendar uses one text variable for every state.
+.calendar-stage.fc .fc-button-primary:not(:disabled).fc-button-active,
+.calendar-stage.fc .fc-button-primary:not(:disabled):active {
+  color: var(--ocs-accent-contrast, #ffffff);
 }
 
 // ===========================
@@ -266,14 +256,14 @@ td:has(> img[src*="logo.png"]) {
 // ===========================
 
 .fc-event-break {
-  background-color: var(--bg-3) !important;
-  border: 1px solid var(--ui-border) !important;
-  color: var(--text-muted) !important;
+  background-color: var(--ocs-surface-elevated, #2c2c2e) !important;
+  border: 1px solid var(--ocs-border, #444448) !important;
+  color: var(--ocs-text-muted, #a1a1aa) !important;
   box-shadow: none !important;
 }
 
 .fc-daygrid-day.break-day {
-  background-color: var(--bg-2) !important;
+  background-color: var(--ocs-surface-elevated, #2c2c2e) !important;
 }
 
 // School holidays get a subtle accent tint to differentiate from manual breaks
