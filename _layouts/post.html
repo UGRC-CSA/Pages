@@ -46,6 +46,7 @@ Check if this is a course lesson and determine which course context to use
   <div class="lesson-main">
     <!-- Top Bar -->
     {% include lesson-topbar.html %}
+    {% include lesson-slot-banner.html %}
 
     <!-- Lesson Content -->
     <div class="lesson-content">
@@ -1308,6 +1309,8 @@ Check if this is a course lesson and determine which course context to use
     {%- endif -%}
     {%- endif -%}
   </header>
+
+  {% include lesson-slot-banner.html %}
 
   <div class="post-content e-content" itemprop="articleBody">
     {%- if page.toc -%}
