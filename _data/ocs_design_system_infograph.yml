@@ -1,0 +1,157 @@
+Title: "OCS Design System"
+Description: "A shelf of ready-made interface pieces for the Open Coding Society site. Buttons, cards, forms, tables, alerts, and more. Until now every page wrote its own colours and spacing by hand, so no two pages quite matched. A page can now take a piece off the shelf and it already looks right. Three parts are merged: the colour and size list, fifteen components, and a docs page that shows all of them working."
+
+Topics:
+  - title: "The Token Layer"
+    subtitle: "One list of colours and sizes that every page reads from"
+    emoji: "🎨"
+    phase: "Merged — PR #30"
+    status: "Shipped"
+    link: "https://github.com/UGRC-CSA/Pages/pull/30"
+    linkLabel: "See the pull request"
+    team:
+      - "Samarth (Scrum Master)"
+    keyPoints:
+      - "A token is a name that stands for a value. Ask for the name and you get the same value everywhere."
+      - "78 tokens cover colour, text size, spacing, corners, shadows, and motion."
+      - "Dark and light mode are the same 78 names holding different values."
+      - "Colours were measured, not guessed, so text stays readable on top of every one of them."
+    tech:
+      - "SCSS"
+      - "CSS custom properties"
+      - "Jekyll"
+    description: "Before this, a page that wanted the brand red typed the hex code by hand. Pages ended up with slightly different reds, and nobody noticed until they sat side by side. The token layer gives that red one name. Every page asks for the name, so every page gets the same red. Switching the whole site to light mode means swapping the values behind the names, and nothing else."
+    impact:
+      - "One name to change instead of hunting hex codes through many files"
+      - "Light and dark mode come free, because both read the same names"
+
+  - title: "Fifteen Components"
+    subtitle: "The pieces a page is actually built out of"
+    emoji: "🧱"
+    image: "design-system/components.png"
+    alt: "All fifteen OCS components rendered on one page: colours, type, buttons, forms, code, navigation, cards, modals, tables, and alerts"
+    caption: "Every component on one page"
+    status: "Shipped"
+    link: "https://github.com/UGRC-CSA/Pages/pull/32"
+    linkLabel: "See the pull request"
+    team:
+      - "Samarth (Scrum Master)"
+    keyPoints:
+      - "Alert, avatar, badge, button, card, code, field, menu, modal, nav, progress, skeleton, table, toast, and tooltip."
+      - "Every piece works with a keyboard, not only a mouse."
+      - "Every text colour was checked against the background behind it. All of them pass."
+      - "The whole library compiles down to one 52 KB stylesheet."
+    tech:
+      - "SCSS"
+      - "BEM naming"
+      - "WCAG 2.1 AA"
+    description: "Each component is one small SCSS file that only uses tokens, never raw colours. A page links one stylesheet and can then use all fifteen. Nothing here needs JavaScript to look right. The modal uses the browser's own dialog element, so keyboard trapping and the Escape key work without any code of ours."
+    impact:
+      - "Nobody has to invent a button from scratch again"
+      - "Pages built by different people still come out looking like the same site"
+
+  - title: "The Docs Page"
+    subtitle: "Every component shown live, with the code to copy under it"
+    emoji: "📖"
+    phase: "Merged — PR #33"
+    status: "Shipped"
+    link: "/design-system"
+    linkLabel: "Open the docs page"
+    team:
+      - "Samarth (Scrum Master)"
+    keyPoints:
+      - "Each component is rendered for real, not described in words."
+      - "The markup to copy sits directly under each example."
+      - "The full colour and size lists are printed on the page."
+    tech:
+      - "Jekyll"
+      - "SCSS"
+    description: "Reading that a button exists does not tell you what it looks like or how to use it. This page renders all fifteen components on screen and puts the HTML to copy underneath each one. Someone new can find out what already exists without opening a single SCSS file."
+    impact:
+      - "New contributors can see what exists in about a minute"
+      - "Fewer people rebuild a component that is already there"
+
+  - title: "The Course Chat, Rebuilt"
+    subtitle: "The first real page moved onto the system"
+    emoji: "💬"
+    image: "design-system/chat-before-after.png"
+    alt: "The CSA course chat before and after: the old cramped version on the left, the rebuilt version on the right"
+    caption: "Before on the left, after on the right"
+    status: "In Review"
+    link: "https://github.com/UGRC-CSA/Pages/pull/35"
+    linkLabel: "See the pull request"
+    team:
+      - "Samarth (Scrum Master)"
+      - "Akshaj"
+      - "Tarun"
+    keyPoints:
+      - "Same chat and the same features. Only the look changed."
+      - "The old version set its own colours inline. The new one reads tokens."
+      - "Message rows, avatars, and the message box are now shared pieces."
+      - "Announcements, week threads, and direct messages all use the same parts."
+    tech:
+      - "SCSS"
+      - "Spring Boot"
+      - "Jekyll"
+    description: "The class chat and the week chat were already working, built by the communications team. They were also the clearest test of whether the design system holds up on a real page instead of a demo. Rebuilding them changed no behaviour at all. It swapped hand-written colours and spacing for the shared pieces, and the page got easier to read as a result."
+    impact:
+      - "Proves the system works on a live page, not only in a showcase"
+      - "The next chat surface starts from parts that already exist"
+
+  - title: "The Practice Page"
+    subtitle: "Where APCSP students learn the system by using it"
+    emoji: "🎓"
+    image: "design-system/practice-page.png"
+    alt: "The practice page: a lesson on the left, a live CSS editor in the middle, and a preview updating on the right"
+    caption: "Lesson, editor, and live preview"
+    status: "In Progress"
+    link: "https://github.com/UGRC-CSA/Pages/issues/23"
+    linkLabel: "Read the plan"
+    team:
+      - "Samarth (Scrum Master)"
+    keyPoints:
+      - "Short lessons that each end in one small task."
+      - "You type CSS in the page and see the result straight away."
+      - "Beginners start with a handful of tokens. More unlock as lessons are finished."
+      - "A built-in coach answers questions and points at the next step."
+    tech:
+      - "SCSS"
+      - "JavaScript"
+      - "Jekyll"
+    description: "A design system is only useful if people can actually use it. This page teaches the tokens and components to students who may never have written a line of CSS. Rather than hand a beginner all 78 tokens at once, it starts with a few and unlocks the rest as lessons are finished. The coach exists because a stuck student with nobody to ask just stops."
+    impact:
+      - "APCSP students can contribute to the site without learning the whole system first"
+      - "Doubles as the clearest demonstration of what the components can do"
+
+Sections:
+  - title: "How it is built"
+    subtitle: "The parts, in the order they stack up"
+    items:
+      - "Tokens sit at the bottom. Every colour, size, and space has one name."
+      - "Components sit on top and only ever use those names, never a raw colour."
+      - "All of it compiles into a single file, assets/css/ocs.css, at 52 KB."
+      - "A page links that one file and can use everything in it."
+      - "The site runs an old build tool that cannot read modern SCSS imports, so the compiled file is built ahead of time and committed. The site serves plain CSS and never has to compile anything."
+
+  - title: "What is left"
+    subtitle: "The work that is not done yet"
+    items:
+      - "The chat rebuild (PR #35) needs its conflicts resolved before it can merge."
+      - "In light mode the outline around a text box is too faint. It measures 1.42 to 1 against the box behind it, and the standard for shapes asks for 3 to 1. Text colours are fine — this is only the outline. It needs its own darker token, and that is the next change."
+      - "The practice page is finished but still lives outside this repo. It needs its own pull request."
+      - "More pages to move across. Chat was the first; the course pages are next."
+
+Links:
+  title: "Follow along"
+  subtitle: "Everything is public"
+  items:
+    - label: "Docs page"
+      url: "/design-system"
+    - label: "The plan (issue #23)"
+      url: "https://github.com/UGRC-CSA/Pages/issues/23"
+    - label: "PR #30 — tokens"
+      url: "https://github.com/UGRC-CSA/Pages/pull/30"
+    - label: "PR #32 — components"
+      url: "https://github.com/UGRC-CSA/Pages/pull/32"
+    - label: "PR #33 — docs page"
+      url: "https://github.com/UGRC-CSA/Pages/pull/33"

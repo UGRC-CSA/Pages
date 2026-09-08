@@ -1,0 +1,112 @@
+{% assign data = site.data.ocs_design_system_infograph %}
+
+<div class="ds-infograph">
+  <!-- Header -->
+  <div class="ds-header">
+    <div class="ds-badge">Design-Based Research Capstone</div>
+    <h1 class="ds-title">{{ data.Title }}</h1>
+    <p class="ds-description">{{ data.Description }}</p>
+  </div>
+
+  <!-- Project Cards -->
+  {% for topic in data.Topics %}
+  {% if topic.link contains '://' %}
+    {% assign topicHref = topic.link %}
+  {% else %}
+    {% assign topicHref = topic.link | prepend: site.baseurl %}
+  {% endif %}
+  <div class="ds-card">
+    <div class="ds-card-grid">
+
+      <!-- Left: Image & Status -->
+      <div class="ds-visual">
+        {% if topic.image %}
+        <a href="{{ site.baseurl }}/images/{{ topic.image }}" class="ds-image-link">
+          <img src="{{ site.baseurl }}/images/{{ topic.image }}" alt="{{ topic.alt }}" class="ds-image">
+          <div class="ds-overlay">
+            <span>View Screenshot</span>
+          </div>
+        </a>
+        {% if topic.caption %}
+        <p class="ds-subtitle">{{ topic.caption }}</p>
+        {% endif %}
+        {% else %}
+        <div class="ds-badge">{{ topic.phase }}</div>
+        {% endif %}
+        <div class="ds-status">{{ topic.status }}</div>
+        <div class="ds-team">
+          <span class="ds-team-label">Built by</span>
+          <span class="ds-team-name">{{ topic.team | join: ", " }}</span>
+        </div>
+      </div>
+
+      <!-- Center: Key Points -->
+      <div class="ds-content">
+        <h2 class="ds-project-title">{{ topic.title }}</h2>
+        <p class="ds-subtitle">{{ topic.subtitle }}</p>
+
+        <div class="ds-keypoints">
+          {% for point in topic.keyPoints %}
+          <div class="ds-keypoint">
+            <span class="ds-check">✓</span>
+            <span>{{ point }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="ds-tech-stack">
+          {% for tech in topic.tech %}
+          <span class="ds-tech-tag">{{ tech }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Right: Description & Impact -->
+      <div class="ds-details">
+        <h3 class="ds-section-title">About</h3>
+        <p class="ds-about">{{ topic.description }}</p>
+
+        <h3 class="ds-section-title">Impact</h3>
+        <div class="ds-impact-list">
+          {% for item in topic.impact %}
+          <div class="ds-impact-item">{{ item }}</div>
+          {% endfor %}
+        </div>
+
+        <a href="{{ topicHref }}" class="ds-btn">{{ topic.linkLabel | default: "Learn More" }}</a>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Supporting Sections -->
+  {% for section in data.Sections %}
+  <div class="ds-card">
+    <h2 class="ds-project-title">{{ section.title }}</h2>
+    <p class="ds-subtitle">{{ section.subtitle }}</p>
+    <div class="ds-impact-list">
+      {% for item in section.items %}
+      <div class="ds-impact-item">{{ item }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Following Along -->
+  {% if data.Links %}
+  <div class="ds-card">
+    <h2 class="ds-project-title">{{ data.Links.title }}</h2>
+    <p class="ds-subtitle">{{ data.Links.subtitle }}</p>
+    <div class="ds-tech-stack">
+      {% for item in data.Links.items %}
+      {% if item.url contains '://' %}
+      <a href="{{ item.url }}" class="ds-btn" target="_blank" rel="noopener">{{ item.label }}</a>
+      {% else %}
+      <a href="{{ item.url | prepend: site.baseurl }}" class="ds-btn">{{ item.label }}</a>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
