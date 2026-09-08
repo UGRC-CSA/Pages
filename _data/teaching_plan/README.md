@@ -23,7 +23,8 @@ A change made before 4:00 PM the day before a lesson can go this way. A same-day
 | `sprint` | The sprint number. |
 | `last_updated` | The date of the last change, `YYYY-MM-DD`. Bump it every time. The calendar shows it, so a stale plan is visible. |
 | `changes` | A list of `{date, note}`. One line per change, newest last. |
-| `frq_types` | The four College Board FRQ types. A lesson's `frq` must be one of these. Do not edit. |
+| `frq_types` | CSA only: the four College Board FRQ types. A CSA lesson's `frq` must be one of these. Do not edit. The other courses leave the list empty and skip `frq`. |
+| `unclaimed_topics` | The teacher's Sprint 2 topic menu for the course, minus the topics a table has claimed. Claim one by adding a lesson row and taking the topic off this list in the same pull request. |
 | `periods` | One entry per bell period. The key is the period as text, in quotes: `"2"`. |
 
 ### Inside a period
@@ -76,7 +77,7 @@ A lesson is taught by one table on one day.
 | `builds` | One sentence on what the table is building in OCS. | This is why the topic is theirs. Plain words. |
 | `project_url` | The table's project or capstone page. | Site-relative, like `/capstone/ocs-communications/`. Empty if there is none yet. |
 | `lesson` | The lesson page. | The `permalink` from the lesson's frontmatter, written exactly the same way, slash for slash. Empty until the lesson's PR is open. |
-| `frq` | The College Board FRQ type the lesson connects to. | One of the four in `frq_types`. |
+| `frq` | CSA only: the College Board FRQ type the lesson connects to. | One of the four in `frq_types`. Other courses leave it out. |
 
 ## Things that live somewhere else
 
