@@ -195,10 +195,10 @@
     return (slot.presenters || []).map(p => (p && p.name) || '').filter(Boolean);
   };
 
-  // "UGRC · Samarth, Akshaj" or just the team, or nothing.
+  // "UGRC \u00B7 Samarth, Akshaj" or just the team, or nothing.
   T.whoLine = function (slot) {
     const names = T.presenterNames(slot);
-    if (slot.team && names.length) return `${slot.team} · ${names.join(', ')}`;
+    if (slot.team && names.length) return `${slot.team} \u00B7 ${names.join(', ')}`;
     if (names.length) return names.join(', ');
     return slot.team || '';
   };
@@ -256,7 +256,7 @@
     const topic = T.escape(slot.topic || arg.event.title || '');
     let html = '<div class="fc-teaching">';
     if (ext.teachingKind === 'hw-due') {
-      html += `<div class="fc-teaching__topic">HW due · ${topic}</div>`;
+      html += `<div class="fc-teaching__topic">HW due \u00B7 ${topic}</div>`;
       if (wide) html += `<div class="fc-teaching__meta">${T.escape(T.whoLine(slot))}</div>`;
     } else if (ext.teachingKind === 'checkpoint') {
       html += `<div class="fc-teaching__topic">${topic}</div>`;
@@ -265,7 +265,7 @@
       html += `<div class="fc-teaching__topic">${topic} ${period}</div>`;
       if (wide) {
         const who = T.escape(T.whoLine(slot));
-        html += `<div class="fc-teaching__meta">${who}${ext.mine ? ' · <strong>You teach</strong>' : ''}</div>`;
+        html += `<div class="fc-teaching__meta">${who}${ext.mine ? ' \u00B7 <strong>You teach</strong>' : ''}</div>`;
       }
     }
     html += '</div>';
