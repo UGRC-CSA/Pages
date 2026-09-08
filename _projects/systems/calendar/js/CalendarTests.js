@@ -522,6 +522,30 @@
       const esc = T.renderActionRows(Object.assign({}, a, { team: '<b>x</b>' }), { homework: null, graders: [], groups: [], error: '' }, 'localhost');
       assert(!/<b>/.test(esc.rows.map(r => r[1]).join('')) && !esc.canAssign, 'rows: plan text is escaped; no record means no button');
     }
+
+    // LessonGrading.js, when it is loaded
+    if (T.gradingRows) {
+      const a = slots.find(s => s.id === 'a');
+      assert(T.mayGrade(a, teacher) && T.mayGrade(a, sam) && T.mayGrade(a, { loggedIn: true, uid: 'x', roles: [], groups: [{ name: 'UGRC' }] }), 'mayGrade: staff, a presenter, the team');
+      assert(!T.mayGrade(a, csa2) && !T.mayGrade(a, anon), 'mayGrade: not a classmate, not a visitor');
+      const groups = [{ id: 1, name: 'CSA', course: 'CSA', period: '2', members: [{ id: 7, uid: 'kid', name: 'Kid' }, { id: 8, uid: 'zed', name: 'Zed' }] }, { id: 5, name: 'UGRC', course: null, period: null, members: [] }];
+      assertEqual(T.classRoster(a, groups).length, 2, 'roster: the group with the slot\'s course and period');
+      assertEqual(T.classRoster(Object.assign({}, a, { period: '4' }), groups).length, 0, 'roster: another period has no roster here');
+      assertEqual(T.submissionLink({ type: 'link', url: 'https://x.test/a' }), 'https://x.test/a', 'link: content.url');
+      assertEqual(T.submissionLink('not a url'), '', 'link: a plain string that is not a url gives nothing');
+      const subs = [{ id: 100, submitter: { id: 8, uid: 'zed', name: 'Zed' }, content: { url: 'https://x.test/z' }, isLate: true, grade: null, feedback: '' }];
+      const rows = T.gradingRows(subs, T.classRoster(a, groups));
+      assertEqual(rows.map(r => r.name + ':' + r.kind).join(','), 'Kid:missing,Zed:submitted', 'rows: one per submission, one per classmate without, by name');
+      assertEqual(T.applyLate(0.9, true), 0.8, 'late: a preset loses 0.1');
+      assertEqual(T.applyLate(0.55, true), 0.55, 'late: never below the missing score');
+      assertEqual(T.applyLate(0.9, false), 0.9, 'late: on time keeps the preset');
+      assert(T.validGrade('0.91') === 0.91 && T.validGrade('1.5') === null && T.validGrade('') === null, 'grade: 0 to 1 only');
+      rows[1].grade = 0.8; rows[1].feedback = 'Late, complete.';
+      const sum = T.summaryText(a, { id: 41 }, rows);
+      assert(/homework #41/.test(sum) && /1 submitted \u00B7 1 missing \u00B7 1 graded \u00B7 average 0.80/.test(sum) && /Zed: 0.80 \(late\) \u2014 Late, complete\./.test(sum) && /Kid: missing, not recorded/.test(sum), 'summary: counts, average, one line per student');
+      const html = T.renderGradingRows(T.gradingRows([{ id: 1, submitter: { id: 9, name: '<i>x</i>' }, content: {}, isLate: false, grade: null, feedback: '' }], []));
+      assert(!/<i>/.test(html) && /data-save="1"/.test(html) && (html.match(/data-preset=/g) || []).length === 5, 'html: escaped, a Save per row, five presets');
+    }
     endSuite();
   }
 
