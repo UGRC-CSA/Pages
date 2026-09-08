@@ -9,7 +9,9 @@
     - posts: all posts/pages
 {% endcomment %}
 
-{% if entries.size > 0 %}
+{% comment %} The teaching plan can put rows in a week that has no lesson post yet. {% endcomment %}
+{% include lesson-plan-week.html mode="count" %}
+{% if entries.size > 0 or lpw_count > 0 %}
 <div class="week-card clickable" id="week-{{ index }}" data-week="{{ index }}" data-sprint="{{ unitKey }}" data-assignments="{{ assignmentTitles | escape }}" data-lessons="{{ lessonTitles | escape }}" data-entries="{{ allEntries | escape }}">
   <div class="week-content-wrapper">
     <div class="week-indicator">
@@ -72,6 +74,9 @@
         <span>{{ assignmentCount }} assignment{% if assignmentCount > 1 %}s{% endif %} due</span>
       </div>
       {% endif %}
+
+      <!-- Teaching plan for this week -->
+      {% include lesson-plan-week.html %}
 
       <!-- Week Chat -->
       {% include week_chat.html %}
