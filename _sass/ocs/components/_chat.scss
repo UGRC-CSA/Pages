@@ -721,6 +721,17 @@ $micro-size: 0.6875rem;
     line-height: fn.typo(small, line);
   }
 
+  // The toolbar has to fit one row in a week card, and the card is narrow:
+  // about 455px inside at a desktop width. The font family and font size
+  // selects are the two widest controls and the least useful in a quick
+  // question thread, so the compact variant drops them, along with the
+  // separator that follows them. Messages written with a font elsewhere
+  // still render it here; only the controls are hidden.
+  .rt-toolbar { gap: 1px; }
+  .rt-btn     { min-width: 1.625rem; padding-inline: fn.space(1); }
+  .rt-select,
+  .rt-select + .rt-sep { display: none; }
+
   // A week card is short. The full centred empty block would leave the widget
   // mostly whitespace, so say the same thing in one line.
   .ocs-chat__empty {

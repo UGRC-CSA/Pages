@@ -2549,6 +2549,17 @@
   font-size: 0.875rem;
   line-height: 1.5;
 }
+.ocs-chat--compact .rt-toolbar {
+  gap: 1px;
+}
+.ocs-chat--compact .rt-btn {
+  min-width: 1.625rem;
+  padding-inline: 0.25rem;
+}
+.ocs-chat--compact .rt-select,
+.ocs-chat--compact .rt-select + .rt-sep {
+  display: none;
+}
 .ocs-chat--compact .ocs-chat__empty {
   display: block;
   min-height: 0;
