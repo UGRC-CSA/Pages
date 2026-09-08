@@ -81,7 +81,9 @@
       const points = isFinite(n) && n > 0 ? `${n % 1 ? n : n.toFixed(0)} point${n === 1 ? '' : 's'}` : '';
       rows.push(['Homework record', `#${e(hw.id)} <span class="lesson-panel__dim">${e(hw.name)}${points ? ' \u00B7 ' + points : ''}${hw.dueDate ? ' \u00B7 due ' + e(hw.dueDate) : ''}</span>`]);
       const names = T.peopleNames(data.graders);
-      rows.push(['Graders', names.length ? e(names.join(', ')) : '<span class="lesson-panel__dim">None yet</span>']);
+      rows.push(['Graders', data.gradersError
+        ? '<span class="lesson-panel__dim">Could not read the grader list.</span>'
+        : (names.length ? e(names.join(', ')) : '<span class="lesson-panel__dim">None yet</span>')]);
     }
     if (!data.error && slot.kind === 'lesson') {
       const who = T.peopleNames(cand.people);
@@ -119,14 +121,14 @@
 
   // The reads the section needs. Errors become a row, not a crash.
   T.loadActionData = async function (slot) {
-    const out = { assignments: [], groups: [], graders: [], homework: null, error: '' };
+    const out = { assignments: [], groups: [], graders: [], gradersError: false, homework: null, error: '' };
     try {
       const both = await Promise.all([getJson('/api/assignments/'), getJson('/api/groups')]);
       out.assignments = Array.isArray(both[0]) ? both[0] : [];
       out.groups = Array.isArray(both[1]) ? both[1] : [];
       out.homework = T.findHomework(out.assignments, slot);
       if (out.homework) {
-        try { out.graders = await getJson(`/api/assignments/assignedGraders/${out.homework.id}`); } catch (err) { out.graders = []; }
+        try { out.graders = await getJson(`/api/assignments/assignedGraders/${out.homework.id}`); } catch (err) { out.graders = []; out.gradersError = true; }
       }
     } catch (err) {
       out.error = 'Could not reach the backend (' + err.message + ').';
