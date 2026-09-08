@@ -1532,3 +1532,81 @@ td:has(> img[src*="logo.png"]) {
 .fc-event-time {
   color: inherit;
 }
+
+// ===========================
+// Sprint 2 teaching slots
+// ===========================
+// Chips for the lessons, checkpoints and homework due dates that
+// TeachingSlots.js draws from _data/teaching_plan. Colours come from the
+// design-system tokens with a plain fallback each, because ocs.css is not
+// linked on this page until the layout change in #35 lands.
+
+.fc-event-teaching,
+.fc-daygrid-event.fc-event-teaching {
+  border: 1px solid var(--ocs-border, var(--ui-border, #444448));
+  border-radius: 6px;
+  background: var(--ocs-surface-elevated, var(--panel, #1c1c1e));
+  color: var(--ocs-text, var(--text, #f3f3f8));
+}
+
+.fc-event-lesson {
+  border-inline-start: 3px solid var(--ocs-accent, #E06665);
+}
+
+.fc-event-lesson--mine {
+  background: var(--ocs-accent-bg, rgba(224, 102, 101, 0.18));
+}
+
+.fc-event-checkpoint {
+  border-style: dashed;
+  color: var(--ocs-text-secondary, var(--text-muted, #b6b6ba));
+}
+
+.fc-event-hw-due {
+  border-inline-start: 3px solid var(--ocs-warning, #FF9F0A);
+}
+
+.fc-teaching {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 5px;
+  line-height: 1.25;
+  overflow: hidden;
+}
+
+.fc-teaching__topic {
+  font-size: 0.86em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-teaching__meta {
+  font-size: 0.76em;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  strong { opacity: 1; color: var(--ocs-accent, #E06665); }
+}
+
+.fc-teaching__period {
+  display: inline-block;
+  vertical-align: 1px;
+  padding: 0 5px;
+  border: 1px solid var(--ocs-border, var(--ui-border, #444448));
+  border-radius: 999px;
+  background: var(--ocs-surface-base, rgba(0, 0, 0, 0.25));
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+// The one-line note above the calendar when the viewer sees a fallback view.
+#teaching-visibility-note a {
+  color: var(--ocs-info, var(--accent, #5293ff));
+  text-decoration: underline;
+}
