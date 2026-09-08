@@ -3575,9 +3575,11 @@
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
   width: 300px;
-  max-height: 240px;
+  max-height: 300px;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 8px;
   border: 1px solid $bg-3;
   border-radius: 8px;
@@ -3598,6 +3600,9 @@
 
   &:hover { background: rgba($text, 0.12); }
 }
+
+/* the eraser icon in the Clear-formatting button */
+.rt-btn svg { display: block; }
 
 @media (max-width: 768px) {
   .rt-toolbar { gap: 1px; }
