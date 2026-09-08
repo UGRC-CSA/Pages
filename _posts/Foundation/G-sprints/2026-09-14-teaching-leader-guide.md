@@ -30,7 +30,7 @@ The lessons sit between those days. The Lessons tab on the calendar shows them f
 
 1. **Claim the day.** Open the plan file, `_data/teaching_plan/csa.yml`, on GitHub and click the pencil. Add or fix your row: date, topic, team, presenters, the FRQ type. Propose the change. That is a pull request; Akhil merges it for UGRC, then the teacher merges it for the school site. The [delegation page](/sprint2/csa-delegation) explains every field, and so does the README next to the file.
 2. **Write the lesson page.** Copy the [lesson template](/sprint2/teaching-lesson-template). Keep every heading with the same words: Learning objective, Success criteria, LxD notes, Tech Talk, Popcorn Hack, Homework Hack, Grading Plan, Revision log. The calendar links to those headings by name.
-3. **Fill the frontmatter.** `assignment: true`, `points: 1`, `dueDate` as `MM/DD/YYYY`, and `courses: {'csa': {'week': 6}}` (or 7). The due date is two school days after your lesson, at 8:35 AM.
+3. **Fill the frontmatter.** `assignment: true`, `points: 1`, `dueDate` as `MM/DD/YYYY`, and `courses: {'csa': {'week': 6}}` (or 7). The due date is 48 hours after your lesson, at 8:35 AM. A Tuesday lesson is due Thursday.
 4. **Put the page's `permalink` into your plan row's `lesson` field.** Same pull request. Once merged, the panel's buttons turn on, the lesson page shows a strip with your day and names, and the week card on the course page links to your page.
 5. **Do this by 4:00 PM the day before you teach.** After that, changes go in the week chat, not the plan file.
 
@@ -62,5 +62,5 @@ Use that lesson's own chat, under its page. Say one thing that worked and one th
 
 - **What is taught when:** the Lessons tab on the calendar, [/student/calendar#lessons](/student/calendar#lessons). Click a lesson for the page, the homework, and the due date.
 - **Where to submit:** the "Submit homework" form at the bottom of the lesson page. Submit a link, usually a gist.
-- **When it is due:** two school days after the lesson, at 8:35 AM. Late loses 0.1. Missing is 0.55.
+- **When it is due:** 48 hours after the lesson, at 8:35 AM. Late loses 0.1. Missing is 0.55.
 - **Where to ask:** the week's chat on the course page, or the lesson's own chat.
