@@ -1822,3 +1822,16 @@ td:has(> img[src*="logo.png"]) {
   color: var(--ocs-text-muted, #a1a1aa);
 }
 .lesson-grading__state.is-error { color: var(--ocs-danger, #f87171); }
+
+/* AI draft in a grading row (LessonAi.js) */
+.lesson-grading__ai { margin-left: 6px; border-color: var(--ocs-info-border, #2b4c7e); color: var(--ocs-info, #7cb7ff); }
+.lesson-grading__ai:hover { border-color: var(--ocs-info, #7cb7ff); }
+.lesson-grading__ai-text { margin-top: 6px; font-size: 0.78rem; color: var(--ocs-text-secondary, #c9c9d1); }
+.lesson-grading__ai-text summary { cursor: pointer; color: var(--ocs-text-muted, #a1a1aa); }
+.lesson-grading__ai-text pre {
+  margin: 4px 0 0;
+  max-height: 12rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  font: inherit;
+}

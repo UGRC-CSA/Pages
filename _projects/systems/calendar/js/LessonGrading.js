@@ -110,8 +110,8 @@
       opts.body = JSON.stringify(body);
     }
     const r = await fetch(a.javaURI + path, opts);
-    if (!r.ok) { const err = new Error(`${r.status} on ${path}`); err.status = r.status; throw err; }
     const text = await r.text();
+    if (!r.ok) { const err = new Error(`${r.status} on ${path}`); err.status = r.status; err.body = text; throw err; }
     try { return text ? JSON.parse(text) : null; } catch (e) { return null; }
   }
 
@@ -170,7 +170,7 @@
       return `<tr data-row="${i}"><td>${e(r.name)}${r.late ? ' <span class="ocs-badge ocs-badge--warning">late</span>' : ''}</td><td>${link}</td>` +
         `<td><div class="lesson-grading__presets">${presets}</div><input class="ocs-input lesson-grading__score" type="number" step="0.01" min="0" max="1" value="${r.grade != null ? e(r.grade) : ''}" aria-label="Score for ${e(r.name)}"></td>` +
         `<td><input class="ocs-input lesson-grading__reason" value="${e(r.feedback)}" placeholder="Why this score" aria-label="Reason for ${e(r.name)}"></td>` +
-        `<td><button type="button" class="ocs-btn ocs-btn--secondary ocs-btn--sm" data-save="${e(r.id)}">Save</button><span class="lesson-grading__state">${r.grade != null ? 'Saved ' + e(Number(r.grade).toFixed(2)) : ''}</span></td></tr>`;
+        `<td><button type="button" class="ocs-btn ocs-btn--secondary ocs-btn--sm" data-save="${e(r.id)}">Save</button>${(T.rowExtras || []).map(f => f(r)).join('')}<span class="lesson-grading__state">${r.grade != null ? 'Saved ' + e(Number(r.grade).toFixed(2)) : ''}</span></td></tr>`;
     }).join('');
     return `<div class="ocs-table-wrap" role="region" aria-label="Submissions" tabindex="0"><table class="ocs-table ocs-table--compact lesson-grading__table">` +
       `<thead><tr><th scope="col">Student</th><th scope="col">Submission</th><th scope="col">Score</th><th scope="col">Reason</th><th scope="col"><span class="ocs-sr-only">Save</span></th></tr></thead>` +
@@ -184,6 +184,13 @@
   // --- The dialog -----------------------------------------------------------------
 
   T.grading = { slot: null, hw: null, rows: [] };
+
+  // Other files add to a row from here: rowExtras give HTML for the Save
+  // cell, rowHandlers get the click first and return true when they took it.
+  T.rowExtras = T.rowExtras || [];
+  T.rowHandlers = T.rowHandlers || [];
+  T.apiCall = call;
+  T.setRowState = function (tr, text, isError) { rowState(tr, text, isError); };
 
   T.openGrading = async function (slot) {
     const dlg = el('gradingModal');
@@ -253,6 +260,7 @@
       const tr = ev.target.closest('tr[data-row]');
       if (!tr) return;
       const row = T.grading.rows[Number(tr.dataset.row)];
+      for (const handler of (T.rowHandlers || [])) { if (await handler(ev, tr, row)) return; }
       const preset = ev.target.closest('[data-preset]');
       if (preset) {
         const input = tr.querySelector('.lesson-grading__score');

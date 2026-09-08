@@ -422,6 +422,7 @@ is harmless in the meantime. {% endcomment %}
 <script src="{{ site.baseurl }}/assets/js/projects/calendar/TeachingPlan.js"></script>
 <script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonActions.js"></script>
 <script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonGrading.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonAi.js"></script>
 <script type="module">
     import { javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
 

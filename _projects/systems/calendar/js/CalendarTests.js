@@ -546,6 +546,30 @@
       const html = T.renderGradingRows(T.gradingRows([{ id: 1, submitter: { id: 9, name: '<i>x</i>' }, content: {}, isLate: false, grade: null, feedback: '' }], []));
       assert(!/<i>/.test(html) && /data-save="1"/.test(html) && (html.match(/data-preset=/g) || []).length === 5, 'html: escaped, a Save per row, five presets');
     }
+
+    // LessonAi.js, when it is loaded
+    if (T.gistIdFrom) {
+      assertEqual(T.gistIdFrom('https://gist.github.com/samarth/0123abcd4567ef'), '0123abcd4567ef', 'gist: user and id');
+      assertEqual(T.gistIdFrom('https://gist.github.com/0123abcd4567ef#file-main-java'), '0123abcd4567ef', 'gist: id only, with a fragment');
+      assertEqual(T.gistIdFrom('https://github.com/samarth/repo'), '', 'gist: a repo link is not a gist');
+      const gist = { files: { 'b.java': { content: 'class B {}' }, 'a.md': { content: '# notes', truncated: true } } };
+      const gt = T.gistText(gist);
+      assert(gt.indexOf('--- a.md ---') === 0 && /\[file cut by GitHub\]/.test(gt) && /--- b.java ---\nclass B \{\}/.test(gt), 'gist text: files in name order, cut files marked');
+      assert(/\[cut: \d+ more characters\]$/.test(T.gistText({ files: { 'x.txt': { content: 'y'.repeat(50) } } }, 20)), 'gist text: long text is cut and says so');
+      const s1 = T.parseSuggestion('Grade: 0.85/1.0\nFeedback: Clear code, one method missing.');
+      assert(s1.grade === 0.85 && /^Clear code/.test(s1.feedback), 'reply: score and feedback');
+      assertEqual(T.parseSuggestion('Grade: (1.4)/1.0 x').grade, 1, 'reply: a score above the scale is capped');
+      assertEqual(T.parseSuggestion('Grade: 0.2/1.0').grade, T.MISSING_SCORE, 'reply: a score below the scale is raised to missing');
+      assertEqual(T.parseSuggestion('No grade here').grade, null, 'reply: no score means null');
+      const reason = T.suggestionReason('word '.repeat(100));
+      assert(reason.indexOf(T.AI_PREFIX) === 0 && reason.length <= T.AI_PREFIX.length + T.AI_REASON_CAP + 1, 'reason: prefixed and capped');
+      if (typeof DOMParser !== 'undefined') {
+        const doc = new DOMParser().parseFromString('<h2 id="tech-talk">Tech Talk</h2><p>a</p><h2 id="homework-hack">Homework Hack</h2><p>Make a gist.</p><ul><li>Two files</li></ul><h2 id="grading-plan">Grading</h2><p>no</p>', 'text/html');
+        const sec = T.sectionText(doc, 'homework-hack');
+        assert(/Make a gist\./.test(sec) && /Two files/.test(sec) && !/Grading/.test(sec) && !/Tech Talk/.test(sec), 'section: the homework hack up to the next heading');
+        assertEqual(T.sectionText(doc, 'nope'), '', 'section: no heading gives nothing');
+      }
+    }
     endSuite();
   }
 
