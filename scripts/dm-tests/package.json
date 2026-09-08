@@ -1,6 +1,0 @@
-{
-  "name": "dm-preview-tests",
-  "private": true,
-  "type": "module",
-  "devDependencies": { "playwright": "1.56.1", "ws": "8.21.3" }
-}
