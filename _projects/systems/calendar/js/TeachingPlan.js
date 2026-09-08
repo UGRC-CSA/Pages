@@ -151,7 +151,7 @@
     if (!c.lessons && !c.checkpoints) return '';
     const parts = [`${c.lessons} lesson${c.lessons === 1 ? '' : 's'} planned`];
     if (c.proposed) parts.push(`${c.proposed} still proposed`);
-    parts.push(`${c.withPage} with a page yet`);
+    if (c.lessons) parts.push(`${c.withPage} with a page yet`);
     if (c.checkpoints) parts.push(`${c.checkpoints} checkpoint${c.checkpoints === 1 ? '' : 's'}`);
     return parts.join(' \u00B7 ');
   };
