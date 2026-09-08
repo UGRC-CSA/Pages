@@ -520,6 +520,8 @@
       assert(T.canWriteHere('pages.opencodingsociety.com') && T.canWriteHere('localhost') && !T.canWriteHere('ugrc-csa.github.io'), 'writes: the main site and local only');
       const rr = T.renderActionRows(a, { homework: hwList[1], graders: [{ id: 11, name: 'Sam' }], groups: groups, error: '' }, 'ugrc-csa.github.io');
       assert(rr.rows.some(r => r[0] === 'Graders' && /Sam/.test(r[1])) && rr.canAssign && rr.writes === false, 'rows: record, graders, and read-only on a fork');
+      const gerr = T.renderActionRows(a, { homework: hwList[1], graders: [], gradersError: true, groups: groups, error: '' }, 'localhost');
+      assert(gerr.rows.some(r => r[0] === 'Graders' && /Could not read/.test(r[1])), 'rows: a failed grader read is not shown as None yet');
       const esc = T.renderActionRows(Object.assign({}, a, { team: '<b>x</b>' }), { homework: null, graders: [], groups: [], error: '' }, 'localhost');
       assert(!/<b>/.test(esc.rows.map(r => r[1]).join('')) && !esc.canAssign, 'rows: plan text is escaped; no record means no button');
     }
