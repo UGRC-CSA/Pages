@@ -286,7 +286,7 @@
   --btn-bg-active: var(--ocs-surface-raised);
 }
 .ocs-btn--ghost:hover:not(:disabled) {
-  color: var(--ocs-text);
+  --btn-fg: var(--ocs-text);
 }
 .ocs-btn--danger {
   --btn-bg: var(--ocs-danger-border);
