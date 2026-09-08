@@ -47,7 +47,7 @@ The lessons sit between those days. The Lessons tab on the calendar shows them f
 2. **Score on the class scale.** 0.9 complete and on time · 0.91 extra credit · 0.8 small gaps · 0.7 large gaps · 0.55 missing. Late takes 0.1 off; the buttons do that for you on a late row.
 3. **Write a reason for every score.** Save refuses an empty reason. One sentence is enough: what was there, what was missing.
 4. **Record the missing ones.** "Record as missing" on a classmate with no submission saves 0.55 with the reason "No submission by the deadline."
-5. **For a gist, try "AI suggest".** It reads the gist and your Homework Hack section and drafts a score and a reason. You still decide, and you still click Save. (The backend's model needs UGRC-CSA/Spring#46 before this works live.)
+5. **For a gist, try "AI suggest".** It reads the gist and your Homework Hack section and drafts a score and a reason. You still decide, and you still click Save. (The backend's model needs the fix in UGRC-CSA/Pages#46 before this works live.)
 6. **Send the teacher the summary.** "Copy summary" gives the class, the counts, the average, and one line per student. Paste it where the teacher asks for grading stats. Do this within three days of the due date.
 
 ## If something changes on the day
