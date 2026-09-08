@@ -52,10 +52,16 @@
     (Array.isArray(weeks) ? weeks : []).forEach(w => {
       const note = String(w.notes || '');
       if (!/non-?student|no school|holiday/i.test(note)) return;
-      const year = String(w.monday || '').slice(0, 4);
+      const mon = String(w.monday || ''), fri = String(w.friday || '');
       const re = /(\d{1,2})\/(\d{1,2})/g;
       let m;
-      while ((m = re.exec(note))) out.push(`${year}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`);
+      while ((m = re.exec(note))) {
+        const mm = m[1].padStart(2, '0'), dd = m[2].padStart(2, '0');
+        // A week that crosses New Year spans two years; take the one whose
+        // month matches the Friday when the note's month is the Friday's.
+        const year = mm === fri.slice(5, 7) ? fri.slice(0, 4) : mon.slice(0, 4);
+        out.push(`${year}-${mm}-${dd}`);
+      }
     });
     return out;
   };

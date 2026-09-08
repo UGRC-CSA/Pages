@@ -286,7 +286,7 @@
   --btn-bg-active: var(--ocs-surface-raised);
 }
 .ocs-btn--ghost:hover:not(:disabled) {
-  color: var(--ocs-text);
+  --btn-fg: var(--ocs-text);
 }
 .ocs-btn--danger {
   --btn-bg: var(--ocs-danger-border);
@@ -2150,7 +2150,7 @@ a.ocs-btn:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ocs-agenda__item {
+  .ocs-agenda__item:is(a, button) {
     transition: none;
   }
 }
