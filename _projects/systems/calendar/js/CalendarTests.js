@@ -494,6 +494,7 @@
       assert(/Mon 21 Sep to Fri 25 Sep/.test(T.weeksLine(m.weeks)), 'text: the week line names the first and last day');
       assertEqual(T.shortRange(weeks[1]), '21\u201325 Sep', 'text: the column heading range');
       assert(/1 lesson planned/.test(T.countsLine(m.counts)) && /1 checkpoint$/.test(T.countsLine(m.counts)), 'text: the counts line');
+      assertEqual(T.countsLine({ lessons: 0, proposed: 0, withPage: 0, checkpoints: 6 }), '0 lessons planned \u00B7 6 checkpoints', 'text: no lessons means no page count');
       const html = T.renderGrid(m) + T.renderAgenda(m);
       assert(/data-slot-id="a"/.test(html) && /data-slot-id="c"/.test(html), 'html: every row carries its slot id for the click');
       assert(!/<i>/.test(T.renderItem({ kind: 'lesson', mine: false, slot: { id: 'x', topic: '<i>x</i>', presenters: [] } })), 'html: plan text is escaped');
