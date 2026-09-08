@@ -13,6 +13,7 @@ is harmless in the meantime. {% endcomment %}
 
 <div class="calendar-dashboard-tabs" role="tablist" aria-label="Calendar Dashboard Tabs">
     <button type="button" class="dashboard-tab-btn active" data-dashboard-tab="calendar" role="tab" aria-selected="true">Calendar</button>
+    <button type="button" class="dashboard-tab-btn" data-dashboard-tab="lessons" role="tab" aria-selected="false">Lessons</button>
     <button type="button" class="dashboard-tab-btn" data-dashboard-tab="cs-pathway" role="tab" aria-selected="false">CS Pathway</button>
     <button type="button" class="dashboard-tab-btn" data-dashboard-tab="issues" role="tab" aria-selected="false">Issues</button>
     <button type="button" class="dashboard-tab-btn" data-dashboard-tab="threads" role="tab" aria-selected="false">Threads</button>
@@ -75,6 +76,11 @@ is harmless in the meantime. {% endcomment %}
         </label>
     </div>
     <div id="calendar" class="calendar-stage"></div>
+</section>
+
+<section id="dashboard-panel-lessons" class="dashboard-panel hidden" role="tabpanel" aria-label="Lessons Panel">
+    {% comment %} Filled by TeachingPlan.js from the plan below. {% endcomment %}
+    <div id="lessons-panel" class="calendar-lessons-panel"></div>
 </section>
 
 <section id="dashboard-panel-cs-pathway" class="dashboard-panel hidden" role="tabpanel" aria-label="CS Pathway Tasks Panel">
@@ -412,6 +418,7 @@ is harmless in the meantime. {% endcomment %}
 <script>var SITE_BASEURL = '{{ site.baseurl }}';</script>
 <script src="{{ site.baseurl }}/assets/js/projects/calendar/TeachingSlots.js"></script>
 <script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonPanel.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/TeachingPlan.js"></script>
 <script type="module">
     import { javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
 
@@ -909,6 +916,7 @@ is harmless in the meantime. {% endcomment %}
             btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
         document.getElementById('dashboard-panel-calendar')?.classList.toggle('hidden', tabName !== 'calendar');
+        document.getElementById('dashboard-panel-lessons')?.classList.toggle('hidden', tabName !== 'lessons');
         document.getElementById('dashboard-panel-cs-pathway')?.classList.toggle('hidden', tabName !== 'cs-pathway');
         document.getElementById('dashboard-panel-issues')?.classList.toggle('hidden', tabName !== 'issues');
         document.getElementById('dashboard-panel-threads')?.classList.toggle('hidden', tabName !== 'threads');
@@ -1518,6 +1526,8 @@ is harmless in the meantime. {% endcomment %}
                             noteEl.innerHTML = teaching.note;
                             noteEl.hidden = !teaching.note;
                         }
+                        // The Lessons tab (TeachingPlan.js) draws from the same state.
+                        window.OCSTeaching.renderLessonsTab?.();
                     }
 
                     displayCalendar(filterEvents());
@@ -2176,7 +2186,9 @@ is harmless in the meantime. {% endcomment %}
                 applyCalendarFilterUI();
             });
 
-            switchDashboardTab('calendar');
+            // /student/calendar#lessons opens on the Lessons tab, so lesson
+            // pages and week cards can link straight to it.
+            switchDashboardTab(window.location.hash === '#lessons' ? 'lessons' : 'calendar');
             switchIssuesSubtab('create');
         }
 

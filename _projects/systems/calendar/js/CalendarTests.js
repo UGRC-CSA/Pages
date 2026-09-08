@@ -450,6 +450,53 @@
       assert(!T.factRows({ topic: '<b>x</b>', period: '2', course: 'CSA', date: '2026-09-22', kind: 'lesson', team: '<i>t</i>', presenters: [] }).some(r => /<i>/.test(r[1])), 'facts: text is escaped');
       T.state = saved;
     }
+
+    // TeachingPlan.js, when it is loaded
+    if (T.planModel) {
+      const weeks = [
+        { n: 5, monday: '2026-09-14', friday: '2026-09-18' },
+        { n: 6, monday: '2026-09-21', friday: '2026-09-25' },
+        { n: 7, monday: '2026-09-28', friday: '2026-10-02', notes: '9/29 Non-Student Day' },
+        { n: 8, monday: '2026-10-05', friday: '2026-10-09' }
+      ];
+      assertEqual(T.weekDays(weeks[1]).join(','), '2026-09-21,2026-09-22,2026-09-23,2026-09-24,2026-09-25', 'weekDays: Monday to Friday from the Monday');
+      assertEqual(T.teachingWeeks(weeks, slots).map(w => w.n).join(','), '6', 'teachingWeeks: only the weeks with a slot in the plan');
+      assertEqual(T.daysOff(weeks).join(','), '2026-09-29', 'daysOff: read from the notes line');
+      assertEqual(T.daysOff([{ monday: '2026-09-21', notes: 'Sprint 2 starts' }]).length, 0, 'daysOff: a note without a day off gives nothing');
+
+      const asState = (viewer) => { const v = T.visibleSlots(slots, viewer); return { plan: { weeks }, slots, visible: v.slots, mode: v.mode, viewer }; };
+      const staff = asState(teacher), student = asState(csa2);
+      assertEqual(T.pickerChoices(staff).map(c => c.key).join(' '), 'CSA|2 CSA|4', 'picker: staff get every class and period in the plan');
+      assertEqual(T.pickerChoices(student).map(c => c.key).join(' '), 'CSA|2', 'picker: a student gets only their own, so no picker shows');
+      assertEqual(T.defaultChoice(T.pickerChoices(staff), csa2).key, 'CSA|2', 'default choice: the viewer\'s own class when it is in the list');
+
+      const m = T.planModel(student, { course: 'CSA', period: '2' }, '2026-09-22');
+      assertEqual(m.rows.length, 5, 'grid: five weekday rows');
+      assertEqual(m.columns.length, 1, 'grid: one column per teaching week');
+      const day = d => m.days.find(x => x.date === d);
+      assertEqual(day('2026-09-21').items.map(i => i.kind).join(','), 'checkpoint', 'grid: the checkpoint sits on its day');
+      assertEqual(day('2026-09-22').items.map(i => i.kind + ':' + i.slot.id).join(','), 'lesson:a', 'grid: the lesson sits on its day');
+      assert(day('2026-09-22').today, 'grid: today is marked');
+      assertEqual(day('2026-09-24').items.map(i => i.kind).join(','), 'hw-due', 'grid: homework due shows on the due day');
+      assertEqual(day('2026-09-23').items.length, 0, 'grid: another period\'s lesson is not in this class\'s grid');
+      assertEqual(m.counts.lessons + '/' + m.counts.withPage + '/' + m.counts.checkpoints, '1/1/1', 'counts: lessons, with a page, checkpoints');
+
+      const w7 = { id: 'w7', date: '2026-09-30', kind: 'lesson', course: 'CSA', period: '2', topic: 'Login', presenters: [] };
+      const m7 = T.planModel({ plan: { weeks }, slots: slots.concat([w7]), visible: slots.concat([w7]), mode: 'staff', viewer: teacher }, null, '2026-09-08');
+      assertEqual(m7.columns.map(c => c.week.n).join(','), '6,7', 'grid: a slot in week 7 adds the column');
+      assert(m7.days.find(x => x.date === '2026-09-29').off, 'grid: the non-student day is marked off');
+
+      assertEqual(T.emptyKind(asState(anon), T.planModel(asState(anon), null, '2026-09-22')), 'anonymous', 'empty: not logged in');
+      assertEqual(T.emptyKind(asState(noClass), T.planModel(asState(noClass), null, '2026-09-22')), 'no-class', 'empty: logged in without a class');
+      assertEqual(T.emptyKind(asState(csp3), T.planModel(asState(csp3), null, '2026-09-22')), 'nothing-planned', 'empty: a class with nothing planned');
+      assertEqual(T.emptyKind(student, m), null, 'empty: nothing to say when there are rows');
+      assert(/Mon 21 Sep to Fri 25 Sep/.test(T.weeksLine(m.weeks)), 'text: the week line names the first and last day');
+      assertEqual(T.shortRange(weeks[1]), '21\u201325 Sep', 'text: the column heading range');
+      assert(/1 lesson planned/.test(T.countsLine(m.counts)) && /1 checkpoint$/.test(T.countsLine(m.counts)), 'text: the counts line');
+      const html = T.renderGrid(m) + T.renderAgenda(m);
+      assert(/data-slot-id="a"/.test(html) && /data-slot-id="c"/.test(html), 'html: every row carries its slot id for the click');
+      assert(!/<i>/.test(T.renderItem({ kind: 'lesson', mine: false, slot: { id: 'x', topic: '<i>x</i>', presenters: [] } })), 'html: plan text is escaped');
+    }
     endSuite();
   }
 
