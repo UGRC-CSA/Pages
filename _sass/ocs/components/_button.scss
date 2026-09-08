@@ -113,7 +113,9 @@
     --btn-bg-hover: var(--ocs-surface-elevated);
     --btn-bg-active: var(--ocs-surface-raised);
 
-    &:hover:not(:disabled) { color: var(--ocs-text); }
+    // Through the knob, not color: the link guard below forces color to
+    // --btn-fg, so a ghost link keeps this hover colour too.
+    &:hover:not(:disabled) { --btn-fg: var(--ocs-text); }
   }
 
   &--danger {
