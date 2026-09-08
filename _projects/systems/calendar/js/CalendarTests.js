@@ -463,6 +463,7 @@
       assertEqual(T.teachingWeeks(weeks, slots).map(w => w.n).join(','), '6', 'teachingWeeks: only the weeks with a slot in the plan');
       assertEqual(T.daysOff(weeks).join(','), '2026-09-29', 'daysOff: read from the notes line');
       assertEqual(T.daysOff([{ monday: '2026-09-21', notes: 'Sprint 2 starts' }]).length, 0, 'daysOff: a note without a day off gives nothing');
+      assertEqual(T.daysOff([{ monday: '2026-12-28', friday: '2027-01-01', notes: '1/1 Holiday' }]).join(','), '2027-01-01', 'daysOff: a week across New Year takes the right year');
 
       const asState = (viewer) => { const v = T.visibleSlots(slots, viewer); return { plan: { weeks }, slots, visible: v.slots, mode: v.mode, viewer }; };
       const staff = asState(teacher), student = asState(csa2);
