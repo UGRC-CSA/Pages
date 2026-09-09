@@ -13,10 +13,14 @@
  *       field (the same field the groups chat uses).
  *
  *   renderRichMessage(container, raw, image) -> parses a stored message, keeps
- *       only that subset, turns bare URLs into links, appends it, then appends
- *       any attachment from `image`. Every message (history from S3, live from
- *       the socket, local preview) goes through here, so this is the trust
- *       boundary — never assume the input is safe.
+ *       only that subset (incl. a leading <blockquote> reply quote), turns bare
+ *       URLs into links, appends it, then appends any attachment from `image`.
+ *       Every message (history from S3, live from the socket, local preview)
+ *       goes through here, so this is the trust boundary — never assume safe.
+ *
+ *   createMessageActions(container, opts) -> the Discord-style hover toolbar on
+ *       other people's messages: Add reaction (local-only for now), Reply
+ *       (fills the composer's reply bar), Copy. Gated on setSignedIn(true).
  *
  * Plain-text messages sent before this shipped still render correctly: the
  * sanitizer passes text through untouched and the widgets keep `white-space:
@@ -45,6 +49,8 @@ const INVISIBLE_RE = /[​﻿]/g;
 // (its text is kept, the tag is dropped).
 const INLINE_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE']);
 const LIST_TAGS = new Set(['UL', 'OL', 'LI']);
+// Elements whose *contents* are code / not display text — dropped whole.
+const DROP_WHOLE = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'IFRAME', 'OBJECT', 'EMBED', 'HEAD', 'TITLE']);
 
 // span classes the composer emits; nothing else is allowed to ride on a span.
 const SPAN_CLASS_RE = /^rt-(?:font-(?:serif|mono)|size-(?:sm|lg|xl))$/;
@@ -145,6 +151,8 @@ function cleanNode(node, insideAnchor) {
 
   const tag = node.tagName;
 
+  if (DROP_WHOLE.has(tag)) return document.createDocumentFragment();
+
   if (tag === 'BR') return document.createElement('br');
 
   // Block containers a browser's contenteditable leaves behind: keep the
@@ -168,6 +176,13 @@ function cleanNode(node, insideAnchor) {
     // contenteditable pads an empty/just-typed <li> with a trailing <br>
     if (tag === 'LI' && el.lastChild && el.lastChild.nodeName === 'BR') el.removeChild(el.lastChild);
     return el;
+  }
+
+  // The reply quote a message can carry: <blockquote><b>Sender</b> snippet…</blockquote>
+  if (tag === 'BLOCKQUOTE') {
+    const el = document.createElement('blockquote');
+    cleanChildren(node, el, insideAnchor);
+    return hasContent(el) ? el : document.createDocumentFragment();
   }
 
   if (tag === 'SPAN' || tag === 'FONT') {
@@ -372,6 +387,200 @@ export function renderAttachment(container, image) {
 }
 
 /* ------------------------------------------------------------------ *
+ * Shared popover helpers (emoji grid + fixed positioning)
+ * ------------------------------------------------------------------ */
+
+// Place a fixed-position popover next to an anchor rect: above it if there's
+// room, otherwise below, and always inside the viewport.
+function positionPopover(el, anchorRect) {
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  const w = el.offsetWidth || 260;
+  const h = el.offsetHeight || 240;
+  el.style.left = `${Math.max(8, Math.min(anchorRect.left, vw - w - 8))}px`;
+  el.style.top = anchorRect.top > h + 12
+    ? `${anchorRect.top - h - 6}px`
+    : `${Math.min(anchorRect.bottom + 6, vh - h - 8)}px`;
+}
+
+function fillEmojiGrid(container, onPick) {
+  EMOJI.forEach((emoji) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'rt-emoji';
+    b.textContent = emoji;
+    b.setAttribute('aria-label', emoji);
+    b.addEventListener('mousedown', (e) => e.preventDefault());
+    b.addEventListener('click', () => onPick(emoji));
+    container.appendChild(b);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Message actions — Discord-style hover toolbar (react / reply / copy)
+ *
+ * Reactions are stored per-widget in localStorage and are *local to this
+ * browser* — there is no backend reaction field yet, so they aren't shared.
+ * Reply and Copy are fully client-side too (Reply prepends a <blockquote>
+ * to the outgoing message).
+ * ------------------------------------------------------------------ */
+
+const RTA_REACT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>';
+const RTA_REPLY = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
+const RTA_COPY = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>';
+
+function readJSON(key) {
+  try { return JSON.parse(window.localStorage.getItem(key) || '{}') || {}; }
+  catch (_) { return {}; }
+}
+
+export function createMessageActions(container, opts = {}) {
+  const storageKey = opts.storageKey || 'ocs-chat-reactions';
+  const onReply = typeof opts.onReply === 'function' ? opts.onReply : () => {};
+  const store = readJSON(storageKey);
+  let signedIn = false;
+  let picker = null;
+  let pickerTarget = null;
+
+  container.classList.add('has-msg-actions');
+
+  function persist() {
+    try { window.localStorage.setItem(storageKey, JSON.stringify(store)); } catch (_) { /* quota */ }
+  }
+
+  function bodyText(msgEl) {
+    const body = msgEl.querySelector('.chat-msg-body');
+    return (body ? body.textContent : msgEl.textContent || '').trim();
+  }
+
+  // Reactions sit under the message text — that's inside .chat-msg-main where a
+  // widget has an avatar gutter (announcements), otherwise the message itself.
+  function reactionHost(msgEl) {
+    return msgEl.querySelector('.chat-msg-main') || msgEl;
+  }
+
+  function renderReactions(msgEl) {
+    const key = msgEl.dataset.msgKey || '';
+    const map = store[key] || {};
+    const emojis = Object.keys(map).filter((e) => map[e] > 0);
+    const host = reactionHost(msgEl);
+    let bar = host.querySelector(':scope > .chat-reactions');
+    if (!emojis.length) { if (bar) bar.remove(); return; }
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'chat-reactions';
+      host.appendChild(bar);
+    }
+    bar.textContent = '';
+    emojis.forEach((emoji) => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'chat-reaction is-mine';
+      pill.title = `You reacted with ${emoji} · click to remove`;
+      const g = document.createElement('span');
+      g.className = 'chat-reaction-emoji';
+      g.textContent = emoji;
+      const n = document.createElement('span');
+      n.className = 'chat-reaction-count';
+      n.textContent = String(map[emoji]);
+      pill.append(g, n);
+      pill.addEventListener('click', () => toggleReaction(msgEl, emoji));
+      bar.appendChild(pill);
+    });
+  }
+
+  function toggleReaction(msgEl, emoji) {
+    const key = msgEl.dataset.msgKey;
+    if (!key) return;
+    const map = store[key] || (store[key] = {});
+    if (map[emoji]) {
+      delete map[emoji];
+      if (!Object.keys(map).length) delete store[key];
+    } else {
+      map[emoji] = 1;
+    }
+    persist();
+    renderReactions(msgEl);
+  }
+
+  function closePicker() {
+    if (picker && picker.isConnected) picker.remove();
+    pickerTarget = null;
+  }
+
+  function openPicker(anchorEl, msgEl) {
+    if (!picker) {
+      picker = document.createElement('div');
+      picker.className = 'rt-emoji-panel chat-reaction-picker';
+      fillEmojiGrid(picker, (emoji) => {
+        if (pickerTarget) toggleReaction(pickerTarget, emoji);
+        closePicker();
+      });
+      document.addEventListener('click', (e) => {
+        if (picker && picker.isConnected
+          && !picker.contains(e.target)
+          && !(e.target.closest && e.target.closest('.chat-msg-action-react'))) closePicker();
+      });
+      window.addEventListener('scroll', (e) => {
+        if (picker && picker.isConnected && e.target !== picker) closePicker();
+      }, true);
+    }
+    pickerTarget = msgEl;
+    document.body.appendChild(picker);
+    positionPopover(picker, anchorEl.getBoundingClientRect());
+  }
+
+  function actionButton(cls, icon, label, handler) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `chat-msg-action ${cls}`;
+    b.title = label;
+    b.setAttribute('aria-label', label);
+    b.innerHTML = icon;
+    b.addEventListener('click', (e) => { e.stopPropagation(); handler(b); });
+    return b;
+  }
+
+  function flash(btn, text) {
+    const prev = btn.getAttribute('aria-label');
+    btn.classList.add('is-done');
+    btn.title = text;
+    setTimeout(() => { btn.classList.remove('is-done'); btn.title = prev; }, 1200);
+  }
+
+  function decorate(msgEl) {
+    if (!msgEl || msgEl.dataset.maDecorated) return;
+    msgEl.dataset.maDecorated = '1';
+    renderReactions(msgEl);
+    if (!signedIn || msgEl.dataset.msgSelf === '1') return;
+
+    const bar = document.createElement('div');
+    bar.className = 'chat-msg-actions';
+    bar.append(
+      actionButton('chat-msg-action-react', RTA_REACT, 'Add reaction', (btn) => openPicker(btn, msgEl)),
+      actionButton('chat-msg-action-reply', RTA_REPLY, 'Reply', () => {
+        onReply({ sender: msgEl.dataset.msgSender || 'Someone', text: bodyText(msgEl) });
+      }),
+      actionButton('chat-msg-action-copy', RTA_COPY, 'Copy message', (btn) => {
+        const text = bodyText(msgEl);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => flash(btn, 'Copied')).catch(() => {});
+        }
+      }),
+    );
+    msgEl.appendChild(bar);
+    msgEl.classList.add('has-actions');
+  }
+
+  function setSignedIn(value) {
+    signedIn = !!value;
+    container.classList.toggle('can-act', signedIn);
+  }
+
+  return { decorate, setSignedIn, closePicker };
+}
+
+/* ------------------------------------------------------------------ *
  * Composer
  * ------------------------------------------------------------------ */
 
@@ -418,6 +627,12 @@ export function createRichComposer(opts = {}) {
   const attachMenu = document.createElement('div');
   attachMenu.className = 'rt-attach-menu';
 
+  // "Replying to …" bar above the input, set via setReplyTo() from the hover
+  // action on another person's message.
+  const replyBar = document.createElement('div');
+  replyBar.className = 'rt-reply-bar';
+  replyBar.hidden = true;
+
   // Staged attachment (Discord-style tray above the input), hidden until used.
   const attachTray = document.createElement('div');
   attachTray.className = 'rt-attachments';
@@ -448,7 +663,30 @@ export function createRichComposer(opts = {}) {
   inputRow.className = 'rt-input-row';
   inputRow.append(attachBtn, editor);
 
-  root.append(toolbar, attachTray, inputRow, fileInput);
+  root.append(toolbar, replyBar, attachTray, inputRow, fileInput);
+
+  let replyTo = null;
+
+  function renderReplyBar() {
+    replyBar.hidden = !replyTo;
+    if (!replyTo) { replyBar.textContent = ''; return; }
+    replyBar.textContent = '';
+    const label = document.createElement('span');
+    label.className = 'rt-reply-label';
+    label.textContent = `Replying to ${replyTo.sender}`;
+    const snippet = document.createElement('span');
+    snippet.className = 'rt-reply-snippet';
+    snippet.textContent = replyTo.text.length > 100 ? `${replyTo.text.slice(0, 100)}…` : replyTo.text;
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'rt-reply-cancel';
+    cancel.title = 'Cancel reply';
+    cancel.setAttribute('aria-label', 'Cancel reply');
+    cancel.textContent = '×';
+    cancel.addEventListener('mousedown', (e) => e.preventDefault());
+    cancel.addEventListener('click', () => { replyTo = null; renderReplyBar(); handleChange(); editor.focus(); });
+    replyBar.append(label, snippet, cancel);
+  }
 
   /* selection tracking — a <select> or the emoji panel steals focus and
      collapses the editor selection, so remember the last range that was
@@ -793,19 +1031,7 @@ export function createRichComposer(opts = {}) {
   function buildEmojiPanel() {
     if (emojiBuilt) return;
     emojiBuilt = true;
-    EMOJI.forEach((emoji) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'rt-emoji';
-      b.textContent = emoji;
-      b.setAttribute('aria-label', `Insert ${emoji}`);
-      b.addEventListener('mousedown', (e) => e.preventDefault());
-      b.addEventListener('click', () => {
-        insertText(emoji);
-        closeEmojiPanel();
-      });
-      emojiPanel.appendChild(b);
-    });
+    fillEmojiGrid(emojiPanel, (emoji) => { insertText(emoji); closeEmojiPanel(); });
     document.addEventListener('click', (e) => {
       if (emojiOpen && !root.contains(e.target) && !emojiPanel.contains(e.target)) closeEmojiPanel();
     });
@@ -825,15 +1051,7 @@ export function createRichComposer(opts = {}) {
       savedRange = sel.getRangeAt(0).cloneRange();
     }
     document.body.appendChild(emojiPanel);
-    const r = emojiBtn.getBoundingClientRect();
-    const viewW = document.documentElement.clientWidth;
-    const viewH = document.documentElement.clientHeight;
-    const panelW = emojiPanel.offsetWidth || 300;
-    const panelH = Math.min(300, emojiPanel.offsetHeight || 300);
-    emojiPanel.style.left = `${Math.max(8, Math.min(r.left, viewW - panelW - 8))}px`;
-    emojiPanel.style.top = r.top > panelH + 12
-      ? `${r.top - panelH - 6}px`
-      : `${Math.min(r.bottom + 6, viewH - panelH - 8)}px`;
+    positionPopover(emojiPanel, emojiBtn.getBoundingClientRect());
     emojiOpen = true;
     emojiBtn.classList.add('is-active');
   }
@@ -896,13 +1114,7 @@ export function createRichComposer(opts = {}) {
     if (attachBtn.disabled) return;
     buildAttachMenu();
     document.body.appendChild(attachMenu);
-    const r = attachBtn.getBoundingClientRect();
-    const viewW = document.documentElement.clientWidth;
-    const viewH = document.documentElement.clientHeight;
-    const w = attachMenu.offsetWidth || 240;
-    const h = attachMenu.offsetHeight || 200;
-    attachMenu.style.left = `${Math.max(8, Math.min(r.left, viewW - w - 8))}px`;
-    attachMenu.style.top = r.top > h + 12 ? `${r.top - h - 6}px` : `${Math.min(r.bottom + 6, viewH - h - 8)}px`;
+    positionPopover(attachMenu, attachBtn.getBoundingClientRect());
     attachOpen = true;
     attachBtn.classList.add('is-active');
   }
@@ -1156,6 +1368,8 @@ export function createRichComposer(opts = {}) {
       savedRange = null;
       resetTypingFormat();
       clearAttachment();
+      replyTo = null;
+      renderReplyBar();
       handleChange();
     },
     setEnabled(enabled) {
@@ -1169,7 +1383,18 @@ export function createRichComposer(opts = {}) {
     isOverLimit() { return textLength() > maxLength; },
     length: textLength,
     getHTML() {
-      return sanitizeRichText(editor.innerHTML).replace(/(?:<br>|\s)+$/g, '').trim();
+      let html = sanitizeRichText(editor.innerHTML).replace(/(?:<br>|\s)+$/g, '').trim();
+      if (replyTo) {
+        const q = document.createElement('blockquote');
+        const who = document.createElement('b');
+        who.textContent = replyTo.sender;
+        const snip = replyTo.text.length > 160 ? `${replyTo.text.slice(0, 160)}…` : replyTo.text;
+        q.append(who, document.createTextNode(snip ? ` ${snip}` : ''));
+        const holder = document.createElement('div');
+        holder.appendChild(q);
+        html = holder.innerHTML + html;
+      }
+      return html;
     },
     // The staged attachment, or null. `image` is the string for the message's
     // `image` field; `kind` is 'image' | 'video' | 'file'.
@@ -1178,5 +1403,15 @@ export function createRichComposer(opts = {}) {
         ? { image: pendingAttachment.image, name: pendingAttachment.name, kind: pendingAttachment.kind, bytes: pendingAttachment.bytes }
         : null;
     },
+    // The "Replying to …" context, set from a message's Reply hover action.
+    setReplyTo(meta) {
+      replyTo = meta && meta.text != null
+        ? { sender: String(meta.sender || 'Someone'), text: String(meta.text || '') }
+        : null;
+      renderReplyBar();
+      handleChange();
+      editor.focus();
+    },
+    getReplyTo() { return replyTo ? { ...replyTo } : null; },
   };
 }
