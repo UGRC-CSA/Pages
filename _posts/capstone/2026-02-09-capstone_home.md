@@ -800,7 +800,7 @@ Below are the capstone infographic pages created by student groups. Click an ima
        </a>
        <div>
            <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-08-27-communication-system-capstone %}">Communication System</a></h3>
-           <p class="text-sm text-gray-700">Moving class discussion out of Slack and onto the course site — class-wide announcements and per-week chat already ship, with per-assignment threads, 1:1 direct messages, and teacher moderation still to build.</p>
+           <p class="text-sm text-gray-700">Moving class discussion out of Slack and onto the course site — class-wide announcements, per-week chat, and a rich-text composer with emoji already ship, with per-assignment threads, 1:1 direct messages, GIFs, Slack-style emoji reactions, and teacher moderation still to build.</p>
            <p class="text-xs text-gray-500 mt-2">Team: Akhil, Syown, Leon, Perry, Skandan, Sathwik, Akshajh, Tarun, Samarth</p>
        </div>
    </div>
