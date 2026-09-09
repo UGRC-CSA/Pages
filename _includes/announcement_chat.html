@@ -150,7 +150,8 @@
 
   function submitMessage() {
     if (composer.isEmpty() || composer.isOverLimit()) return;
-    if (sendMessage(composer.getHTML())) composer.clear();
+    const attachment = composer.getAttachment();
+    if (sendMessage(composer.getHTML(), attachment ? attachment.image : null)) composer.clear();
   }
 
   function parseDate(isoString) {
@@ -197,7 +198,7 @@
     if (empty) empty.remove();
   }
 
-  function appendMessage({ sender, message, date }) {
+  function appendMessage({ sender, message, date, image }) {
     clearEmpty();
 
     const isSelf = sender === state.currentUserDisplayName;
@@ -253,7 +254,7 @@
 
     const body = document.createElement('span');
     body.className = 'chat-msg-body';
-    renderRichMessage(body, message);
+    renderRichMessage(body, message, image);
 
     main.append(meta, body);
     row.append(avatar, main);
@@ -342,7 +343,7 @@
   }
 
   function eventKey(event) {
-    return [event?.sender || '', event?.date || '', event?.message || ''].join('|');
+    return [event?.sender || '', event?.date || '', event?.message || '', String(event?.image || '').length].join('|');
   }
 
   /* ── Local preview mode ─────────────────────────────────────────────
@@ -404,13 +405,13 @@
   // where the STOMP /app/groups.chat path currently has no server-side auth
   // at all. REST still broadcasts live to everyone connected — it flows
   // through the same GroupChatRealtimeService.publishMessage() either way.
-  async function sendLiveMessage(sender, text, date) {
+  async function sendLiveMessage(sender, text, date, image) {
     if (!state.backboneGroupId) return false;
     try {
       const res = await fetch(`${javaURI}/api/groups/chat/${state.backboneGroupId}/messages`, {
         ...fetchOptions,
         method: 'POST',
-        body: JSON.stringify({ name: sender, message: text, date, image: null }),
+        body: JSON.stringify({ name: sender, message: text, date, image: image || null }),
       });
       return res.ok;
     } catch (err) {
@@ -446,7 +447,7 @@
     publishBtn.disabled = true;
     const sent = [];
     for (const entry of pending) {
-      if (!(await sendLiveMessage(state.currentUserDisplayName, entry.message, entry.date))) break;
+      if (!(await sendLiveMessage(state.currentUserDisplayName, entry.message, entry.date, entry.image))) break;
       sent.push(entry);
       await delay(120);
     }
@@ -563,10 +564,10 @@
       if (!res.ok) { console.warn('Announcement chat: history HTTP', res.status); return; }
       const messages = await res.json();
       (messages || []).forEach((msg) => {
-        const key = eventKey({ sender: msg.name, date: msg.date, message: msg.message });
+        const key = eventKey({ sender: msg.name, date: msg.date, message: msg.message, image: msg.image });
         if (state.seenKeys.has(key)) return;
         state.seenKeys.add(key);
-        appendMessage({ sender: msg.name, message: msg.message, date: msg.date });
+        appendMessage({ sender: msg.name, message: msg.message, date: msg.date, image: msg.image });
       });
     } catch (err) {
       console.warn('Announcement chat: history load failed', err);
@@ -578,7 +579,7 @@
     const key = eventKey(event);
     if (state.seenKeys.has(key)) return;
     state.seenKeys.add(key);
-    appendMessage({ sender: event.sender, message: event.message, date: event.date });
+    appendMessage({ sender: event.sender, message: event.message, date: event.date, image: event.image });
   }
 
   function connect() {
@@ -614,11 +615,11 @@
     });
   }
 
-  function sendMessage(text) {
+  function sendMessage(text, image) {
     const date = new Date().toISOString();
 
     if (state.mode === 'preview') {
-      const entry = { sender: state.currentUserDisplayName || 'You', message: text, date };
+      const entry = { sender: state.currentUserDisplayName || 'You', message: text, image: image || null, date };
       state.seenKeys.add(eventKey(entry));
       writePreviewMessage(entry);
       appendMessage(entry);
@@ -631,7 +632,7 @@
       groupId: state.backboneGroupId,
       sender: state.currentUserDisplayName || 'anonymous',
       message: text,
-      image: null,
+      image: image || null,
       date,
     };
     try { state.stompClient.send('/app/groups.chat', {}, JSON.stringify(payload)); return true; }

@@ -2,18 +2,21 @@
  * Shared rich-text layer for the course chat widgets
  * (announcement_chat.html, week_chat.html, lesson_chat.html).
  *
- * Two things are exported:
+ * Exports:
  *
  *   createRichComposer(opts) -> a WYSIWYG input (toolbar + contenteditable)
  *       that replaces the old single-line <input class="chat-input">. It
  *       produces a small, fixed subset of HTML: <b> <i> <u> <s>, <ul>/<ol>/<li>,
  *       <br>, and <span class="rt-font-*|rt-size-*"> for font family / size.
+ *       Its "+" button stages one attachment (image / GIF / video / file);
+ *       getAttachment() hands it back as a data URI for the message's `image`
+ *       field (the same field the groups chat uses).
  *
- *   renderRichMessage(container, raw) -> parses a stored message, keeps only
- *       that same subset, turns bare URLs into links, and appends the result.
- *       Every message (history from S3, live from the socket, local preview)
- *       goes through here, so the sanitizer is the trust boundary — never
- *       assume the input is safe.
+ *   renderRichMessage(container, raw, image) -> parses a stored message, keeps
+ *       only that subset, turns bare URLs into links, appends it, then appends
+ *       any attachment from `image`. Every message (history from S3, live from
+ *       the socket, local preview) goes through here, so this is the trust
+ *       boundary — never assume the input is safe.
  *
  * Plain-text messages sent before this shipped still render correctly: the
  * sanitizer passes text through untouched and the widgets keep `white-space:
@@ -23,6 +26,14 @@
 const MAX_LENGTH_DEFAULT = 2000;
 
 const URL_RE = /https?:\/\/[^\s<>()]+/g;
+
+// One staged attachment per message. Caps are on the raw file; the base64 in
+// transit and in the S3 JSONL is ~1.35x that.
+const ATTACHMENT_LIMITS = { image: 6 * 1024 * 1024, video: 20 * 1024 * 1024, file: 10 * 1024 * 1024 };
+// Above this base64 length a received attachment is shown as a stub, not decoded.
+const ATTACHMENT_RENDER_CAP = 32 * 1024 * 1024;
+// Never upload or render these as media — they can carry script.
+const ATTACHMENT_MIME_DENY = /^(?:text\/html|application\/xhtml\+xml|image\/svg\+xml)$/i;
 
 // Zero-width space + BOM: some browsers seed an empty contenteditable with one
 // and paste can carry them in. They must never count as content or reach a
@@ -216,8 +227,148 @@ export function sanitizeRichText(raw) {
   return holder.innerHTML;
 }
 
-export function renderRichMessage(container, raw) {
+export function renderRichMessage(container, raw, image) {
   container.appendChild(sanitizeToFragment(raw));
+  renderAttachment(container, image);
+}
+
+/* ------------------------------------------------------------------ *
+ * Attachments
+ *
+ * An attachment rides in the message's separate `image` field (the field the
+ * backend already persists and re-broadcasts) as a data URI:
+ *   data:<mime>;name=<uri-encoded filename>;base64,<data>
+ * Bare base64 and http(s) URLs are also read, since the groups chat writes
+ * plain base64 / URLs into the same field.
+ * ------------------------------------------------------------------ */
+
+function attachmentKind(mime, name) {
+  if (ATTACHMENT_MIME_DENY.test(mime || '')) return 'file';
+  if (/^image\//i.test(mime)) return 'image';
+  if (/^video\//i.test(mime)) return 'video';
+  if (!mime && /\.(?:mp4|webm|ogg|mov|m4v)$/i.test(name || '')) return 'video';
+  if (!mime && /\.(?:png|jpe?g|gif|webp|avif|bmp)$/i.test(name || '')) return 'image';
+  return 'file';
+}
+
+function base64Bytes(b64) {
+  return Math.floor(String(b64).replace(/=+$/, '').replace(/\s/g, '').length * 3 / 4);
+}
+
+function humanSize(bytes) {
+  if (!bytes || bytes < 1024) return `${bytes || 0} B`;
+  const units = ['KB', 'MB', 'GB'];
+  let n = bytes / 1024;
+  let i = 0;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i += 1; }
+  return `${n < 10 ? n.toFixed(1) : Math.round(n)} ${units[i]}`;
+}
+
+export function parseAttachment(image) {
+  const raw = typeof image === 'string' ? image.trim() : '';
+  if (!raw) return null;
+
+  const m = /^data:([a-z0-9][a-z0-9.+-]*\/[a-z0-9][a-z0-9.+-]*)((?:;[a-z0-9-]+=[^;,]+)*);base64,([a-z0-9+/=\s]+)$/i.exec(raw);
+  if (m) {
+    const mime = m[1].toLowerCase();
+    const nameParam = /;name=([^;,]+)/i.exec(m[2] || '');
+    let name = '';
+    if (nameParam) { try { name = decodeURIComponent(nameParam[1]); } catch (_) { name = nameParam[1]; } }
+    const base64 = m[3].replace(/\s/g, '');
+    const oversize = base64.length > ATTACHMENT_RENDER_CAP;
+    return {
+      kind: oversize ? 'toobig' : attachmentKind(mime, name),
+      mime, name, base64: oversize ? '' : base64,
+      src: oversize ? '' : `data:${mime};base64,${base64}`,
+      bytes: base64Bytes(base64),
+    };
+  }
+  if (/^https?:\/\/\S+$/i.test(raw)) {
+    return { kind: attachmentKind('', raw), mime: '', name: '', base64: '', src: raw, bytes: 0 };
+  }
+  if (/^[a-z0-9+/=\s]+$/i.test(raw) && raw.replace(/\s/g, '').length > 64) {
+    const base64 = raw.replace(/\s/g, '');
+    if (base64.length > ATTACHMENT_RENDER_CAP) return { kind: 'toobig', mime: '', name: '', base64: '', src: '', bytes: 0 };
+    return { kind: 'image', mime: 'image/png', name: '', base64, src: `data:image/png;base64,${base64}`, bytes: base64Bytes(base64) };
+  }
+  return null;
+}
+
+const RT_FILE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" '
+  + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M18 21H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h8l5 5v12a1 1 0 0 1-1 1z"/></svg>';
+
+function downloadAttachment(att) {
+  if (!att.base64) return;
+  try {
+    const bytes = Uint8Array.from(atob(att.base64), (c) => c.charCodeAt(0));
+    const blob = new Blob([bytes], { type: att.mime || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = att.name || 'attachment';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (_) { /* ignore */ }
+}
+
+function buildAttachmentNode(att) {
+  if (att.kind === 'toobig') {
+    const p = document.createElement('p');
+    p.className = 'rt-att rt-att-error';
+    p.textContent = 'Attachment is too large to display.';
+    return p;
+  }
+  if (att.kind === 'image' && att.src) {
+    const fig = document.createElement('figure');
+    fig.className = 'rt-att rt-att-image';
+    const img = document.createElement('img');
+    img.src = att.src;
+    img.alt = att.name || 'image attachment';
+    img.loading = 'lazy';
+    fig.appendChild(img);
+    return fig;
+  }
+  if (att.kind === 'video' && att.src) {
+    const v = document.createElement('video');
+    v.className = 'rt-att rt-att-video';
+    v.src = att.src;
+    v.controls = true;
+    v.preload = 'metadata';
+    return v;
+  }
+  // file — a download chip. Never a live data: link (a data:text/html href is a
+  // navigation hazard); the blob download is built on click instead.
+  const chip = document.createElement(att.base64 ? 'button' : 'span');
+  chip.className = 'rt-att rt-att-file';
+  if (att.base64) chip.type = 'button';
+  chip.innerHTML = RT_FILE_ICON;
+  const meta = document.createElement('span');
+  meta.className = 'rt-att-file-meta';
+  const nameEl = document.createElement('span');
+  nameEl.className = 'rt-att-file-name';
+  nameEl.textContent = att.name || (att.src ? 'attachment' : 'unavailable');
+  meta.appendChild(nameEl);
+  if (att.bytes) {
+    const sizeEl = document.createElement('span');
+    sizeEl.className = 'rt-att-file-size';
+    sizeEl.textContent = humanSize(att.bytes);
+    meta.appendChild(sizeEl);
+  }
+  chip.appendChild(meta);
+  if (att.base64) {
+    chip.title = `Download ${att.name || 'attachment'}`;
+    chip.addEventListener('click', () => downloadAttachment(att));
+  }
+  return chip;
+}
+
+export function renderAttachment(container, image) {
+  const att = parseAttachment(image);
+  if (att) container.appendChild(buildAttachmentNode(att));
+  return !!att;
 }
 
 /* ------------------------------------------------------------------ *
@@ -260,12 +411,44 @@ export function createRichComposer(opts = {}) {
   editor.setAttribute('aria-label', placeholder);
   editor.dataset.placeholder = placeholder;
 
-  // The emoji panel is a fixed-position popover attached to <body> only while
-  // open — the chat widgets clip their overflow, so it can't live inside root.
+  // The emoji panel and the attach menu are fixed-position popovers attached to
+  // <body> only while open — the chat widgets clip their overflow.
   const emojiPanel = document.createElement('div');
   emojiPanel.className = 'rt-emoji-panel';
+  const attachMenu = document.createElement('div');
+  attachMenu.className = 'rt-attach-menu';
 
-  root.append(toolbar, editor);
+  // Staged attachment (Discord-style tray above the input), hidden until used.
+  const attachTray = document.createElement('div');
+  attachTray.className = 'rt-attachments';
+  attachTray.hidden = true;
+
+  // "+" button sits at the left of the input, like Discord.
+  const attachBtn = document.createElement('button');
+  attachBtn.type = 'button';
+  attachBtn.className = 'rt-attach';
+  attachBtn.title = 'Add an attachment';
+  attachBtn.setAttribute('aria-label', 'Add an attachment');
+  attachBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" '
+    + 'stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  attachBtn.addEventListener('mousedown', (e) => e.preventDefault());
+  attachBtn.addEventListener('click', (e) => { e.preventDefault(); toggleAttachMenu(); });
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.hidden = true;
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files && fileInput.files[0];
+    const mode = fileInput.dataset.mode || 'file';
+    fileInput.value = '';
+    if (file) stageFile(file, mode);
+  });
+
+  const inputRow = document.createElement('div');
+  inputRow.className = 'rt-input-row';
+  inputRow.append(attachBtn, editor);
+
+  root.append(toolbar, attachTray, inputRow, fileInput);
 
   /* selection tracking — a <select> or the emoji panel steals focus and
      collapses the editor selection, so remember the last range that was
@@ -662,14 +845,199 @@ export function createRichComposer(opts = {}) {
     emojiBtn.classList.remove('is-active');
   }
 
+  /* attachments — "+" menu, one staged file, Discord-style tray --------- */
+
+  const ATTACH_ITEMS = [
+    { mode: 'file', label: 'Upload a file', hint: 'Any file, up to 10 MB', accept: '',
+      icon: '<path d="M18 21H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h8l5 5v12a1 1 0 0 1-1 1z"/><path d="M14 3v5h5"/>' },
+    { mode: 'image', label: 'Embed an image', hint: 'PNG, JPG, WebP — up to 6 MB', accept: 'image/*',
+      icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/>' },
+    { mode: 'gif', label: 'Embed a GIF', hint: 'An animated .gif file', accept: 'image/gif',
+      icon: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9 9.5A2.5 2.5 0 1 0 9 15h1.5v-2.2"/><path d="M13.5 9v6M17.5 9h-2.5v6M17 12h-2"/>' },
+    { mode: 'video', label: 'Upload a video', hint: 'MP4, WebM — up to 20 MB', accept: 'video/*',
+      icon: '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="m21 8-4 3 4 3z"/>' },
+  ];
+
+  let attachOpen = false;
+  let attachBuilt = false;
+
+  function buildAttachMenu() {
+    if (attachBuilt) return;
+    attachBuilt = true;
+    ATTACH_ITEMS.forEach((item) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rt-attach-item';
+      b.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" `
+        + `stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${item.icon}</svg>`
+        + `<span class="rt-attach-item-text"><span class="rt-attach-item-label"></span>`
+        + `<span class="rt-attach-item-hint"></span></span>`;
+      b.querySelector('.rt-attach-item-label').textContent = item.label;
+      b.querySelector('.rt-attach-item-hint').textContent = item.hint;
+      b.addEventListener('mousedown', (e) => e.preventDefault());
+      b.addEventListener('click', () => {
+        closeAttachMenu();
+        fileInput.accept = item.accept;
+        fileInput.dataset.mode = item.mode;
+        fileInput.click();
+      });
+      attachMenu.appendChild(b);
+    });
+    document.addEventListener('click', (e) => {
+      if (attachOpen && !root.contains(e.target) && !attachMenu.contains(e.target)) closeAttachMenu();
+    });
+    window.addEventListener('scroll', (e) => {
+      if (attachOpen && e.target !== attachMenu) closeAttachMenu();
+    }, true);
+  }
+
+  function toggleAttachMenu() {
+    if (attachOpen) { closeAttachMenu(); return; }
+    if (attachBtn.disabled) return;
+    buildAttachMenu();
+    document.body.appendChild(attachMenu);
+    const r = attachBtn.getBoundingClientRect();
+    const viewW = document.documentElement.clientWidth;
+    const viewH = document.documentElement.clientHeight;
+    const w = attachMenu.offsetWidth || 240;
+    const h = attachMenu.offsetHeight || 200;
+    attachMenu.style.left = `${Math.max(8, Math.min(r.left, viewW - w - 8))}px`;
+    attachMenu.style.top = r.top > h + 12 ? `${r.top - h - 6}px` : `${Math.min(r.bottom + 6, viewH - h - 8)}px`;
+    attachOpen = true;
+    attachBtn.classList.add('is-active');
+  }
+
+  function closeAttachMenu() {
+    if (!attachOpen) return;
+    attachMenu.remove();
+    attachOpen = false;
+    attachBtn.classList.remove('is-active');
+  }
+
+  let pendingAttachment = null;
+
+  function attachError(text) {
+    attachTray.hidden = false;
+    attachTray.innerHTML = '';
+    const err = document.createElement('p');
+    err.className = 'rt-att-error';
+    err.textContent = text;
+    attachTray.appendChild(err);
+    setTimeout(() => { if (!pendingAttachment) { attachTray.hidden = true; attachTray.innerHTML = ''; } }, 5000);
+  }
+
+  function stageFile(file, mode) {
+    const type = (file.type || '').toLowerCase();
+    const wantImage = mode === 'image' || mode === 'gif';
+    const cap = mode === 'video' ? 'video' : wantImage ? 'image' : 'file';
+
+    if (ATTACHMENT_MIME_DENY.test(type)) {
+      attachError("That file type can't be attached.");
+      return;
+    }
+    if (wantImage && type && !/^image\//.test(type)) {
+      attachError("That doesn't look like an image.");
+      return;
+    }
+    if (mode === 'gif' && type && type !== 'image/gif') {
+      attachError('Pick an animated .gif file.');
+      return;
+    }
+    if (mode === 'video' && type && !/^video\//.test(type)) {
+      attachError("That doesn't look like a video.");
+      return;
+    }
+    if (file.size > ATTACHMENT_LIMITS[cap]) {
+      attachError(`That's ${humanSize(file.size)} — the limit for this is ${humanSize(ATTACHMENT_LIMITS[cap])}.`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      const at = result.indexOf(';base64,');
+      if (at < 0) { attachError("Couldn't read that file."); return; }
+      const mime = (result.slice(5, at) || file.type || 'application/octet-stream').toLowerCase();
+      const base64 = result.slice(at + 8);
+      pendingAttachment = {
+        kind: attachmentKind(mime, file.name),
+        mime,
+        name: file.name || 'attachment',
+        base64,
+        src: `data:${mime};base64,${base64}`,
+        bytes: file.size,
+        image: `data:${mime};name=${encodeURIComponent(file.name || 'attachment')};base64,${base64}`,
+      };
+      renderStagedTray();
+      handleChange();
+      editor.focus();
+    };
+    reader.onerror = () => attachError("Couldn't read that file.");
+    reader.readAsDataURL(file);
+  }
+
+  function clearAttachment() {
+    pendingAttachment = null;
+    renderStagedTray();
+  }
+
+  function renderStagedTray() {
+    attachTray.innerHTML = '';
+    if (!pendingAttachment) { attachTray.hidden = true; return; }
+    attachTray.hidden = false;
+
+    const card = document.createElement('div');
+    card.className = 'rt-att-staged';
+
+    const thumb = document.createElement('div');
+    thumb.className = 'rt-att-staged-thumb';
+    if (pendingAttachment.kind === 'image') {
+      const img = document.createElement('img');
+      img.src = pendingAttachment.src;
+      img.alt = '';
+      thumb.appendChild(img);
+    } else {
+      thumb.innerHTML = pendingAttachment.kind === 'video'
+        ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m21 8-4 3 4 3z"/></svg>'
+        : RT_FILE_ICON;
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'rt-att-staged-meta';
+    const nameEl = document.createElement('span');
+    nameEl.className = 'rt-att-staged-name';
+    nameEl.textContent = pendingAttachment.name;
+    const sizeEl = document.createElement('span');
+    sizeEl.className = 'rt-att-staged-size';
+    sizeEl.textContent = humanSize(pendingAttachment.bytes);
+    meta.append(nameEl, sizeEl);
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'rt-att-staged-remove';
+    remove.title = 'Remove attachment';
+    remove.setAttribute('aria-label', 'Remove attachment');
+    remove.textContent = '×';
+    remove.addEventListener('mousedown', (e) => e.preventDefault());
+    remove.addEventListener('click', () => { clearAttachment(); handleChange(); editor.focus(); });
+
+    card.append(thumb, meta, remove);
+    attachTray.appendChild(card);
+  }
+
   /* editor behaviour -------------------------------------------- */
 
   function plainText() {
     return editor.textContent.replace(INVISIBLE_RE, '');
   }
 
+  function editorIsBlank() {
+    return plainText().trim() === ''
+      && !editor.querySelector('li')
+      && editor.innerHTML.replace(/<br\s*\/?>/gi, '').replace(/&nbsp;/gi, '').trim() === '';
+  }
+
   function isEmpty() {
-    return plainText().trim() === '' && !editor.querySelector('li');
+    return !pendingAttachment && plainText().trim() === '' && !editor.querySelector('li');
   }
 
   function textLength() {
@@ -677,9 +1045,7 @@ export function createRichComposer(opts = {}) {
   }
 
   function updatePlaceholder() {
-    const blank = isEmpty()
-      && editor.innerHTML.replace(/<br\s*\/?>/gi, '').replace(/&nbsp;/gi, '').trim() === '';
-    editor.classList.toggle('is-empty', blank);
+    editor.classList.toggle('is-empty', editorIsBlank());
   }
 
   function syncToolbarState() {
@@ -743,12 +1109,38 @@ export function createRichComposer(opts = {}) {
     if (insertStyledText(e.data)) handleChange();
   });
 
-  // Strip formatting from pasted content — paste as plain text, then let the
-  // sender re-format. Keeps junk markup out of messages.
+  // Paste: an image on the clipboard is staged as an attachment (Discord-style);
+  // everything else drops in as plain text, so junk markup never enters a message.
   editor.addEventListener('paste', (e) => {
+    const dt = e.clipboardData || window.clipboardData;
+    const imageItem = dt && Array.from(dt.items || []).find(
+      (it) => it.kind === 'file' && /^image\//i.test(it.type) && !ATTACHMENT_MIME_DENY.test(it.type),
+    );
+    if (imageItem && !pendingAttachment) {
+      const file = imageItem.getAsFile();
+      if (file) { e.preventDefault(); stageFile(file, 'image'); return; }
+    }
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-    insertText(text);
+    insertText(dt ? dt.getData('text/plain') : '');
+  });
+
+  // Drop a file straight onto the composer to stage it.
+  root.addEventListener('dragover', (e) => {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
+      e.preventDefault();
+      root.classList.add('is-dragover');
+    }
+  });
+  root.addEventListener('dragleave', (e) => {
+    if (!root.contains(e.relatedTarget)) root.classList.remove('is-dragover');
+  });
+  root.addEventListener('drop', (e) => {
+    root.classList.remove('is-dragover');
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file) return;
+    e.preventDefault();
+    if (pendingAttachment) { attachError('Only one attachment per message — remove the current one first.'); return; }
+    stageFile(file, /^image\//i.test(file.type) ? 'image' : /^video\//i.test(file.type) ? 'video' : 'file');
   });
 
   updatePlaceholder();
@@ -763,19 +1155,28 @@ export function createRichComposer(opts = {}) {
       editor.innerHTML = '';
       savedRange = null;
       resetTypingFormat();
+      clearAttachment();
       handleChange();
     },
     setEnabled(enabled) {
       editor.contentEditable = enabled ? 'true' : 'false';
       editor.classList.toggle('is-disabled', !enabled);
       toolbar.querySelectorAll('button, select').forEach((el) => { el.disabled = !enabled; });
-      if (!enabled) closeEmojiPanel();
+      attachBtn.disabled = !enabled;
+      if (!enabled) { closeEmojiPanel(); closeAttachMenu(); }
     },
     isEmpty,
     isOverLimit() { return textLength() > maxLength; },
     length: textLength,
     getHTML() {
       return sanitizeRichText(editor.innerHTML).replace(/(?:<br>|\s)+$/g, '').trim();
+    },
+    // The staged attachment, or null. `image` is the string for the message's
+    // `image` field; `kind` is 'image' | 'video' | 'file'.
+    getAttachment() {
+      return pendingAttachment
+        ? { image: pendingAttachment.image, name: pendingAttachment.name, kind: pendingAttachment.kind, bytes: pendingAttachment.bytes }
+        : null;
     },
   };
 }

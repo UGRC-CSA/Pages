@@ -3604,10 +3604,154 @@
 /* the eraser icon in the Clear-formatting button */
 .rt-btn svg { display: block; }
 
+/* ── Attachments: "+" button, its menu, the staged tray ─────────────── */
+.rt-input-row {
+  display: flex;
+  align-items: flex-end;
+}
+
+.rt-composer.is-dragover {
+  border-color: $accent;
+  background: rgba($accent, 0.06);
+}
+
+.rt-attach {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0 2px 5px 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: $bg-3;
+  color: $text;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+
+  svg { display: block; }
+  &:hover { background: rgba($accent, 0.25); color: $accent; }
+  &.is-active { background: $accent; color: var(--pref-bg-color); transform: rotate(45deg); }
+
+  &:focus-visible { outline: none; box-shadow: 0 0 0 2px $accent; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.rt-attach-menu {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid $bg-3;
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+}
+
+.rt-attach-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: $text;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  svg { flex-shrink: 0; color: $accent; }
+  &:hover { background: rgba($text, 0.08); }
+  &:focus-visible { outline: none; background: rgba($accent, 0.16); }
+}
+
+.rt-attach-item-text { display: flex; flex-direction: column; min-width: 0; }
+.rt-attach-item-label { font-size: 13px; font-weight: 600; }
+.rt-attach-item-hint { font-size: 11px; color: $text-muted; }
+
+.rt-attachments {
+  padding: 8px 10px 2px;
+
+  &[hidden] { display: none; }
+}
+
+.rt-att-staged {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 320px;
+  padding: 6px;
+  border: 1px solid $bg-3;
+  border-radius: 8px;
+  background: rgba($bg-0, 0.35);
+}
+
+.rt-att-staged-thumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  overflow: hidden;
+  background: $bg-3;
+  color: $text-muted;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.rt-att-staged-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.rt-att-staged-name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rt-att-staged-size { font-size: 11px; color: $text-muted; }
+
+.rt-att-staged-remove {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: $bg-3;
+  color: $text;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover { background: $red; color: #fff; }
+}
+
+.rt-att-error {
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba($red, 0.4);
+  border-radius: 6px;
+  background: rgba($red, 0.1);
+  color: $red;
+  font-size: 12px;
+}
+
 @media (max-width: 768px) {
   .rt-toolbar { gap: 1px; }
   .rt-btn { min-width: 32px; height: 32px; }
   .rt-select { height: 32px; }
+  .rt-attach { width: 34px; height: 34px; }
 }
 
 /* ── Formatting inside a rendered message ─────────────────────────────
@@ -3627,4 +3771,73 @@
   }
 
   li { margin: 1px 0; }
+}
+
+/* ── An attachment rendered inside a message ──────────────────────────
+   renderAttachment() (rich-text.js) appends one of these after the text. */
+.rt-att {
+  display: block;
+  margin-top: 6px;
+}
+
+.rt-att-image {
+  margin: 6px 0 0;
+
+  img {
+    display: block;
+    max-width: min(100%, 380px);
+    max-height: 320px;
+    width: auto;
+    border-radius: 8px;
+    border: 1px solid $bg-3;
+  }
+}
+
+.rt-att-video {
+  max-width: min(100%, 380px);
+  max-height: 320px;
+  border-radius: 8px;
+  border: 1px solid $bg-3;
+  background: $bg-0;
+}
+
+.rt-att-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 300px;
+  padding: 8px 12px;
+  border: 1px solid $bg-3;
+  border-radius: 8px;
+  background: rgba($bg-0, 0.35);
+  color: $text;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  svg { flex-shrink: 0; color: $accent; }
+  &:hover { border-color: rgba($accent, 0.6); background: rgba($accent, 0.08); }
+  &:disabled { cursor: default; opacity: 0.7; }
+}
+
+.rt-att-file-meta { display: flex; flex-direction: column; min-width: 0; }
+.rt-att-file-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rt-att-file-size { font-size: 11px; color: $text-muted; }
+
+.chat-msg-body .rt-att-error {
+  display: block;
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  border: 1px solid rgba($red, 0.4);
+  border-radius: 6px;
+  background: rgba($red, 0.1);
+  color: $red;
+  font-size: 12px;
 }
