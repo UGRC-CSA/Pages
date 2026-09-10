@@ -1532,3 +1532,293 @@ td:has(> img[src*="logo.png"]) {
 .fc-event-time {
   color: inherit;
 }
+
+// ===========================
+// Sprint 2 teaching slots
+// ===========================
+// Chips for the lessons, checkpoints and homework due dates that
+// TeachingSlots.js draws from _data/teaching_plan. Colours are design-system
+// tokens with a plain fallback each, because ocs.css is not linked on this
+// page until the layout change in #35 lands.
+//
+// Ruby Sass 3.7 compiles this file. It drops any declaration whose value
+// holds a var() inside another var(), so every fallback here is one level
+// deep and the border is written as longhands.
+
+.fc-event-teaching,
+.fc-daygrid-event.fc-event-teaching {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--ocs-border, #444448);
+  border-radius: 6px;
+  background-color: var(--ocs-surface-elevated, #2c2c2e);
+  color: var(--ocs-text, #f3f3f8);
+}
+
+.fc-event-lesson,
+.fc-daygrid-event.fc-event-lesson {
+  border-left-width: 3px;
+  border-left-color: var(--ocs-accent, #e06665);
+}
+
+.fc-event-lesson--mine,
+.fc-daygrid-event.fc-event-lesson--mine {
+  background-color: var(--ocs-accent-bg, #3b2827);
+}
+
+// FullCalendar paints the text inside .fc-event-main white by default, and
+// the site forces the anchor's own colour with !important. Set the inner
+// text directly so the chip follows the token, not either default.
+// One class more than FullCalendar's own .fc-h-event .fc-event-main, which
+// loads after this sheet and would otherwise win the tie.
+.fc-daygrid-event.fc-event-teaching .fc-event-main {
+  color: var(--ocs-text, #f3f3f8);
+}
+
+.fc-event-checkpoint,
+.fc-daygrid-event.fc-event-checkpoint {
+  border-style: dashed;
+}
+
+.fc-daygrid-event.fc-event-checkpoint .fc-event-main {
+  color: var(--ocs-text-secondary, #b6b6ba);
+}
+
+.fc-event-hw-due,
+.fc-daygrid-event.fc-event-hw-due {
+  border-left-width: 3px;
+  border-left-color: var(--ocs-warning, #ff9f0a);
+}
+
+.fc-teaching {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 5px;
+  line-height: 1.25;
+  overflow: hidden;
+}
+
+.fc-teaching__topic {
+  font-size: 0.86em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-teaching__meta {
+  font-size: 0.76em;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  strong {
+    opacity: 1;
+    color: var(--ocs-accent, #e06665);
+  }
+}
+
+.fc-teaching__period {
+  display: inline-block;
+  vertical-align: 1px;
+  padding: 0 5px;
+  border: 1px solid var(--ocs-border, #444448);
+  border-radius: 999px;
+  background-color: var(--ocs-surface-base, #121212);
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+// The one-line note above the calendar when the viewer sees a fallback view.
+#teaching-visibility-note a {
+  color: var(--ocs-info, #5293ff);
+  text-decoration: underline;
+}
+
+// ===========================
+// Lesson panel (lesson-modal.html + LessonPanel.js)
+// ===========================
+// The dialog is an ocs-modal; these are the few page-local pieces around it.
+// One-level var() fallbacks only: Ruby Sass compiles this file.
+
+.lesson-panel__heading { min-width: 0; }
+
+.lesson-panel__kicker {
+  margin: 0 0 2px;
+  color: var(--ocs-text-muted, #949498);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lesson-panel__section {
+  margin: 20px 0 8px;
+  color: var(--ocs-text-muted, #949498);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lesson-panel__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  [aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.lesson-panel__note {
+  margin: 20px 0 0;
+  color: var(--ocs-text-muted, #949498);
+  font-size: 0.8125rem;
+}
+
+.lesson-panel__dim { color: var(--ocs-text-muted, #949498); }
+
+.lesson-panel__copied {
+  margin-inline-end: auto;
+  color: var(--ocs-success, #34c759);
+  font-size: 0.8125rem;
+}
+
+/* ─── Lessons tab (TeachingPlan.js) ───────────────────────────────────
+   Page-local rules on the design-system tokens. One-level var() fallbacks
+   only: Ruby Sass drops a declaration with a nested fallback. */
+.calendar-lessons-panel { margin-top: 8px; }
+
+.lessons-tab__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.lessons-tab__title { margin: 0 0 4px; font-size: 1.25rem; }
+.lessons-tab__subtitle {
+  margin: 0;
+  color: var(--ocs-text-muted, #a1a1aa);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.lessons-tab__picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.lessons-tab__note,
+.lessons-tab__counts {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--ocs-text-muted, #a1a1aa);
+}
+
+/* The grid: weekdays down, weeks across. */
+.lessons-tab__table th[scope="row"] {
+  width: 3.25rem;
+  vertical-align: top;
+  color: var(--ocs-text-muted, #a1a1aa);
+  font-weight: 600;
+}
+.lessons-tab__table td { vertical-align: top; width: 50%; min-width: 14rem; }
+.lessons-tab__range {
+  display: block;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--ocs-text-muted, #a1a1aa);
+}
+.lessons-tab__cell.is-today { background: var(--ocs-accent-bg, rgba(224, 102, 101, 0.12)); }
+.lessons-tab__cell.is-off { color: var(--ocs-text-muted, #a1a1aa); }
+.lessons-tab__date {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  color: var(--ocs-text-muted, #a1a1aa);
+}
+.lessons-tab__off { margin: 0; font-size: 0.85rem; font-style: italic; }
+
+/* One lesson, checkpoint or due date inside a cell. A button, because the
+   click opens the panel on this page. */
+.lessons-tab__item {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--ocs-border, #2a2a30);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: var(--ocs-surface-raised, #1c1c22);
+  color: var(--ocs-text, #f3f3f8);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.lessons-tab__item:hover { border-color: var(--ocs-accent, #e06665); }
+.lessons-tab__item:focus-visible { outline: 2px solid var(--ocs-accent, #e06665); outline-offset: 2px; }
+.lessons-tab__item--lesson { border-left-color: var(--ocs-accent, #e06665); }
+.lessons-tab__item--checkpoint {
+  border-left-style: dashed;
+  border-left-color: var(--ocs-border-strong, #3a3a42);
+  color: var(--ocs-text-secondary, #c9c9d1);
+}
+.lessons-tab__item--hw-due { border-left-color: var(--ocs-warning, #f5a524); }
+.lessons-tab__topic { display: block; font-weight: 600; font-size: 0.9rem; line-height: 1.3; }
+.lessons-tab__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--ocs-text-muted, #a1a1aa);
+}
+.lessons-tab__badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+/* Wide screens get the grid, narrow ones the list. */
+.lessons-tab__agenda { display: none; }
+@media (max-width: 720px) {
+  .lessons-tab__grid { display: none; }
+  .lessons-tab__agenda { display: block; }
+}
+
+/* Teacher section inside the lesson panel (LessonActions.js) */
+.lesson-panel__actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ocs-border-subtle, #26262c);
+}
+.lesson-panel__actions .ocs-kv { margin-bottom: 10px; }
+
+/* Grading view (LessonGrading.js) */
+.lesson-grading__scale {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: var(--ocs-text-muted, #a1a1aa);
+}
+.lesson-grading__scale strong { color: var(--ocs-text, #f3f3f8); }
+.lesson-grading__table td { vertical-align: top; }
+.lesson-grading__presets { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.lesson-grading__preset {
+  padding: 2px 6px;
+  border: 1px solid var(--ocs-border, #2a2a30);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ocs-text-secondary, #c9c9d1);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.lesson-grading__preset:hover { border-color: var(--ocs-accent, #e06665); color: var(--ocs-text, #f3f3f8); }
+.lesson-grading__score { width: 5.5rem; }
+.lesson-grading__reason { width: 100%; min-width: 14rem; }
+.lesson-grading__state {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--ocs-text-muted, #a1a1aa);
+}
+.lesson-grading__state.is-error { color: var(--ocs-danger, #f87171); }
