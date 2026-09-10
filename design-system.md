@@ -17,6 +17,8 @@ A component set for OCS Pages. Every colour here comes from a named token, and
 every background token is defined next to the text colour meant to sit on it, so
 a readable pair is the thing you reach for.
 
+New to SCSS? The [practice page]({{ '/learn.html' | relative_url }}) teaches it by having you build these components, one quest at a time.
+
 ## Using it
 
 Add the stylesheet to your layout, then use the classes:
