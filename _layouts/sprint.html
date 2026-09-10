@@ -8,6 +8,10 @@ layout: post
 {% assign posts = null | compact %}
 {% assign posts = posts | concat: site.posts | concat: site.pages %}
 
+<!-- The design system. Prebuilt with Dart Sass into assets/css/ocs.css and
+     committed, so Jekyll's Ruby Sass never has to read the @use syntax it
+     predates. The chat widgets on this page are styled entirely from it. -->
+<link rel="stylesheet" href="{{ '/assets/css/ocs.css' | relative_url }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
