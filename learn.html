@@ -1,0 +1,5169 @@
+<!-- Built by _sass/ocs/tools/learn/build.py from the parts in that folder. Edit the parts, not this file. -->
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>SCSS Practice — OCS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn SCSS by building real components for the Open Coding Society design system.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>/*!
+ * OCS Design System -- GENERATED FILE, DO NOT EDIT
+ *
+ * Source:    _sass/ocs/
+ * Generator: _sass/ocs/tools/build.sh
+ * Rebuild:   bash _sass/ocs/tools/build.sh
+ *
+ * Hand-edits here are destroyed on the next build. Change the SCSS instead.
+ */
+:root {
+  --ocs-surface-base: #121212;
+  --ocs-surface-raised: #1C1C1E;
+  --ocs-surface-elevated: #2C2C2E;
+  --ocs-surface-overlay: rgba(0, 0, 0, 0.72);
+  --ocs-text: #FFFFFF;
+  --ocs-text-secondary: #E1E1E6;
+  --ocs-text-muted: #949498;
+  --ocs-text-inverse: #121212;
+  --ocs-coral-50: #FFD7D1;
+  --ocs-coral-100: #FFC8C2;
+  --ocs-coral-200: #FFAFAA;
+  --ocs-coral-300: #FF9490;
+  --ocs-coral-400: #F27A77;
+  --ocs-coral-500: #E06665;
+  --ocs-coral-600: #BA4C4C;
+  --ocs-coral-700: #9C3739;
+  --ocs-coral-800: #7F2228;
+  --ocs-coral-900: #630C17;
+  --ocs-neutral-50: #F3F3F8;
+  --ocs-neutral-100: #E5E5E9;
+  --ocs-neutral-200: #CECED3;
+  --ocs-neutral-300: #B6B6BA;
+  --ocs-neutral-400: #9D9DA2;
+  --ocs-neutral-500: #8E8E93;
+  --ocs-neutral-600: #6F6F74;
+  --ocs-neutral-700: #59595D;
+  --ocs-neutral-800: #444448;
+  --ocs-neutral-900: #303033;
+  --ocs-brand: #EA706E;
+  --ocs-brand-border: #E06665;
+  --ocs-brand-bg: #3B2827;
+  --ocs-info: #5293FF;
+  --ocs-info-border: #007AFF;
+  --ocs-info-bg: #272B3F;
+  --ocs-success: #34C759;
+  --ocs-success-border: #34C759;
+  --ocs-success-bg: #283929;
+  --ocs-warning: #FF9F0A;
+  --ocs-warning-border: #FF9F0A;
+  --ocs-warning-bg: #423220;
+  --ocs-danger: #FF5E4D;
+  --ocs-danger-border: #FF453A;
+  --ocs-danger-bg: #412520;
+  --ocs-accent: var(--ocs-brand);
+  --ocs-accent-border: var(--ocs-brand-border);
+  --ocs-accent-bg: var(--ocs-brand-bg);
+  --ocs-accent-contrast: #121212;
+  --ocs-border: #444448;
+  --ocs-border-strong: #59595D;
+  --ocs-border-subtle: #303033;
+  --ocs-radius-none: 0;
+  --ocs-radius-sm: 4px;
+  --ocs-radius-md: 6px;
+  --ocs-radius-lg: 10px;
+  --ocs-radius-xl: 14px;
+  --ocs-radius-full: 999px;
+  --ocs-space-0: 0;
+  --ocs-space-1: 0.25rem;
+  --ocs-space-2: 0.5rem;
+  --ocs-space-3: 0.75rem;
+  --ocs-space-4: 1rem;
+  --ocs-space-5: 1.25rem;
+  --ocs-space-6: 1.5rem;
+  --ocs-space-8: 2rem;
+  --ocs-space-10: 2.5rem;
+  --ocs-space-12: 3rem;
+  --ocs-space-16: 4rem;
+  --ocs-font-sans: var(--pref-font-family, Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif);
+  --ocs-font-mono: Menlo, Monaco, Consolas, Roboto Mono, Ubuntu Mono, Liberation Mono, Courier New, monospace;
+  --ocs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ocs-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --ocs-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --ocs-shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.55);
+  --ocs-duration-fast: 120ms;
+  --ocs-duration-base: 180ms;
+  --ocs-duration-slow: 280ms;
+  --ocs-ease: cubic-bezier(0.2, 0, 0, 1);
+  --ocs-focus-ring: 0 0 0 2px var(--ocs-surface-base), 0 0 0 4px var(--ocs-accent);
+}
+
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .user-theme-active {
+    --ocs-accent: var(--pref-accent-color, var(--ocs-brand));
+    --ocs-accent-border: var(--pref-accent-color, var(--ocs-brand-border));
+    --ocs-accent-bg: color-mix(in srgb, var(--pref-accent-color, #EA706E) 8%, var(--pref-bg-color, #121212));
+    --ocs-surface-base: var(--pref-bg-color, #121212);
+    --ocs-surface-raised: color-mix(in srgb, var(--pref-bg-color, #121212) 94%, var(--pref-text-color, #FFFFFF) 6%);
+    --ocs-surface-elevated: color-mix(in srgb, var(--pref-bg-color, #121212) 88%, var(--pref-text-color, #FFFFFF) 12%);
+    --ocs-text: var(--pref-text-color, #FFFFFF);
+    --ocs-text-secondary: color-mix(in srgb, var(--pref-text-color, #FFFFFF) 88%, transparent);
+    --ocs-text-muted: color-mix(in srgb, var(--pref-text-color, #FFFFFF) 64%, var(--pref-bg-color, #121212));
+    --ocs-border: color-mix(in srgb, var(--pref-text-color, #FFFFFF) 22%, var(--pref-bg-color, #121212));
+    --ocs-border-strong: color-mix(in srgb, var(--pref-text-color, #FFFFFF) 34%, var(--pref-bg-color, #121212));
+    --ocs-border-subtle: color-mix(in srgb, var(--pref-text-color, #FFFFFF) 12%, var(--pref-bg-color, #121212));
+  }
+}
+.ocs-light {
+  --ocs-surface-base: #FFFFFF;
+  --ocs-surface-raised: #F3F3F8;
+  --ocs-surface-elevated: #E5E5E9;
+  --ocs-surface-overlay: rgba(0, 0, 0, 0.45);
+  --ocs-text: #121212;
+  --ocs-text-secondary: #444448;
+  --ocs-text-muted: #59595D;
+  --ocs-text-inverse: #FFFFFF;
+  --ocs-border: #CECED3;
+  --ocs-border-strong: #B6B6BA;
+  --ocs-border-subtle: #E5E5E9;
+  --ocs-brand: #AE4042;
+  --ocs-brand-border: #DF6564;
+  --ocs-brand-bg: #FFEDEB;
+  --ocs-info: #005ED9;
+  --ocs-info-border: #007AFF;
+  --ocs-info-bg: #EDF0FF;
+  --ocs-success: #007617;
+  --ocs-success-border: #00A237;
+  --ocs-success-bg: #E8FCE8;
+  --ocs-warning: #9B5300;
+  --ocs-warning-border: #CD7600;
+  --ocs-warning-bg: #FFEEDB;
+  --ocs-danger: #CA121B;
+  --ocs-danger-border: #CA121B;
+  --ocs-danger-bg: #FFEDE6;
+  --ocs-accent: #AE4042;
+  --ocs-accent-border: #DF6564;
+  --ocs-accent-bg: #FFEDEB;
+  --ocs-accent-contrast: #FFFFFF;
+}
+
+.ocs-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.ocs-sr-only--focusable:focus-visible {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+.ocs-skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10001;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ocs-radius-md);
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*=ocs-],
+  [class*=ocs-]::before,
+  [class*=ocs-]::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  .ocs-btn, .ocs__btn,
+  .ocs-input,
+  .ocs-select,
+  .ocs-textarea,
+  .ocs-card,
+  .ocs-alert {
+    border: 1px solid ButtonBorder;
+  }
+  .ocs-btn:focus-visible, .ocs__btn:focus-visible,
+  .ocs-input:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
+.ocs-btn, .ocs__btn {
+  --btn-bg: var(--ocs-accent);
+  --btn-fg: var(--ocs-accent-contrast);
+  --btn-border: transparent;
+  --btn-bg-hover: color-mix(in srgb, var(--ocs-accent) 86%, #fff);
+  --btn-bg-active: color-mix(in srgb, var(--ocs-accent) 78%, #000);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--btn-border);
+  border-radius: var(--ocs-radius-md);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+}
+.ocs-btn.ocs-btn, .ocs__btn {
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--btn-border);
+}
+.ocs-btn, .ocs__btn {
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--ocs-duration-fast) var(--ocs-ease), border-color var(--ocs-duration-fast) var(--ocs-ease), color var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-btn:focus, .ocs__btn:focus {
+  outline: none;
+}
+.ocs-btn:focus-visible, .ocs__btn:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-btn:hover:not(:disabled):not([aria-disabled=true]), .ocs__btn:hover:not(:disabled):not([aria-disabled=true]) {
+  background: var(--btn-bg-hover);
+}
+.ocs-btn:active:not(:disabled):not([aria-disabled=true]), .ocs__btn:active:not(:disabled):not([aria-disabled=true]) {
+  background: var(--btn-bg-active);
+}
+.ocs-btn:disabled, .ocs__btn:disabled, .ocs-btn[aria-disabled=true], [aria-disabled=true].ocs__btn {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.ocs-btn svg, .ocs__btn svg,
+.ocs-btn .ocs-btn__icon,
+.ocs__btn .ocs-btn__icon {
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+.ocs-btn--primary {
+  --btn-bg: var(--ocs-accent);
+  --btn-fg: var(--ocs-accent-contrast);
+  --btn-border: transparent;
+}
+.ocs-btn--secondary {
+  --btn-bg: transparent;
+  --btn-fg: var(--ocs-accent);
+  --btn-border: var(--ocs-accent-border);
+  --btn-bg-hover: var(--ocs-accent-bg);
+  --btn-bg-active: color-mix(in srgb, var(--ocs-accent-bg) 70%, #000);
+}
+.ocs-btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--ocs-text-secondary);
+  --btn-border: transparent;
+  --btn-bg-hover: var(--ocs-surface-elevated);
+  --btn-bg-active: var(--ocs-surface-raised);
+}
+.ocs-btn--ghost:hover:not(:disabled) {
+  color: var(--ocs-text);
+}
+.ocs-btn--danger {
+  --btn-bg: var(--ocs-danger-border);
+  --btn-fg: var(--ocs-text-inverse);
+  --btn-border: transparent;
+  --btn-bg-hover: color-mix(in srgb, var(--ocs-danger-border) 86%, #fff);
+  --btn-bg-active: color-mix(in srgb, var(--ocs-danger-border) 78%, #000);
+}
+.ocs-btn--sm, .ocs__btn.small {
+  height: 1.75rem;
+  padding-inline: 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: var(--ocs-radius-sm);
+}
+.ocs-btn--lg, .ocs__btn.large {
+  height: 2.75rem;
+  padding-inline: 1.5rem;
+  font-size: 1rem;
+  border-radius: var(--ocs-radius-lg);
+}
+.ocs-btn--icon, .ocs__btn--icon {
+  width: 2.25rem;
+  padding-inline: 0;
+}
+.ocs-btn--icon.ocs-btn--sm, .ocs-btn--sm.ocs__btn--icon, .ocs-btn--icon.ocs__btn.small, .ocs__btn--icon.ocs__btn.small {
+  width: 1.75rem;
+}
+.ocs-btn--icon.ocs-btn--lg, .ocs-btn--lg.ocs__btn--icon, .ocs-btn--icon.ocs__btn.large, .ocs__btn--icon.ocs__btn.large {
+  width: 2.75rem;
+}
+.ocs-btn--pill {
+  border-radius: var(--ocs-radius-full);
+}
+.ocs-btn--block {
+  display: flex;
+  width: 100%;
+}
+.ocs-btn[aria-busy=true], [aria-busy=true].ocs__btn {
+  cursor: progress;
+  pointer-events: none;
+}
+.ocs-btn[aria-busy=true]::after, [aria-busy=true].ocs__btn::after {
+  content: "";
+  width: 0.875em;
+  height: 0.875em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ocs-spin 0.6s linear infinite;
+}
+
+@media (pointer: coarse) {
+  .ocs-btn, .ocs__btn {
+    position: relative;
+  }
+  .ocs-btn::before, .ocs__btn::before {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+@keyframes ocs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ocs-btn-group {
+  display: inline-flex;
+}
+.ocs-btn-group .ocs-btn, .ocs-btn-group .ocs__btn {
+  border-radius: 0;
+}
+.ocs-btn-group .ocs-btn:first-child, .ocs-btn-group .ocs__btn:first-child {
+  border-start-start-radius: var(--ocs-radius-md);
+  border-end-start-radius: var(--ocs-radius-md);
+}
+.ocs-btn-group .ocs-btn:last-child, .ocs-btn-group .ocs__btn:last-child {
+  border-start-end-radius: var(--ocs-radius-md);
+  border-end-end-radius: var(--ocs-radius-md);
+}
+.ocs-btn-group .ocs-btn:not(:first-child), .ocs-btn-group .ocs__btn:not(:first-child) {
+  margin-inline-start: -1px;
+}
+.ocs-btn-group .ocs-btn:focus-visible, .ocs-btn-group .ocs__btn:focus-visible {
+  z-index: 1;
+}
+
+.ocs-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
+}
+.ocs-field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ocs-label {
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ocs-text-secondary);
+}
+.ocs-label--required::after {
+  content: " *";
+  color: var(--ocs-danger);
+}
+
+.ocs-input {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-md);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-input.ocs-input {
+  border: 1px solid var(--ocs-border);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-input {
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: border-color var(--ocs-duration-fast) var(--ocs-ease), background-color var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-input::placeholder {
+  color: var(--ocs-text-muted);
+  opacity: 1;
+}
+.ocs-input:hover:not(:disabled) {
+  border-color: var(--ocs-border-strong);
+}
+.ocs-input:focus {
+  outline: none;
+}
+.ocs-input:focus-visible {
+  border-color: var(--ocs-accent);
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+.ocs-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ocs-surface-base);
+}
+.ocs-input[aria-invalid=true] {
+  border-color: var(--ocs-danger-border);
+}
+.ocs-input[aria-invalid=true]:focus-visible {
+  outline-color: var(--ocs-danger-border);
+}
+.ocs-input[readonly] {
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text-secondary);
+}
+
+.ocs-textarea {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-md);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-textarea.ocs-textarea {
+  border: 1px solid var(--ocs-border);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-textarea {
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: border-color var(--ocs-duration-fast) var(--ocs-ease), background-color var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-textarea::placeholder {
+  color: var(--ocs-text-muted);
+  opacity: 1;
+}
+.ocs-textarea:hover:not(:disabled) {
+  border-color: var(--ocs-border-strong);
+}
+.ocs-textarea:focus {
+  outline: none;
+}
+.ocs-textarea:focus-visible {
+  border-color: var(--ocs-accent);
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+.ocs-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ocs-surface-base);
+}
+.ocs-textarea[aria-invalid=true] {
+  border-color: var(--ocs-danger-border);
+}
+.ocs-textarea[aria-invalid=true]:focus-visible {
+  outline-color: var(--ocs-danger-border);
+}
+.ocs-textarea[readonly] {
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text-secondary);
+}
+.ocs-textarea {
+  min-height: 5rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.ocs-select {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-md);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-select.ocs-select {
+  border: 1px solid var(--ocs-border);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-select {
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: border-color var(--ocs-duration-fast) var(--ocs-ease), background-color var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-select::placeholder {
+  color: var(--ocs-text-muted);
+  opacity: 1;
+}
+.ocs-select:hover:not(:disabled) {
+  border-color: var(--ocs-border-strong);
+}
+.ocs-select:focus {
+  outline: none;
+}
+.ocs-select:focus-visible {
+  border-color: var(--ocs-accent);
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+.ocs-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ocs-surface-base);
+}
+.ocs-select[aria-invalid=true] {
+  border-color: var(--ocs-danger-border);
+}
+.ocs-select[aria-invalid=true]:focus-visible {
+  outline-color: var(--ocs-danger-border);
+}
+.ocs-select[readonly] {
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text-secondary);
+}
+.ocs-select {
+  appearance: none;
+  padding-inline-end: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23949498' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 8px;
+  cursor: pointer;
+}
+.ocs-select option {
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text);
+}
+
+.ocs-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ocs-text-secondary);
+}
+.ocs-check input[type=checkbox],
+.ocs-check input[type=radio] {
+  flex: 0 0 auto;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  margin-block-start: 0.125rem;
+  border: 1px solid var(--ocs-border-strong);
+  background: var(--ocs-surface-raised);
+  cursor: pointer;
+  transition: background-color var(--ocs-duration-fast) var(--ocs-ease), border-color var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-check input[type=checkbox]:hover:not(:disabled),
+.ocs-check input[type=radio]:hover:not(:disabled) {
+  border-color: var(--ocs-accent);
+}
+.ocs-check input[type=checkbox]:checked,
+.ocs-check input[type=radio]:checked {
+  background-color: var(--ocs-accent);
+  border-color: var(--ocs-accent);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.ocs-check input[type=checkbox]:focus,
+.ocs-check input[type=radio]:focus {
+  outline: none;
+}
+.ocs-check input[type=checkbox]:focus-visible,
+.ocs-check input[type=radio]:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-check input[type=checkbox]:disabled,
+.ocs-check input[type=radio]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ocs-check input[type=checkbox] {
+  border-radius: var(--ocs-radius-sm);
+}
+.ocs-check input[type=checkbox]:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpath d='M1 5 4.5 8.5 11 1.5' fill='none' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 10px 8px;
+}
+.ocs-check input[type=checkbox]:indeterminate {
+  background-color: var(--ocs-accent);
+  border-color: var(--ocs-accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='2' viewBox='0 0 10 2'%3E%3Cpath d='M1 1h8' fill='none' stroke='%23121212' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 8px 2px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.ocs-check input[type=radio] {
+  border-radius: var(--ocs-radius-full);
+}
+.ocs-check input[type=radio]:checked {
+  background-image: radial-gradient(circle, var(--ocs-surface-base) 0 3px, transparent 3.5px);
+}
+
+.ocs-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  color: var(--ocs-text-secondary);
+}
+.ocs-switch input[type=checkbox] {
+  appearance: none;
+  position: relative;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 1.25rem;
+  margin: 0;
+  border: 1px solid var(--ocs-border-strong);
+  border-radius: var(--ocs-radius-full);
+  background: var(--ocs-surface-elevated);
+  cursor: pointer;
+  transition: background-color var(--ocs-duration-base) var(--ocs-ease), border-color var(--ocs-duration-base) var(--ocs-ease);
+}
+.ocs-switch input[type=checkbox]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 2px;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  background: var(--ocs-text-secondary);
+  transform: translateY(-50%);
+  transition: transform var(--ocs-duration-base) var(--ocs-ease), background-color var(--ocs-duration-base) var(--ocs-ease);
+}
+.ocs-switch input[type=checkbox]:checked {
+  background: var(--ocs-accent);
+  border-color: var(--ocs-accent);
+}
+.ocs-switch input[type=checkbox]:checked::after {
+  background: var(--ocs-surface-base);
+  transform: translate(1rem, -50%);
+}
+.ocs-switch input[type=checkbox]:focus {
+  outline: none;
+}
+.ocs-switch input[type=checkbox]:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-switch input[type=checkbox]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ocs-help {
+  margin: 0;
+  font-family: var(--ocs-font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ocs-text-muted);
+}
+
+.ocs-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-family: var(--ocs-font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ocs-danger);
+}
+.ocs-error svg {
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.ocs-fieldset {
+  margin: 0 0 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+}
+.ocs-fieldset > legend {
+  padding-inline: 0.5rem;
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ocs-text);
+}
+
+.ocs-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  overflow: hidden;
+}
+.ocs-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-block-end: 1px solid var(--ocs-border-subtle);
+}
+.ocs-card__title {
+  margin: 0;
+  font-family: var(--ocs-font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ocs-text);
+}
+.ocs-card__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ocs-text-muted);
+}
+.ocs-card__body {
+  flex: 1 1 auto;
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ocs-text-secondary);
+}
+.ocs-card__body > :first-child {
+  margin-block-start: 0;
+}
+.ocs-card__body > :last-child {
+  margin-block-end: 0;
+}
+.ocs-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+.ocs-card__media {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+.ocs-card--flush .ocs-card__header,
+.ocs-card--flush .ocs-card__body,
+.ocs-card--flush .ocs-card__footer {
+  padding-inline: 0;
+}
+.ocs-card--interactive {
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--ocs-duration-fast) var(--ocs-ease), background-color var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-card--interactive:focus {
+  outline: none;
+}
+.ocs-card--interactive:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-card--interactive:hover {
+  border-color: var(--ocs-accent-border);
+  background: var(--ocs-surface-elevated);
+}
+.ocs-card--stat {
+  padding: 1rem;
+  gap: 0.25rem;
+}
+.ocs-card__stat-value {
+  font-family: var(--ocs-font-sans);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ocs-text);
+  font-variant-numeric: tabular-nums;
+}
+.ocs-card__stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+
+.ocs-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+
+.ocs-alert {
+  --alert-fg: var(--ocs-info);
+  --alert-border: var(--ocs-info-border);
+  --alert-bg: var(--ocs-info-bg);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--alert-border);
+  border-inline-start-width: 3px;
+  border-radius: var(--ocs-radius-md);
+  background: var(--alert-bg);
+  color: var(--ocs-text);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.ocs-alert__icon {
+  flex: 0 0 auto;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-block-start: 0.0625rem;
+  color: var(--alert-fg);
+  fill: currentColor;
+}
+.ocs-alert__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ocs-alert__title {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--alert-fg);
+}
+.ocs-alert__content > p {
+  margin: 0;
+  color: var(--ocs-text-secondary);
+}
+.ocs-alert__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ocs-radius-sm);
+  background: transparent;
+  color: var(--ocs-text-muted);
+  cursor: pointer;
+}
+.ocs-alert__close:focus {
+  outline: none;
+}
+.ocs-alert__close:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+.ocs-alert__close:hover {
+  color: var(--ocs-text);
+}
+.ocs-alert__close svg {
+  flex: 0 0 auto;
+  width: 0.875em;
+  height: 0.875em;
+  fill: currentColor;
+}
+.ocs-alert--info {
+  --alert-fg: var(--ocs-info);
+  --alert-border: var(--ocs-info-border);
+  --alert-bg: var(--ocs-info-bg);
+}
+.ocs-alert--success {
+  --alert-fg: var(--ocs-success);
+  --alert-border: var(--ocs-success-border);
+  --alert-bg: var(--ocs-success-bg);
+}
+.ocs-alert--warning {
+  --alert-fg: var(--ocs-warning);
+  --alert-border: var(--ocs-warning-border);
+  --alert-bg: var(--ocs-warning-bg);
+}
+.ocs-alert--danger {
+  --alert-fg: var(--ocs-danger);
+  --alert-border: var(--ocs-danger-border);
+  --alert-bg: var(--ocs-danger-bg);
+}
+
+.ocs-badge {
+  --badge-fg: var(--ocs-text-secondary);
+  --badge-bg: var(--ocs-surface-elevated);
+  --badge-border: var(--ocs-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.375rem;
+  padding-inline: 0.5rem;
+  border: 1px solid var(--badge-border);
+  border-radius: var(--ocs-radius-full);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.ocs-badge--dot::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+.ocs-badge--neutral {
+  --badge-fg: var(--ocs-text-muted);
+  --badge-bg: var(--ocs-surface-elevated);
+  --badge-border: var(--ocs-border);
+}
+.ocs-badge--brand {
+  --badge-fg: var(--ocs-brand);
+  --badge-bg: var(--ocs-brand-bg);
+  --badge-border: var(--ocs-brand-border);
+}
+.ocs-badge--brand.ocs-badge--solid {
+  --badge-fg: #FFFFFF;
+  --badge-bg: var(--ocs-brand-border);
+  --badge-border: transparent;
+}
+.ocs-badge--info {
+  --badge-fg: var(--ocs-info);
+  --badge-bg: var(--ocs-info-bg);
+  --badge-border: var(--ocs-info-border);
+}
+.ocs-badge--info.ocs-badge--solid {
+  --badge-fg: #FFFFFF;
+  --badge-bg: var(--ocs-info-border);
+  --badge-border: transparent;
+}
+.ocs-badge--success {
+  --badge-fg: var(--ocs-success);
+  --badge-bg: var(--ocs-success-bg);
+  --badge-border: var(--ocs-success-border);
+}
+.ocs-badge--success.ocs-badge--solid {
+  --badge-fg: #FFFFFF;
+  --badge-bg: var(--ocs-success-border);
+  --badge-border: transparent;
+}
+.ocs-badge--warning {
+  --badge-fg: var(--ocs-warning);
+  --badge-bg: var(--ocs-warning-bg);
+  --badge-border: var(--ocs-warning-border);
+}
+.ocs-badge--warning.ocs-badge--solid {
+  --badge-fg: #FFFFFF;
+  --badge-bg: var(--ocs-warning-border);
+  --badge-border: transparent;
+}
+.ocs-badge--danger {
+  --badge-fg: var(--ocs-danger);
+  --badge-bg: var(--ocs-danger-bg);
+  --badge-border: var(--ocs-danger-border);
+}
+.ocs-badge--danger.ocs-badge--solid {
+  --badge-fg: #FFFFFF;
+  --badge-bg: var(--ocs-danger-border);
+  --badge-border: transparent;
+}
+.ocs-badge--code {
+  font-family: var(--ocs-font-mono);
+  font-weight: 400;
+  border-radius: var(--ocs-radius-sm);
+}
+
+.ocs-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+  -webkit-overflow-scrolling: touch;
+}
+.ocs-table-wrap:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+}
+
+.ocs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--ocs-surface-raised);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ocs-text-secondary);
+}
+.ocs-table caption {
+  padding: 0.75rem 1rem;
+  text-align: start;
+  font-weight: 600;
+  color: var(--ocs-text);
+}
+.ocs-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid var(--ocs-border);
+  background: var(--ocs-surface-elevated);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: start;
+  white-space: nowrap;
+  color: var(--ocs-text-muted);
+}
+.ocs-table tbody td,
+.ocs-table tbody th {
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid var(--ocs-border-subtle);
+  text-align: start;
+  font-weight: 400;
+}
+.ocs-table tbody tr:last-child > * {
+  border-block-end: 0;
+}
+.ocs-table tbody tr:hover {
+  background: var(--ocs-surface-elevated);
+}
+.ocs-table__num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.ocs-table--striped tbody tr:nth-child(odd) {
+  background: color-mix(in srgb, var(--ocs-surface-elevated) 45%, transparent);
+}
+.ocs-table--compact thead th,
+.ocs-table--compact tbody td,
+.ocs-table--compact tbody th {
+  padding: 0.5rem 0.75rem;
+}
+.ocs-table--bordered th, .ocs-table--bordered td {
+  border-inline-end: 1px solid var(--ocs-border-subtle);
+}
+.ocs-table--bordered th:last-child, .ocs-table--bordered td:last-child {
+  border-inline-end: 0;
+}
+
+.ocs-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+.ocs-pagination li {
+  display: flex;
+}
+.ocs-pagination__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding-inline: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--ocs-radius-sm);
+  background: transparent;
+  color: var(--ocs-text-secondary);
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ocs-pagination__link:hover {
+  background: var(--ocs-surface-elevated);
+}
+.ocs-pagination__link:focus {
+  outline: none;
+}
+.ocs-pagination__link:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+}
+.ocs-pagination__link[aria-current=page] {
+  border-color: var(--ocs-accent-border);
+  color: var(--ocs-accent);
+  font-weight: 600;
+}
+.ocs-pagination__link[aria-disabled=true] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ocs-modal {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ocs-text);
+  max-width: min(32rem, 100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: visible;
+}
+.ocs-modal::backdrop {
+  background: var(--ocs-surface-overlay);
+  backdrop-filter: blur(2px);
+}
+.ocs-modal__panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 2rem);
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-xl);
+  background: var(--ocs-surface-raised);
+  box-shadow: var(--ocs-shadow-xl);
+  overflow: hidden;
+}
+.ocs-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1rem;
+}
+.ocs-modal__title {
+  margin: 0;
+  font-family: var(--ocs-font-sans);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ocs-text);
+}
+.ocs-modal__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ocs-radius-sm);
+  background: transparent;
+  color: var(--ocs-text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ocs-modal__close:focus {
+  outline: none;
+}
+.ocs-modal__close:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+.ocs-modal__close:hover {
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text);
+}
+.ocs-modal__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0 1.25rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ocs-text-secondary);
+}
+.ocs-modal__body > :first-child {
+  margin-block-start: 0;
+}
+.ocs-modal__body > :last-child {
+  margin-block-end: 0;
+}
+.ocs-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+  background: var(--ocs-surface-base);
+}
+.ocs-modal--danger .ocs-modal__header {
+  border-block-end: 2px solid var(--ocs-danger-border);
+}
+.ocs-modal--wide {
+  max-width: min(48rem, 100vw - 2rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ocs-modal[open] .ocs-modal__panel {
+    animation: ocs-modal-in var(--ocs-duration-base) var(--ocs-ease);
+  }
+}
+@keyframes ocs-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ocs-topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 3.5rem;
+  padding-inline: 1rem;
+  border-block-end: 1px solid var(--ocs-border);
+  background: var(--ocs-surface-raised);
+}
+.ocs-topbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-end: 0.5rem;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-family: var(--ocs-font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ocs-text);
+  text-decoration: none;
+}
+.ocs-topbar__brand:focus {
+  outline: none;
+}
+.ocs-topbar__brand:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-topbar__brand img, .ocs-topbar__brand svg {
+  flex: 0 0 auto;
+  height: 1.75rem;
+  width: auto;
+}
+@media (max-width: 640px) {
+  .ocs-topbar__brand-text {
+    display: none;
+  }
+}
+.ocs-topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline-end: auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ocs-topbar__nav::-webkit-scrollbar {
+  display: none;
+}
+.ocs-topbar__link {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  height: 2rem;
+  padding-inline: 0.75rem;
+  border-radius: var(--ocs-radius-md);
+  color: var(--ocs-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+.ocs-topbar__link:focus {
+  outline: none;
+}
+.ocs-topbar__link:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-topbar__link:hover {
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text);
+}
+.ocs-topbar__link[aria-current] {
+  color: var(--ocs-accent);
+  font-weight: 600;
+}
+.ocs-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.ocs-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+}
+.ocs-sidenav__section {
+  margin-block-start: 1rem;
+  padding-inline: 0.75rem;
+  padding-block-end: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+.ocs-sidenav__section:first-child {
+  margin-block-start: 0;
+}
+.ocs-sidenav__link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-inline-start: 2px solid transparent;
+  border-radius: var(--ocs-radius-md);
+  color: var(--ocs-text-secondary);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+.ocs-sidenav__link:focus {
+  outline: none;
+}
+.ocs-sidenav__link:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-sidenav__link:hover {
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text);
+}
+.ocs-sidenav__link[aria-current] {
+  border-inline-start-color: var(--ocs-accent);
+  background: var(--ocs-accent-bg);
+  color: var(--ocs-accent);
+  font-weight: 600;
+}
+.ocs-sidenav__link svg, .ocs-sidenav__link .ocs-sidenav__icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
+.ocs-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--ocs-text-muted);
+}
+.ocs-breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ocs-breadcrumb li:not(:last-child)::after {
+  content: "/";
+  color: var(--ocs-border-strong);
+}
+.ocs-breadcrumb a {
+  color: var(--ocs-text-secondary);
+  text-decoration: none;
+  border-radius: var(--ocs-radius-sm);
+}
+.ocs-breadcrumb a:focus {
+  outline: none;
+}
+.ocs-breadcrumb a:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ocs-surface-base);
+}
+.ocs-breadcrumb a:hover {
+  color: var(--ocs-accent);
+  text-decoration: underline;
+}
+.ocs-breadcrumb [aria-current=page] {
+  color: var(--ocs-text);
+  font-weight: 500;
+}
+
+.ocs-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-block-end: 1px solid var(--ocs-border);
+}
+.ocs-tabs__tab {
+  padding: 0.5rem 1rem;
+  margin-block-end: -1px;
+  border: 0;
+  border-block-end: 2px solid transparent;
+  background: transparent;
+  color: var(--ocs-text-muted);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ocs-tabs__tab:focus {
+  outline: none;
+}
+.ocs-tabs__tab:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 -2px var(--ocs-surface-base);
+}
+.ocs-tabs__tab:hover {
+  color: var(--ocs-text);
+}
+.ocs-tabs__tab[aria-selected=true] {
+  border-block-end-color: var(--ocs-accent);
+  color: var(--ocs-accent);
+  font-weight: 600;
+}
+
+.ocs-toast-region {
+  position: fixed;
+  inset-block-end: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(24rem, 100vw - 2rem);
+  pointer-events: none;
+}
+.ocs-toast-region > * {
+  pointer-events: auto;
+}
+
+.ocs-toast {
+  --toast-fg: var(--ocs-info);
+  --toast-border: var(--ocs-info-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ocs-border);
+  border-inline-start: 3px solid var(--toast-border);
+  border-radius: var(--ocs-radius-md);
+  background: var(--ocs-surface-elevated);
+  box-shadow: var(--ocs-shadow-lg);
+  color: var(--ocs-text);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.ocs-toast__icon {
+  flex: 0 0 auto;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--toast-fg);
+  fill: currentColor;
+}
+.ocs-toast__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ocs-toast__title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: var(--toast-fg);
+}
+.ocs-toast__content > p {
+  margin: 0;
+  color: var(--ocs-text-secondary);
+}
+.ocs-toast__close {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ocs-radius-sm);
+  background: transparent;
+  color: var(--ocs-text-muted);
+  cursor: pointer;
+}
+.ocs-toast__close:focus {
+  outline: none;
+}
+.ocs-toast__close:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+.ocs-toast__close:hover {
+  color: var(--ocs-text);
+}
+.ocs-toast__close svg {
+  flex: 0 0 auto;
+  width: 0.875em;
+  height: 0.875em;
+  fill: currentColor;
+}
+.ocs-toast--info {
+  --toast-fg: var(--ocs-info);
+  --toast-border: var(--ocs-info-border);
+}
+.ocs-toast--success {
+  --toast-fg: var(--ocs-success);
+  --toast-border: var(--ocs-success-border);
+}
+.ocs-toast--warning {
+  --toast-fg: var(--ocs-warning);
+  --toast-border: var(--ocs-warning-border);
+}
+.ocs-toast--danger {
+  --toast-fg: var(--ocs-danger);
+  --toast-border: var(--ocs-danger-border);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ocs-toast {
+    animation: ocs-toast-in var(--ocs-duration-base) var(--ocs-ease);
+  }
+}
+@keyframes ocs-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ocs-progress {
+  --progress-fill: var(--ocs-accent);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: var(--ocs-radius-full);
+  background: var(--ocs-surface-elevated);
+}
+.ocs-progress__bar {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--progress-fill);
+  transition: width var(--ocs-duration-slow) var(--ocs-ease);
+}
+.ocs-progress--sm {
+  height: 0.25rem;
+}
+.ocs-progress--lg {
+  height: 0.75rem;
+}
+.ocs-progress--success {
+  --progress-fill: var(--ocs-success);
+}
+.ocs-progress--warning {
+  --progress-fill: var(--ocs-warning);
+}
+.ocs-progress--danger {
+  --progress-fill: var(--ocs-danger);
+}
+.ocs-progress--info {
+  --progress-fill: var(--ocs-info);
+}
+.ocs-progress--indeterminate .ocs-progress__bar {
+  width: 35%;
+  animation: ocs-progress-sweep 1.4s var(--ocs-ease) infinite;
+}
+
+@keyframes ocs-progress-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(340%);
+  }
+}
+.ocs-spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--ocs-border-strong);
+  border-top-color: var(--ocs-accent);
+  border-radius: 50%;
+  animation: ocs-spin 0.6s linear infinite;
+}
+.ocs-spinner--sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-width: 1.5px;
+}
+.ocs-spinner--lg {
+  width: 2rem;
+  height: 2rem;
+  border-width: 3px;
+}
+
+.ocs-menu {
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+  background: var(--ocs-surface-elevated);
+  box-shadow: var(--ocs-shadow-lg);
+  color: var(--ocs-text);
+  min-width: 11rem;
+  max-height: min(20rem, 60vh);
+  overflow-y: auto;
+}
+.ocs-menu:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+@supports not selector(:popover-open) {
+  .ocs-menu {
+    display: none;
+  }
+  .ocs-menu[data-ocs-open] {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: absolute;
+    z-index: 100;
+  }
+}
+.ocs-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: var(--ocs-radius-sm);
+  background: transparent;
+  color: var(--ocs-text-secondary);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.875rem;
+  text-align: start;
+  cursor: pointer;
+}
+.ocs-menu__item:focus {
+  outline: none;
+}
+.ocs-menu__item:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 -2px var(--ocs-surface-base);
+}
+.ocs-menu__item:hover:not(:disabled) {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+}
+.ocs-menu__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ocs-menu__item--danger {
+  color: var(--ocs-danger);
+}
+.ocs-menu__item--danger:hover:not(:disabled) {
+  background: var(--ocs-danger-bg);
+  color: var(--ocs-danger);
+}
+.ocs-menu__item kbd {
+  margin-inline-start: auto;
+  font-family: var(--ocs-font-mono);
+  font-size: 0.6875rem;
+  color: var(--ocs-text-muted);
+}
+.ocs-menu__item svg {
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+.ocs-menu__sep {
+  height: 1px;
+  margin: 0.25rem 0;
+  border: 0;
+  background: var(--ocs-border-subtle);
+}
+.ocs-menu__label {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+
+@supports (anchor-name: --a) {
+  .ocs-menu:popover-open {
+    inset: auto;
+    top: anchor(bottom);
+    left: anchor(left);
+    margin-block-start: 0.25rem;
+    position-try-fallbacks: flip-block, flip-inline;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ocs-menu:popover-open {
+    animation: ocs-menu-in var(--ocs-duration-fast) var(--ocs-ease);
+  }
+}
+@keyframes ocs-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ocs-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  overflow: hidden;
+  border-radius: var(--ocs-radius-full);
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text-secondary);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  user-select: none;
+}
+.ocs-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ocs-avatar--sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.625rem;
+}
+.ocs-avatar--lg {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+}
+.ocs-avatar--xl {
+  width: 4rem;
+  height: 4rem;
+  font-size: 1.25rem;
+}
+.ocs-avatar--brand {
+  background: var(--ocs-brand-bg);
+  color: var(--ocs-brand);
+}
+.ocs-avatar--ring {
+  box-shadow: 0 0 0 2px var(--ocs-surface-base), 0 0 0 4px var(--ocs-accent);
+}
+
+.ocs-avatar-stack {
+  display: inline-flex;
+  align-items: center;
+}
+.ocs-avatar-stack .ocs-avatar {
+  box-shadow: 0 0 0 2px var(--ocs-surface-raised);
+}
+.ocs-avatar-stack .ocs-avatar:not(:first-child) {
+  margin-inline-start: -0.5rem;
+}
+
+.ocs-skeleton {
+  display: block;
+  border-radius: var(--ocs-radius-sm);
+  background: var(--ocs-surface-elevated);
+  min-height: 0.75rem;
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--ocs-text) 6%, transparent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: ocs-shimmer 1.3s linear infinite;
+}
+.ocs-skeleton--text {
+  height: 0.75rem;
+  margin-block: 0.25rem;
+  border-radius: var(--ocs-radius-full);
+}
+.ocs-skeleton--text:last-child {
+  width: 65%;
+}
+.ocs-skeleton--circle {
+  border-radius: var(--ocs-radius-full);
+  aspect-ratio: 1;
+}
+.ocs-skeleton--card {
+  height: 8rem;
+  border-radius: var(--ocs-radius-lg);
+}
+
+@keyframes ocs-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.ocs-code {
+  margin: 0 0 1rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+  background: var(--ocs-surface-base);
+  overflow: hidden;
+}
+.ocs-code__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-block-end: 1px solid var(--ocs-border-subtle);
+  background: var(--ocs-surface-raised);
+}
+.ocs-code__lang {
+  font-family: var(--ocs-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+.ocs-code__body {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: var(--ocs-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ocs-text-secondary);
+  white-space: pre;
+  tab-size: 2;
+}
+.ocs-code__body:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+}
+.ocs-code__body code {
+  display: block;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+}
+.ocs-code--numbered .ocs-code__body code {
+  counter-reset: ocs-line;
+}
+.ocs-code--numbered .ocs-code__body code .ocs-code__line::before {
+  counter-increment: ocs-line;
+  content: counter(ocs-line);
+  display: inline-block;
+  width: 2.5ch;
+  margin-inline-end: 1rem;
+  text-align: end;
+  color: var(--ocs-text-muted);
+  user-select: none;
+}
+.ocs-code .ocs-code__line--highlight {
+  display: block;
+  margin-inline: calc(1rem * -1);
+  padding-inline: 1rem;
+  border-inline-start: 2px solid var(--ocs-accent);
+  background: var(--ocs-accent-bg);
+}
+
+.ocs-code-inline {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--ocs-border-subtle);
+  border-radius: var(--ocs-radius-sm);
+  background: var(--ocs-surface-elevated);
+  font-family: var(--ocs-font-mono);
+  font-size: 0.875em;
+  color: var(--ocs-brand);
+  line-height: inherit;
+}
+
+.ocs-kbd {
+  display: inline-flex;
+  align-items: center;
+  min-width: 1.5em;
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--ocs-border-strong);
+  border-block-end-width: 2px;
+  border-radius: var(--ocs-radius-sm);
+  background: var(--ocs-surface-elevated);
+  font-family: var(--ocs-font-mono);
+  font-size: 0.75em;
+  line-height: 1;
+  color: var(--ocs-text-secondary);
+}
+
+.ocs-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.ocs-tooltip {
+  position: absolute;
+  inset-block-end: calc(100% + 0.5rem);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: 10002;
+  width: max-content;
+  max-width: 16rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-md);
+  background: var(--ocs-surface-elevated);
+  box-shadow: var(--ocs-shadow-md);
+  color: var(--ocs-text);
+  font-family: var(--ocs-font-sans);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--ocs-duration-fast) var(--ocs-ease), visibility var(--ocs-duration-fast) var(--ocs-ease);
+}
+.ocs-tooltip-wrap:hover .ocs-tooltip, .ocs-tooltip-wrap:focus-within .ocs-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+.ocs-tooltip--below {
+  inset-block-end: auto;
+  inset-block-start: calc(100% + 0.5rem);
+}
+
+.ocs-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ocs-stack-gap, 1rem);
+}
+
+.ocs-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ocs-cluster-gap, 0.5rem);
+}
+
+.ocs-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .ocs-split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ocs-container {
+  width: 100%;
+  max-width: var(--ocs-container-max, 72rem);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.ocs-grid {
+  display: grid;
+  gap: var(--ocs-grid-gap, 1rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--ocs-grid-min, 16rem), 100%), 1fr));
+}
+
+.ocs-mt-0 {
+  margin-block-start: 0 !important;
+}
+
+.ocs-mb-0 {
+  margin-block-end: 0 !important;
+}
+
+.ocs-mt-1 {
+  margin-block-start: 0.25rem !important;
+}
+
+.ocs-mb-1 {
+  margin-block-end: 0.25rem !important;
+}
+
+.ocs-mt-2 {
+  margin-block-start: 0.5rem !important;
+}
+
+.ocs-mb-2 {
+  margin-block-end: 0.5rem !important;
+}
+
+.ocs-mt-3 {
+  margin-block-start: 0.75rem !important;
+}
+
+.ocs-mb-3 {
+  margin-block-end: 0.75rem !important;
+}
+
+.ocs-mt-4 {
+  margin-block-start: 1rem !important;
+}
+
+.ocs-mb-4 {
+  margin-block-end: 1rem !important;
+}
+
+.ocs-mt-6 {
+  margin-block-start: 1.5rem !important;
+}
+
+.ocs-mb-6 {
+  margin-block-end: 1.5rem !important;
+}
+
+.ocs-mt-8 {
+  margin-block-start: 2rem !important;
+}
+
+.ocs-mb-8 {
+  margin-block-end: 2rem !important;
+}
+
+.ocs-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ocs__btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--ocs-accent);
+  --btn-border: var(--ocs-accent-border);
+  --btn-bg-hover: var(--ocs-accent-bg);
+}
+.ocs__btn.medium { /* default height already matches */ }
+.ocs__btn.alert-red, .ocs__btn--alert-red {
+  --btn-fg: var(--ocs-danger);
+  --btn-border: var(--ocs-danger-border);
+  --btn-bg-hover: var(--ocs-danger-bg);
+}
+.ocs__btn.alert-yellow, .ocs__btn--alert-yellow {
+  --btn-fg: var(--ocs-warning);
+  --btn-border: var(--ocs-warning-border);
+  --btn-bg-hover: var(--ocs-warning-bg);
+}
+.ocs__btn.alert-green, .ocs__btn--alert-green {
+  --btn-fg: var(--ocs-success);
+  --btn-border: var(--ocs-success-border);
+  --btn-bg-hover: var(--ocs-success-bg);
+}
+.ocs__btn.fill, .ocs__btn--alert-fill {
+  --btn-bg: var(--btn-bg-hover);
+}
+.ocs__btn.pill {
+  border-radius: var(--ocs-radius-full);
+}
+.ocs__btn-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ocs__btn-icon img, .ocs__btn-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
+.ocs__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.ocs__links--wide {
+  gap: 1rem;
+}
+</style>
+<style>* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem 4rem;
+}
+
+a {
+  color: var(--ocs-info);
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  background: color-mix(in srgb, var(--ocs-surface-base) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-block-end: 1px solid var(--ocs-border);
+}
+
+.top-in {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-inline-end: auto;
+}
+.brand b {
+  color: var(--ocs-brand);
+}
+
+.xp {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  color: var(--ocs-text-secondary);
+}
+.xp .ocs-progress {
+  width: 120px;
+}
+
+.badges {
+  color: var(--ocs-text-muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.hero {
+  padding: 2rem 0 1.25rem;
+}
+.hero p {
+  max-width: 58ch;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 3.125vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0 0 0.75rem;
+  text-wrap: balance;
+}
+h1 em {
+  font-style: normal;
+  color: var(--ocs-brand);
+}
+
+.lede {
+  color: var(--ocs-text-secondary);
+  font-size: 1.04rem;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 2.5rem 0 0.25rem;
+}
+
+.sub {
+  color: var(--ocs-text-muted);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.chap {
+  margin-block-start: 1.5rem;
+}
+
+.chap-h {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-block-end: 0.25rem;
+}
+.chap-h .n {
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.11em;
+  color: var(--ocs-brand);
+}
+.chap-h h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 650;
+}
+.chap-h .cnt {
+  margin-inline-start: auto;
+}
+
+.chap p.blurb {
+  margin: 0 0 0.75rem;
+  color: var(--ocs-text-muted);
+  font-size: 0.875rem;
+}
+
+.quests {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.chap {
+  padding: 1.25rem;
+  margin-block-end: 1.25rem;
+  background: var(--ocs-surface-base);
+}
+.chap__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+.chap__id {
+  min-width: 0;
+}
+.chap__n {
+  display: block;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ocs-accent);
+}
+.chap__t {
+  margin: 0.25rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.chap__blurb {
+  margin: 0.25rem 0 0;
+  color: var(--ocs-text-muted);
+  font-size: 0.95rem;
+}
+.chap__cnt {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--ocs-accent-bg);
+  color: var(--ocs-accent);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.chap__cnt.is-done {
+  background: var(--ocs-success-bg);
+  color: var(--ocs-success);
+}
+.chap--locked {
+  opacity: 0.92;
+}
+
+.quests {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+
+.q {
+  position: relative;
+  padding: 1.25rem;
+  background: var(--ocs-surface-raised);
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.q__n {
+  display: block;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.09em;
+  color: var(--ocs-text-muted);
+}
+.q__t {
+  margin: 0.5rem 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--ocs-text);
+}
+.q__d {
+  margin: 0;
+  color: var(--ocs-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.q__gate {
+  margin: 0.5rem 0 0;
+  color: var(--ocs-text-muted);
+  font-size: 0.875rem;
+}
+.q__mark {
+  position: absolute;
+  inset-block-start: 1rem;
+  inset-inline-end: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.q__mark--done {
+  background: var(--ocs-success);
+  color: #FFFFFF;
+}
+.q__mark--active {
+  background: var(--ocs-warning);
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: 0.375rem;
+}
+.q__mark--locked {
+  background: none;
+  color: var(--ocs-text-muted);
+}
+.q--done {
+  border-color: var(--ocs-success-border);
+  background: var(--ocs-success-bg);
+}
+.q--active {
+  border-color: var(--ocs-warning-border);
+  background: var(--ocs-warning-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.q--active::after {
+  content: "";
+  position: absolute;
+  inset-inline: -1px;
+  inset-block-end: -1px;
+  height: 3px;
+  border-end-start-radius: 10px;
+  border-end-end-radius: 10px;
+  background: var(--ocs-warning);
+}
+.q--locked {
+  background: var(--ocs-surface-base);
+  cursor: not-allowed;
+}
+.q--locked .q__t {
+  color: var(--ocs-text-muted);
+}
+.q--locked:hover {
+  border-color: var(--ocs-border);
+  background: var(--ocs-surface-base);
+}
+.q[aria-current=true] {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+@supports (background: color-mix(in srgb, red 50%, white)) {
+  .q {
+    background: color-mix(in srgb, var(--ocs-surface-raised) 50%, var(--ocs-surface-base));
+  }
+  .q--done {
+    background: color-mix(in srgb, var(--ocs-success-bg) 70%, var(--ocs-surface-base));
+  }
+  .q--active {
+    background: color-mix(in srgb, var(--ocs-warning-bg) 40%, var(--ocs-surface-base));
+  }
+  .q--locked {
+    background: var(--ocs-surface-base);
+  }
+}
+.brief {
+  margin-block-start: 1.25rem;
+  padding: 1.25rem;
+}
+.brief .kicker {
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ocs-brand);
+  margin: 0 0 0.5rem;
+}
+.brief h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.brief > p {
+  margin: 0;
+  color: var(--ocs-text-secondary);
+  font-size: 0.95rem;
+}
+
+.goal {
+  margin-block-start: 0.75rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+  font-size: 0.875rem;
+  color: var(--ocs-text-muted);
+}
+.goal b {
+  color: var(--ocs-text-secondary);
+}
+
+details.concept {
+  margin-block-start: 0.75rem;
+  border: 1px solid var(--ocs-border-subtle);
+  border-radius: 10px;
+  background: var(--ocs-surface-raised);
+  overflow: hidden;
+}
+details.concept summary {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  list-style: none;
+}
+details.concept summary::-webkit-details-marker {
+  display: none;
+}
+details.concept summary::before {
+  content: "?";
+  display: inline-grid;
+  place-items: center;
+  inline-size: 17px;
+  block-size: 17px;
+  border-radius: 999px;
+  background: var(--ocs-info);
+  color: var(--ocs-text-inverse);
+  font-size: 0.68rem;
+  margin-inline-end: 0.5rem;
+  vertical-align: -3px;
+}
+details.concept[open] summary {
+  border-block-end: 1px solid var(--ocs-border-subtle);
+}
+details.concept .cbody {
+  padding: 0.75rem;
+  font-size: 0.89rem;
+  color: var(--ocs-text-secondary);
+}
+
+.hintbar {
+  margin-block-start: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hints {
+  margin-block-start: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ws, .fb {
+  display: grid;
+  gap: 0.75rem;
+  margin-block-start: 0.75rem;
+}
+
+.ws {
+  grid-template-columns: 1.05fr 1fr;
+}
+
+.fb {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 1024px) {
+  .ws, .fb {
+    grid-template-columns: 1fr;
+  }
+}
+.panel {
+  background: var(--ocs-surface-raised);
+  border: 1px solid var(--ocs-border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ph {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-block-end: 1px solid var(--ocs-border-subtle);
+  background: var(--ocs-surface-elevated);
+  flex-wrap: wrap;
+}
+.ph .lbl {
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+.ph .grp {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ed-wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-block-size: 290px;
+}
+
+.gutter {
+  padding: 0.75rem 0.5rem 0.75rem 0.75rem;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.83rem;
+  line-height: 1.62;
+  color: var(--ocs-text-muted);
+  text-align: end;
+  user-select: none;
+  min-inline-size: 2.5rem;
+}
+
+textarea {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: var(--ocs-text);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.83rem;
+  line-height: 1.62;
+  padding: 0.75rem 0.75rem 0.75rem 2px;
+  tab-size: 2;
+  overflow: hidden;
+}
+textarea:focus-visible {
+  outline: 0;
+}
+
+.ed-wrap:focus-within {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+#preview, #targetprev {
+  flex: 1;
+  min-block-size: 140px;
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  align-content: flex-start;
+  background: #121212;
+}
+
+#cssout {
+  margin: 0;
+  padding: 0.75rem;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.75rem;
+  color: var(--ocs-text-secondary);
+  overflow: auto;
+  max-block-size: 132px;
+  white-space: pre;
+  background: var(--ocs-surface-elevated);
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  color: var(--ocs-text-muted);
+}
+.meter .dot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.meter.good {
+  color: var(--ocs-success);
+}
+.meter.bad {
+  color: var(--ocs-danger);
+}
+
+.empty {
+  padding: 1rem;
+  color: var(--ocs-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.pad {
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.taskrow {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+  margin-block-start: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .taskrow {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+.taskrow .brief {
+  margin-block-start: 0;
+}
+
+.steps-panel {
+  margin-block-start: 0;
+}
+
+.coach {
+  margin: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--ocs-accent-border);
+  border-radius: 10px;
+  background: var(--ocs-accent-bg);
+}
+.coach__top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-block-end: 0.5rem;
+}
+.coach__name {
+  color: var(--ocs-accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.coach__step {
+  margin-inline-start: auto;
+  color: var(--ocs-text-muted);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.coach__b {
+  margin: 0 0 0.75rem;
+  color: var(--ocs-text);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.coach__b code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--ocs-surface-base);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85em;
+}
+.coach__log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-block-size: 15rem;
+  overflow-y: auto;
+}
+.coach__log:not(:empty) {
+  margin-block: 0.75rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--ocs-accent-border);
+}
+.coach__msg {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.coach__msg code {
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  background: var(--ocs-surface-raised);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85em;
+}
+.coach__msg--you {
+  align-self: flex-end;
+  max-inline-size: 85%;
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+}
+.coach__msg--coach {
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text);
+}
+.coach__wait {
+  color: var(--ocs-text-muted);
+  font-style: italic;
+}
+.coach__ask {
+  display: flex;
+  gap: 0.5rem;
+  margin-block-start: 0.75rem;
+}
+.coach__ask .ocs-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.coach__set {
+  margin-block-start: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ocs-text-muted);
+}
+.coach__set summary {
+  cursor: pointer;
+}
+.coach__set p {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+.coach__setrow {
+  display: flex;
+  gap: 0.5rem;
+}
+.coach__setrow .ocs-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.coach__hintline {
+  margin-block-end: 0 !important;
+}
+
+ol.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+ol.steps li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.89rem;
+  color: var(--ocs-text-secondary);
+}
+ol.steps li .tk {
+  flex: none;
+  inline-size: 19px;
+  block-size: 19px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.66rem;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text-muted);
+  border: 1px solid var(--ocs-border);
+  margin-block-start: 2px;
+  transition: background 120ms cubic-bezier(0.2, 0, 0, 1), color 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+ol.steps li.on {
+  color: var(--ocs-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--ocs-border-strong);
+}
+ol.steps li.on .tk {
+  background: var(--ocs-success);
+  color: var(--ocs-text-inverse);
+  border-color: var(--ocs-success);
+}
+
+.targetbox {
+  display: none;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+.targetbox.on {
+  display: block;
+}
+
+.shop {
+  display: none;
+  margin-block-start: 0.75rem;
+}
+.shop.on {
+  display: block;
+}
+
+.shopitem {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+.shopitem:first-of-type {
+  border-block-start: 0;
+}
+.shopitem b {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.shopitem p {
+  margin: 2px 0 0;
+  font-size: 0.83rem;
+  color: var(--ocs-text-muted);
+}
+.shopitem button {
+  margin-inline-start: auto;
+  flex: none;
+  min-inline-size: 82px;
+}
+.shopitem.owned b {
+  color: var(--ocs-success);
+}
+
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: min(400px, 92vw);
+  background: var(--ocs-surface-raised);
+  border-inline-start: 1px solid var(--ocs-border);
+  z-index: 10000;
+  transform: translateX(100%);
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+.drawer.open {
+  transform: none;
+}
+.drawer header {
+  padding: 1rem;
+  border-block-end: 1px solid var(--ocs-border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.drawer header h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 650;
+  margin-inline-end: auto;
+}
+.drawer .search {
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid var(--ocs-border-subtle);
+}
+
+.tviews {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.75rem 1rem 0;
+  padding: 0.25rem;
+  border-radius: 10px;
+  background: var(--ocs-surface-elevated);
+}
+
+.tview {
+  flex: 1 1 0;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ocs-text-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background 120ms cubic-bezier(0.2, 0, 0, 1), color 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+.tview:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+}
+.tview.is-on {
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.tprog {
+  margin: 0.75rem 1rem 0;
+  color: var(--ocs-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.tprog b {
+  color: var(--ocs-text);
+  font-weight: 650;
+}
+
+.tlist {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.tgrp--locked {
+  margin-block-start: 1rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+
+.tlock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--ocs-border);
+  border-radius: 10px;
+  color: var(--ocs-text-muted);
+  font-size: 0.82rem;
+}
+.tlock__i {
+  opacity: 0.75;
+  font-size: 0.8rem;
+}
+.tlock__n {
+  color: var(--ocs-text-secondary);
+  font-weight: 550;
+}
+.tlock__c {
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: var(--ocs-surface-elevated);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+}
+.tlock__w {
+  margin-inline-start: auto;
+  font-size: 0.74rem;
+  text-align: end;
+}
+
+.trow--ahead {
+  opacity: 0.72;
+}
+
+.tahead {
+  margin-inline-start: 0.5rem;
+  padding: 0 0.35rem;
+  border-radius: 4px;
+  background: var(--ocs-warning-bg);
+  color: var(--ocs-warning);
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tgrp {
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+  padding: 0.75rem 0.5rem 0.25rem;
+}
+
+.trow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  text-align: start;
+  font: inherit;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  color: inherit;
+}
+.trow:hover {
+  background: var(--ocs-surface-elevated);
+}
+.trow:focus-visible {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+}
+.trow .sw {
+  inline-size: 19px;
+  block-size: 19px;
+  border-radius: 6px;
+  border: 1px solid var(--ocs-border);
+  flex: none;
+}
+.trow .sw--none {
+  border-style: dashed;
+  background: none;
+}
+.trow .nm {
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.76rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trow .vl {
+  margin-inline-start: auto;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.69rem;
+  color: var(--ocs-text-muted);
+  flex: none;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--ocs-surface-overlay);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+.scrim.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cert {
+  display: none;
+  margin-block-start: 2rem;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(140deg, var(--ocs-accent-bg), var(--ocs-surface-raised));
+  border: 1px solid var(--ocs-accent-border);
+  border-radius: 14px;
+}
+.cert.show {
+  display: block;
+}
+.cert h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+.cert > p {
+  margin: 0 0 1rem;
+  color: var(--ocs-text-secondary);
+}
+.cert .stat {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.25rem 0;
+  flex-wrap: wrap;
+}
+.cert .stat div {
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+}
+.cert .stat b {
+  display: block;
+  font-size: 1.6rem;
+  color: var(--ocs-brand);
+  font-variant-numeric: tabular-nums;
+}
+.cert .stat span {
+  font-size: 0.69rem;
+  color: var(--ocs-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  pointer-events: none;
+  display: none;
+}
+.tour.on {
+  display: block;
+}
+
+.spot {
+  position: absolute;
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(12, 10, 9, 0.62);
+  transition: all 280ms cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+
+.tourcard {
+  position: absolute;
+  inline-size: min(310px, 88vw);
+  background: var(--ocs-surface-raised);
+  border: 1px solid var(--ocs-border);
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+  transition: all 280ms cubic-bezier(0.2, 0, 0, 1);
+}
+.tourcard h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.98rem;
+  font-weight: 650;
+}
+.tourcard p {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ocs-text-secondary);
+  line-height: 1.5;
+}
+
+.trow2 {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+.trow2 .tiny {
+  margin-inline-end: auto;
+}
+
+.submit {
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+  text-align: start;
+}
+.submit[hidden] {
+  display: none;
+}
+.submit__who {
+  display: grid;
+  gap: 0.5rem;
+  max-inline-size: 22rem;
+}
+.submit__who .ocs-btn {
+  justify-self: start;
+  margin-block-start: 0.5rem;
+}
+.submit__out {
+  margin-block-start: 1.25rem;
+}
+.submit__out[hidden] {
+  display: none;
+}
+.submit__label {
+  margin: 0 0 0.5rem;
+  font-size: 0.69rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+.submit__code {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ocs-accent-border);
+  border-radius: 10px;
+  background: var(--ocs-accent-bg);
+}
+.submit__code code {
+  flex: 1 1 auto;
+  font-family: "Menlo", "Monaco", "Consolas", "Roboto Mono", "Ubuntu Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  color: var(--ocs-text);
+  user-select: all;
+}
+.submit__summary {
+  margin: 0.75rem 0;
+  color: var(--ocs-text-secondary);
+  font-size: 0.85rem;
+}
+
+.tiny {
+  font-size: 0.78rem;
+  color: var(--ocs-text-muted);
+  margin: 0.5rem 0 0;
+}
+
+.limits {
+  margin-block-start: 1.25rem;
+}
+
+.foot {
+  margin-block-start: 2.5rem;
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+  color: var(--ocs-text-muted);
+  font-size: 0.875rem;
+}
+
+.toast {
+  position: fixed;
+  inset-block-end: 1.25rem;
+  inset-inline-start: 50%;
+  transform: translate(-50%, 150%);
+  background: var(--ocs-text);
+  color: var(--ocs-surface-base);
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 10001;
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+.toast.on {
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, .spot, .tourcard, .drawer, .toast {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+</style>
+</head>
+<!-- The page chrome runs on .ocs-light, one of the system's own themes. The
+     preview pane deliberately stays on the dark base so a student sees their
+     component on the surface it will actually live on. -->
+<body class="ocs-light">
+
+<header class="top"><div class="top-in">
+  <div class="brand"><b>OCS</b> SCSS Practice</div>
+  <div class="badges" id="badges"></div>
+  <div class="xp">
+    <span id="xptxt">0 XP</span>
+    <div class="ocs-progress"><div class="ocs-progress__bar" id="xpbar" style="width:0%"></div></div>
+  </div>
+  <span class="ocs-badge ocs-badge--brand" id="credtxt" title="Credits">0 cr</span>
+  <button class="ocs-btn ocs-btn--primary" id="shopbtn">Unlocks</button>
+  <button class="ocs-btn ocs-btn--primary" id="tokbtn" title="Ctrl/Cmd + K">Tokens</button>
+</div></header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Learn SCSS by <em>building real components</em></h1>
+    <p class="lede">Eleven quests across four chapters. Write code, watch it render, and get
+    checked as you type. Nothing to install.</p>
+  </div>
+
+  <div id="chapters"></div>
+
+  <!-- The brief and the checklist are one unit: what to do, and how you will
+       know you did it. Side by side on a wide screen so a student can read the
+       task and tick the steps without scrolling between them. -->
+  <div class="taskrow">
+  <div class="ocs-card brief" id="brief"></div>
+
+  <div class="panel steps-panel">
+    <div class="ph"><span class="lbl">your checklist</span>
+      <span class="grp">
+        <span class="ocs-badge ocs-badge--neutral" id="stepcount"></span>
+        <button class="ocs-btn ocs-btn--ghost" id="targetbtn">Show target</button>
+      </span></div>
+    <ol class="steps" id="steps"></ol>
+
+    <!-- Always visible, never behind a button. A student who does not know
+         what to do next should not have to work out where to ask. -->
+    <div class="coach" id="coach"></div>
+    <div class="targetbox" id="targetbox">
+      <div class="ph"><span class="lbl">what it should look like</span></div>
+      <div id="targetprev"></div>
+      <style id="targetstyle"></style>
+    </div>
+  </div>
+  </div>
+
+  <div class="ws">
+    <div class="panel">
+      <div class="ph"><span class="lbl">your scss</span>
+        <span class="grp">
+          <button class="ocs-btn ocs-btn--ghost" id="copy">Copy</button>
+          <button class="ocs-btn ocs-btn--ghost" id="reset">Start over</button>
+        </span></div>
+      <div class="ed-wrap">
+        <div class="gutter" id="gutter">1</div>
+        <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off"
+          aria-label="SCSS editor"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="lbl">live preview</span><span id="verdict"></span></div>
+      <div id="preview"></div>
+      <div class="ph"><span class="lbl">compiled css</span><span class="meter" id="meter"></span></div>
+      <pre id="cssout"></pre>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-block-start:var(--ocs-space-3)">
+    <div class="ph"><span class="lbl">checks</span>
+      <span class="ocs-badge ocs-badge--neutral" id="ccount"></span></div>
+    <div class="pad" id="notes"></div>
+  </div>
+
+  <div class="cert" id="cert">
+    <h3>All eleven quests done.</h3>
+    <p>You can write components for the OCS design system now.</p>
+    <div class="stat">
+      <div><b id="certDone">0</b><span>quests</span></div>
+      <div><b id="certXP">0</b><span>xp earned</span></div>
+      <div><b>11</b><span>badges</span></div>
+    </div>
+    <div class="grp">
+      <button class="ocs-btn ocs-btn--primary" id="submitbtn">Submit my work</button>
+      <button class="ocs-btn ocs-btn--secondary" onclick="exportAll()">Download my solutions</button>
+    </div>
+
+    <!-- Filled in by buildSubmission(). Kept in the page rather than a modal so
+         a student can read the receipt and their own code side by side. -->
+    <div class="submit" id="submitbox" hidden>
+      <div class="submit__who">
+        <label class="ocs-label" for="subname">Your name</label>
+        <input class="ocs-input" id="subname" autocomplete="name" placeholder="Ada Lovelace">
+        <label class="ocs-label" for="subgh">GitHub username</label>
+        <input class="ocs-input" id="subgh" autocomplete="username" placeholder="alovelace">
+        <button class="ocs-btn ocs-btn--primary" id="subgen">Generate receipt</button>
+      </div>
+
+      <div class="submit__out" id="submitout" hidden>
+        <p class="submit__label">Paste this into the gradebook</p>
+        <div class="submit__code"><code id="subcode"></code>
+          <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="subcopy">Copy</button></div>
+        <p class="submit__summary" id="subsummary"></p>
+        <button class="ocs-btn ocs-btn--secondary" id="subfile">Download the full submission</button>
+        <p class="tiny">The code is made from the work you actually wrote. Hand in the same
+          work twice and you get the same code. It is a receipt, not a lock. Everything on
+          this page runs in your browser, so treat it like any other homework.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ocs-card shop" id="shop">
+    <div class="ocs-card__header"><h3 class="ocs-card__title">Unlocks</h3></div>
+    <div class="ocs-card__body">
+      <p class="tiny" style="margin-block-start:0">You earn 10 credits each time you solve a quest.
+         These are things that let you keep going further, not decorations.</p>
+      <div id="shoplist"></div>
+    </div>
+  </div>
+
+  <div class="ocs-alert ocs-alert--info limits">
+    <div class="ocs-alert__content">
+      <p class="ocs-alert__title">Shortcuts and limits</p>
+      <p><kbd class="ocs-kbd">Tab</kbd> indents &middot;
+         <kbd class="ocs-kbd">Ctrl</kbd>+<kbd class="ocs-kbd">K</kbd> opens the token list.
+         Your code saves automatically per quest.</p>
+      <p>The compiler in this page handles the part of SCSS you need for components: nesting, the
+         <code class="ocs-code-inline">&amp;</code> parent selector,
+         <code class="ocs-code-inline">$variables</code>, and comments. It is not full Sass &mdash; no
+         <code class="ocs-code-inline">@mixin</code>, <code class="ocs-code-inline">@each</code> or
+         <code class="ocs-code-inline">@if</code>. Those work in the real repo, which builds with
+         Ruby Sass 3.7.4.</p>
+    </div>
+  </div>
+
+  <p class="foot">
+    See the finished system: <a href="./design-system/">component docs</a> &middot;
+    <a href="./capstone/ocs-design-system/">capstone page</a><br>
+    This page is itself built from the components it teaches.<br>
+    Source in <code class="ocs-code-inline">_sass/ocs/tools/learn/</code> &middot;
+    <a href="https://github.com/UGRC-CSA/Pages/issues/34">discussion</a><br>
+    <span class="grp" style="display:inline-flex;gap:.4rem;margin-block-start:.6rem">
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="tourbtn">Replay the tour</button>
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="export">Download my solutions</button>
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="resetall">Clear progress</button>
+    </span>
+  </p>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Design tokens">
+  <header><h3>Design tokens</h3>
+    <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="tokclose">Close</button></header>
+
+  <!-- Beginner hides the groups no lesson has reached yet. Everything is the
+       way out for anyone who wants to look ahead, and for a mentor demoing. -->
+  <div class="tviews" role="group" aria-label="How many tokens to show">
+    <button class="tview is-on" id="viewBeginner" aria-pressed="true">Beginner</button>
+    <button class="tview" id="viewAll" aria-pressed="false">Everything</button>
+  </div>
+
+  <p class="tprog" id="tprog" role="status"></p>
+
+  <div class="search">
+    <input class="ocs-input" id="tsearch" placeholder="Search tokens..." aria-label="Search tokens">
+  </div>
+  <div class="tlist" id="tlist"></div>
+</aside>
+<div class="toast" id="toast"></div>
+<div class="tour" id="tour"><div class="spot" id="spot"></div><div class="tourcard" id="tourcard"></div></div>
+
+<script>/* ---------------------------------------------------------------
+   Tiny SCSS compiler - the subset you need for component work.
+   Handles: nesting, &, $variables, // and comments.
+   Deliberately NOT full Sass. See the "what this does not do" note.
+   --------------------------------------------------------------- */
+function compileScss(src) {
+  const errors = [];
+  // 1. strip comments
+  let s = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+
+  // 2. collect and substitute $variables
+  const vars = {};
+  s = s.replace(/^\s*\$([\w-]+)\s*:\s*([^;]+);/gm, (_, k, v) => { vars[k] = v.trim(); return ''; });
+  let guard = 0;
+  while (/\$[\w-]+/.test(s) && guard++ < 10) {
+    s = s.replace(/\$([\w-]+)/g, (m, k) => {
+      if (k in vars) return vars[k];
+      if (!errors.some(e => e.includes(k))) errors.push(`Undefined variable $${k}`);
+      return m.replace('$', '__UNDEF_');
+    });
+  }
+
+  // 3. parse brace tree
+  function parse(str) {
+    const nodes = []; let buf = '', i = 0;
+    while (i < str.length) {
+      const c = str[i];
+      if (c === '{') {
+        let depth = 1, j = i + 1;
+        while (j < str.length && depth > 0) {
+          if (str[j] === '{') depth++;
+          else if (str[j] === '}') depth--;
+          j++;
+        }
+        if (depth !== 0) { errors.push('Unclosed { - check your braces'); return nodes; }
+        // buf may hold "decl; decl; selector" - everything after the last ; is the selector
+        const cut = buf.lastIndexOf(';');
+        const declPart = cut >= 0 ? buf.slice(0, cut + 1) : '';
+        const selPart  = cut >= 0 ? buf.slice(cut + 1) : buf;
+        if (declPart.trim()) nodes.push({ sel: null, decls: declPart });
+        nodes.push({ sel: selPart.trim(), body: str.slice(i + 1, j - 1) });
+        buf = ''; i = j;
+      } else if (c === '}') {
+        errors.push('Extra } - check your braces'); i++;
+      } else { buf += c; i++; }
+    }
+    if (buf.trim()) nodes.push({ sel: null, decls: buf });
+    return nodes;
+  }
+
+  // 4. flatten nesting, resolving &
+  const out = [];
+  function walk(body, parentSels) {
+    const nodes = parse(body);
+    const decls = nodes.filter(n => n.sel === null).map(n => n.decls).join('')
+                       .split(';').map(d => d.trim()).filter(Boolean);
+    if (decls.length && parentSels.length) {
+      out.push({ selector: parentSels.join(', '), decls });
+    }
+    for (const n of nodes) {
+      if (n.sel === null) continue;
+      const sels = [];
+      for (const p of (parentSels.length ? parentSels : [''])) {
+        for (const raw of n.sel.split(',')) {
+          const part = raw.trim(); if (!part) continue;
+          sels.push(part.includes('&') ? part.replace(/&/g, p) : (p ? `${p} ${part}` : part));
+        }
+      }
+      walk(n.body, sels);
+    }
+  }
+  walk(s, []);
+
+  const css = out.map(r => `${r.selector} {\n  ${r.decls.join(';\n  ')};\n}`).join('\n\n');
+  return { css, errors, rules: out, vars };
+}
+</script>
+<script>/* ---------------------------------------------------------------
+   The checker. Deterministic rules, each one explains WHY.
+   Runs on the student's SCSS + the rendered result.
+   --------------------------------------------------------------- */
+const TOKEN_SUGGEST = {
+  '#e06665':'--ocs-accent','#ea706e':'--ocs-accent','#34c759':'--ocs-success',
+  '#ff453a':'--ocs-danger','#ff9f0a':'--ocs-warning','#007aff':'--ocs-info',
+  '#5293ff':'--ocs-info','#121212':'--ocs-surface-base','#1c1c1e':'--ocs-surface-raised',
+  '#2c2c2e':'--ocs-surface-elevated','#ffffff':'--ocs-accent-contrast','#fff':'--ocs-accent-contrast',
+  '#949498':'--ocs-text-muted','#000':'--ocs-surface-base','#000000':'--ocs-surface-base'
+};
+
+function relLum({r,g,b}) {
+  const f = v => { v/=255; return v<=0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+  return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+}
+function parseRGB(str) {
+  const m = String(str).match(/[\d.]+/g);
+  if (!m) return null;
+  return { r:+m[0], g:+m[1], b:+m[2], a: m[3]===undefined?1:+m[3] };
+}
+function over(fg,bg){const a=fg.a;return{r:fg.r*a+bg.r*(1-a),g:fg.g*a+bg.g*(1-a),b:fg.b*a+bg.b*(1-a),a:1};}
+function paintedBg(el){
+  let n=el,stack=[];
+  while(n && n!==document.documentElement.parentNode){
+    const c=parseRGB(getComputedStyle(n).backgroundColor);
+    if(c&&c.a>0)stack.push(c);
+    if(c&&c.a===1)break;
+    n=n.parentElement;
+  }
+  let base={r:18,g:18,b:18,a:1};
+  for(let i=stack.length-1;i>=0;i--)base=over(stack[i],base);
+  return base;
+}
+function contrastOf(el){
+  const bg=paintedBg(el);
+  const fg=over(parseRGB(getComputedStyle(el).color)||{r:255,g:255,b:255,a:1},bg);
+  const A=relLum(fg),B=relLum(bg);
+  return (Math.max(A,B)+0.05)/(Math.min(A,B)+0.05);
+}
+
+function runChecks(scss, compiled, previewRoot) {
+  const notes = [];
+  const src = scss.toLowerCase();
+
+  // Nothing usable was written yet. Say so plainly instead of reporting "all clear",
+  // which is what a blank or garbage editor used to produce.
+  const looksLikeCss = /\{[\s\S]*\}/.test(scss) && /:/.test(scss);
+  if (!scss.trim()) {
+    return [{level:'info', title:'Nothing here yet',
+      why:'The editor is empty, so there is no CSS to check.',
+      fix:'Press <b>Start over</b> to bring back the starting code.'}];
+  }
+  if (!looksLikeCss) {
+    return [{level:'error', title:'That is not CSS yet',
+      why:'A CSS rule needs a name, then curly braces, then lines like <code>property: value;</code> inside them. Right now there is nothing the browser can read.',
+      fix:'Press <b>Start over</b> to get the first version back. Then change one thing at a time.'}];
+  }
+  if (!compiled.trim()) {
+    return [{level:'error', title:'Nothing compiled',
+      why:'There is text in the editor, but no finished rule came out of it. Usually that means a missing <code>{</code>, <code>}</code> or <code>;</code>.',
+      fix:'Check that every <code>{</code> has a <code>}</code> to match. Every line inside should end with <code>;</code>.'}];
+  }
+
+  // 1. hardcoded colours where a token exists
+  const hexes = [...new Set((scss.match(/#[0-9a-fA-F]{3,8}\b/g)||[]).map(h=>h.toLowerCase()))];
+  for (const h of hexes) {
+    const tok = TOKEN_SUGGEST[h];
+    notes.push({
+      level:'warn', title:`Hardcoded colour ${h}`,
+      why:'A hex code is fixed forever. var(--ocs-accent) changes to whatever colour the reader picked, so the button matches them.',
+      fix: tok ? `Swap it for <code>var(${tok})</code>.` : 'Use one of the --ocs-* tokens, or add a new one to _tokens.scss if none fits.'
+    });
+  }
+  if ((scss.match(/rgb\(|rgba\(|hsl\(/gi)||[]).length) {
+    notes.push({level:'warn',title:'Literal rgb()/hsl() colour',
+      why:'Same problem as a hex code. It won\'t respond to the theme.',
+      fix:'Use a --ocs-* token instead. If you need it see-through, color-mix(in srgb, var(--ocs-brand) 20%, transparent) still follows the theme.'});
+  }
+
+  // 2. background without a paired foreground
+  const setsBg = /background(-color)?\s*:/.test(src);
+  const setsFg = /(^|[^-])color\s*:/.test(src);
+  if (setsBg && !setsFg) {
+    notes.push({level:'warn',title:'Background set, text colour not set',
+      why:'Every background token has a matching text token. Set only one and you can end up with text nobody can read.',
+      fix:'Add the matching text colour. For example: background: var(--ocs-brand); color: var(--ocs-brand-contrast);'});
+  }
+
+  // 3. focus handling
+  if (/outline\s*:\s*none/.test(src) && !/focus-visible/.test(src)) {
+    notes.push({level:'error',title:'Focus outline removed with nothing replacing it',
+      why:'That outline shows keyboard users where they are. Take it away and put nothing back, and the page cannot be used without a mouse.',
+      fix:'If you must remove it, add a :focus-visible style with a visible ring. There is a shared one: @include focus-ring; or box-shadow: var(--ocs-focus-ring);'});
+  }
+
+  // 4. motion
+  if (/transition\s*:\s*all/.test(src)) {
+    notes.push({level:'info',title:'transition: all',
+      why:'It animates every property that changes, including ones you never meant to animate. That is slower, and it can cause odd flashes.',
+      fix:'Name the properties: transition: background-color var(--ocs-duration-fast) var(--ocs-ease);'});
+  }
+  if (/transform|animation|transition/.test(src) && !/prefers-reduced-motion/.test(src)) {
+    notes.push({level:'info',title:'No reduced-motion guard',
+      why:'Some people get motion sickness from movement on screen and turn on a system setting to stop it. Nothing in the current OCS SCSS honours it.',
+      fix:'Wrap the movement: @media (prefers-reduced-motion: reduce) { transition: none; transform: none; }'});
+  }
+
+  // 5. naming
+  const badSel = (compiled.match(/^\s*\.([a-z][\w-]*)/gmi)||[])
+    .map(s=>s.trim().slice(1)).filter(c=>!c.startsWith('ocs'));
+  if (badSel.length) {
+    notes.push({level:'warn',title:`Unprefixed class .${badSel[0]}`,
+      why:'Pages loads Bootstrap on some templates and has 227 loose class names already. A bare name like this can collide with something else and break a page you never touched.',
+      fix:'Prefix it: .ocs-'+badSel[0]+' or follow the existing .ocs__btn--modifier pattern.'});
+  }
+
+  // 6. measured contrast on what actually rendered
+  if (previewRoot) {
+    previewRoot.querySelectorAll('*').forEach(el=>{
+      const txt=(el.textContent||'').trim();
+      if(!txt||el.children.length)return;
+      const r=contrastOf(el);
+      const cs=getComputedStyle(el);
+      const big=parseFloat(cs.fontSize)>=24||(parseInt(cs.fontWeight,10)>=700&&parseFloat(cs.fontSize)>=18.66);
+      const need=big?3:4.5;
+      if(r<need){
+        notes.push({level:'error',title:`Contrast ${r.toFixed(2)}:1 - needs ${need}:1`,
+          why:`The text "${txt.slice(0,24)}" is too close in lightness to what is behind it. At 1.00:1 the two colours are identical and the text is invisible.`,
+          fix:'Pick a foreground token solved against this surface, or darken/lighten the background. The pair tokens already clear 4.5:1.'});
+      }
+    });
+  }
+  return notes;
+}
+</script>
+<script>const TOKENS = [{"n":"--ocs-brand","v":"#EA706E","g":"Semantic colour","c":true},{"n":"--ocs-brand-border","v":"#E06665","g":"Semantic colour","c":true},{"n":"--ocs-brand-bg","v":"#3B2827","g":"Semantic colour","c":true},{"n":"--ocs-info","v":"#5293FF","g":"Semantic colour","c":true},{"n":"--ocs-info-border","v":"#007AFF","g":"Semantic colour","c":true},{"n":"--ocs-info-bg","v":"#272B3F","g":"Semantic colour","c":true},{"n":"--ocs-success","v":"#34C759","g":"Semantic colour","c":true},{"n":"--ocs-success-border","v":"#34C759","g":"Semantic colour","c":true},{"n":"--ocs-success-bg","v":"#283929","g":"Semantic colour","c":true},{"n":"--ocs-warning","v":"#FF9F0A","g":"Semantic colour","c":true},{"n":"--ocs-warning-border","v":"#FF9F0A","g":"Semantic colour","c":true},{"n":"--ocs-warning-bg","v":"#423220","g":"Semantic colour","c":true},{"n":"--ocs-danger","v":"#FF5E4D","g":"Semantic colour","c":true},{"n":"--ocs-danger-border","v":"#FF453A","g":"Semantic colour","c":true},{"n":"--ocs-danger-bg","v":"#412520","g":"Semantic colour","c":true},{"n":"--ocs-accent","v":"var(--ocs-brand)","g":"Semantic colour","c":false},{"n":"--ocs-accent-border","v":"var(--ocs-brand-border)","g":"Semantic colour","c":false},{"n":"--ocs-accent-bg","v":"var(--ocs-brand-bg)","g":"Semantic colour","c":false},{"n":"--ocs-accent-contrast","v":"#121212","g":"Semantic colour","c":true},{"n":"--ocs-text","v":"#FFFFFF","g":"Text","c":true},{"n":"--ocs-text-secondary","v":"#E1E1E6","g":"Text","c":true},{"n":"--ocs-text-muted","v":"#949498","g":"Text","c":true},{"n":"--ocs-text-inverse","v":"#121212","g":"Text","c":true},{"n":"--ocs-surface-base","v":"#121212","g":"Surface","c":true},{"n":"--ocs-surface-raised","v":"#1C1C1E","g":"Surface","c":true},{"n":"--ocs-surface-elevated","v":"#2C2C2E","g":"Surface","c":true},{"n":"--ocs-surface-overlay","v":"rgba(0, 0, 0, 0.72)","g":"Surface","c":true},{"n":"--ocs-border","v":"#444448","g":"Border","c":true},{"n":"--ocs-border-strong","v":"#59595D","g":"Border","c":true},{"n":"--ocs-border-subtle","v":"#303033","g":"Border","c":true},{"n":"--ocs-space-0","v":"0","g":"Spacing","c":false},{"n":"--ocs-space-1","v":"0.25rem","g":"Spacing","c":false},{"n":"--ocs-space-2","v":"0.5rem","g":"Spacing","c":false},{"n":"--ocs-space-3","v":"0.75rem","g":"Spacing","c":false},{"n":"--ocs-space-4","v":"1rem","g":"Spacing","c":false},{"n":"--ocs-space-5","v":"1.25rem","g":"Spacing","c":false},{"n":"--ocs-space-6","v":"1.5rem","g":"Spacing","c":false},{"n":"--ocs-space-8","v":"2rem","g":"Spacing","c":false},{"n":"--ocs-space-10","v":"2.5rem","g":"Spacing","c":false},{"n":"--ocs-space-12","v":"3rem","g":"Spacing","c":false},{"n":"--ocs-space-16","v":"4rem","g":"Spacing","c":false},{"n":"--ocs-radius-none","v":"0","g":"Radius","c":false},{"n":"--ocs-radius-sm","v":"4px","g":"Radius","c":false},{"n":"--ocs-radius-md","v":"6px","g":"Radius","c":false},{"n":"--ocs-radius-lg","v":"10px","g":"Radius","c":false},{"n":"--ocs-radius-xl","v":"14px","g":"Radius","c":false},{"n":"--ocs-radius-full","v":"999px","g":"Radius","c":false},{"n":"--ocs-duration-fast","v":"120ms","g":"Motion","c":false},{"n":"--ocs-duration-base","v":"180ms","g":"Motion","c":false},{"n":"--ocs-duration-slow","v":"280ms","g":"Motion","c":false},{"n":"--ocs-ease","v":"cubic-bezier(0.2, 0, 0, 1)","g":"Motion","c":false},{"n":"--ocs-coral-50","v":"#FFD7D1","g":"Colour ramp","c":true},{"n":"--ocs-coral-100","v":"#FFC8C2","g":"Colour ramp","c":true},{"n":"--ocs-coral-200","v":"#FFAFAA","g":"Colour ramp","c":true},{"n":"--ocs-coral-300","v":"#FF9490","g":"Colour ramp","c":true},{"n":"--ocs-coral-400","v":"#F27A77","g":"Colour ramp","c":true},{"n":"--ocs-coral-500","v":"#E06665","g":"Colour ramp","c":true},{"n":"--ocs-coral-600","v":"#BA4C4C","g":"Colour ramp","c":true},{"n":"--ocs-coral-700","v":"#9C3739","g":"Colour ramp","c":true},{"n":"--ocs-coral-800","v":"#7F2228","g":"Colour ramp","c":true},{"n":"--ocs-coral-900","v":"#630C17","g":"Colour ramp","c":true},{"n":"--ocs-neutral-50","v":"#F3F3F8","g":"Colour ramp","c":true},{"n":"--ocs-neutral-100","v":"#E5E5E9","g":"Colour ramp","c":true},{"n":"--ocs-neutral-200","v":"#CECED3","g":"Colour ramp","c":true},{"n":"--ocs-neutral-300","v":"#B6B6BA","g":"Colour ramp","c":true},{"n":"--ocs-neutral-400","v":"#9D9DA2","g":"Colour ramp","c":true},{"n":"--ocs-neutral-500","v":"#8E8E93","g":"Colour ramp","c":true},{"n":"--ocs-neutral-600","v":"#6F6F74","g":"Colour ramp","c":true},{"n":"--ocs-neutral-700","v":"#59595D","g":"Colour ramp","c":true},{"n":"--ocs-neutral-800","v":"#444448","g":"Colour ramp","c":true},{"n":"--ocs-neutral-900","v":"#303033","g":"Colour ramp","c":true},{"n":"--ocs-shadow-sm","v":"0 1px 2px rgba(0, 0, 0, 0.3)","g":"Shadow","c":false},{"n":"--ocs-shadow-md","v":"0 4px 12px rgba(0, 0, 0, 0.35)","g":"Shadow","c":false},{"n":"--ocs-shadow-lg","v":"0 10px 30px rgba(0, 0, 0, 0.45)","g":"Shadow","c":false},{"n":"--ocs-shadow-xl","v":"0 20px 50px rgba(0, 0, 0, 0.55)","g":"Shadow","c":false},{"n":"--ocs-font-sans","v":"var(--pref-font-family, Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif)","g":"Type","c":false},{"n":"--ocs-font-mono","v":"Menlo, Monaco, Consolas, Roboto Mono, Ubuntu Mono, Liberation Mono, Courier New, monospace","g":"Type","c":false},{"n":"--ocs-focus-ring","v":"0 0 0 2px var(--ocs-surface-base), 0 0 0 4px var(--ocs-accent)","g":"Other","c":false}];
+</script>
+<script>/* ---------------------------------------------------------------
+   Small localStorage helper. Every read and write is wrapped, because
+   a private window or blocked site data makes localStorage throw
+   rather than return null, and that would take the whole page down.
+   --------------------------------------------------------------- */
+const store = {
+  get(k, d){ try { return JSON.parse(localStorage.getItem('ocs.'+k)) ?? d; } catch { return d; } },
+  set(k, v){ try { localStorage.setItem('ocs.'+k, JSON.stringify(v)); } catch {} },
+  del(k){ try { localStorage.removeItem('ocs.'+k); } catch {} }
+};
+
+/* ---------------------------------------------------------------
+   Credits. Deliberately NOT a cosmetics casino.
+   Research is clear that pure extrinsic reward loops shift focus off
+   the learning (Hanus & Fox 2015). So credits buy things that let you
+   learn MORE, plus a couple of harmless personalisations. The only
+   "cost" in the learning path is the full-answer hint, which exists to
+   make you try first, never to block you.
+   --------------------------------------------------------------- */
+const SHOP = [
+  {id:'sandbox', cost:30, name:'Sandbox mode',
+   what:'A blank canvas with every token available. Build whatever you like, no quest, no checks.'},
+  {id:'challenge', cost:40, name:'Challenge quests',
+   what:'Three harder builds with no starting code and no step list. Just a target to hit.'},
+  {id:'theme-dusk', cost:15, name:'Dusk editor theme', what:'A darker editor, easier at night.'},
+  {id:'theme-paper', cost:15, name:'Paper editor theme', what:'Warm and low-contrast, easier on long sessions.'},
+  {id:'accent-blue', cost:10, name:'Blue accent', what:'Recolour this page from coral to blue.'},
+  {id:'accent-green',cost:10, name:'Green accent', what:'Recolour this page from coral to green.'}
+];
+
+function credits(){ return store.get('credits', 0); }
+function addCredits(n){ store.set('credits', credits()+n); paintCredits(); }
+function spend(n){ if(credits()<n) return false; store.set('credits', credits()-n); paintCredits(); return true; }
+function owned(){ return store.get('owned', []); }
+function owns(id){ return owned().includes(id); }
+function buy(item){
+  if(owns(item.id)) return 'already';
+  if(!spend(item.cost)) return 'poor';
+  store.set('owned', [...owned(), item.id]);
+  applyUnlocks();
+  return 'ok';
+}
+function applyUnlocks(){
+  const o = owned();
+  document.body.dataset.editorTheme = o.includes('theme-dusk') && store.get('activeTheme','')==='theme-dusk' ? 'dusk'
+    : o.includes('theme-paper') && store.get('activeTheme','')==='theme-paper' ? 'paper' : '';
+  const acc = store.get('activeAccent','');
+  document.documentElement.style.setProperty('--coral',
+    acc==='accent-blue' ? '#2563A8' : acc==='accent-green' ? '#1F7A45' : '');
+}
+</script>
+<script>const CHAPTERS = [
+  {n:0, name:'Warm-up',    blurb:'Never written CSS before? Start here. One line, one change.'},
+  {n:1, name:'Colour',      blurb:'How the token system keeps everything readable and themeable.'},
+  {n:2, name:'State',       blurb:'Making components respond to hover, focus and disabled.'},
+  {n:3, name:'Components',  blurb:'Putting it together into things people actually use.'}
+];
+
+const EXERCISES = [
+
+ {id:0, ch:0, badge:'Start', title:'Change one word',
+  learn:'What CSS is, in about thirty seconds.',
+  concept:{t:'What am I even looking at?',
+    b:'CSS is how you tell a browser what something should look like. It has three parts. First, <b>what</b> you are styling: <code>.ocs-demo-btn</code>. Second, <b>which part</b> of it you are changing: <code>background</code>. Third, <b>what to change it to</b>: <code>red</code>. Change that last part and the button changes.'},
+  brief:'The button on the right is red. Find the word <code>red</code> in the editor and change it to <code>blue</code>. Watch the preview as you type.',
+  steps:[{label:'Change <code>red</code> to <code>blue</code>', test:s=>/background\s*:\s*blue/i.test(s)}],
+  hints:['Look at line 2. Delete the word <code>red</code> and type <code>blue</code> in its place.',
+         'Keep the semicolon at the end of the line.',
+         'The line should read <code>background: blue;</code>'],
+  start:`.ocs-demo-btn {
+  background: red;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+}`,
+  html:`<button class="ocs-demo-btn">Click me</button>`,
+  goal:'The button turns blue.',
+  solution:`.ocs-demo-btn {
+  background: blue;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+}`,
+  pass: s => /background\s*:\s*blue/i.test(s)},
+/* ============================ CHAPTER 1 ============================ */
+ {id:1, ch:1, badge:'Tokens', title:'Use a token, not a hex code',
+  learn:'Why a typed-in colour can never follow the reader’s own.',
+  concept:{t:'What is a design token?',
+    b:'A token is a colour or a size that has a name. Instead of typing <code>#E06665</code> in forty places, you write <code>var(--ocs-accent)</code> everywhere. Then you only have to change it once. Pages has 78 tokens.'},
+  brief:'The colours on this button are typed in by hand. A reader can pick their own colour in preferences, but this button ignores it. Swap both colours for tokens.',
+  steps:[
+    {label:'Swap the background for <code>var(--ocs-accent)</code>', test:s=>/background[^;]*var\(--ocs-accent\)/.test(s)},
+    {label:'Swap the text colour for <code>var(--ocs-accent-contrast)</code>', test:s=>/color\s*:[^;]*var\(--ocs-accent-contrast\)/.test(s)},
+    {label:'No hex codes left', test:s=>!/#[0-9a-f]{3,8}/i.test(s)}],
+  hints:['Tokens look like <code>var(--ocs-something)</code>. Open the token panel on the right to browse them.',
+         'The background wants <code>var(--ocs-accent)</code>. Now find its partner for the text.',
+         'Full answer: <code>background: var(--ocs-accent); color: var(--ocs-accent-contrast);</code>'],
+  start:`.ocs-demo-btn {
+  background: #E06665;
+  color: #FFFFFF;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+}`,
+  html:`<button class="ocs-demo-btn">Save changes</button>`,
+  goal:'No hex codes left, and the text is still easy to read.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+}`,
+  pass: s => !/#[0-9a-f]{3,8}/i.test(s) && /var\(--ocs-/.test(s)},
+
+ {id:2, ch:1, badge:'Pairing', title:'Pair a background with its text',
+  learn:'Every background colour has a matching text colour.',
+  concept:{t:'Why colours come in pairs',
+    b:'Every background token has a matching text token right next to it. Take both and the text is always readable. That is how you avoid grey text on a grey button.'},
+  brief:'This card has a background colour but no text colour. So the text stays whatever colour the page was already using. Set the text colour too.',
+  steps:[
+    {label:'Use a background token', test:s=>/background[^;]*var\(--ocs-/.test(s)},
+    {label:'Set a text colour from a token', test:s=>/(^|[^-])color\s*:[^;]*var\(--ocs-/m.test(s)},
+    {label:'Contrast clears 4.5:1', test:(s,c,ok)=>ok}],
+  hints:['A background token and a text token always travel together.',
+         'Try <code>var(--ocs-accent-bg)</code> for a soft background. What text colour goes on it?',
+         'Full answer: <code>background: var(--ocs-accent-bg); color: var(--ocs-text);</code>'],
+  start:`.ocs-demo-card {
+  background: var(--ocs-accent);
+  padding: 16px;
+  border-radius: 12px;
+}`,
+  html:`<div class="ocs-demo-card">Two assignments due this week</div>`,
+  goal:'Background and text both from tokens, and the text is readable.',
+  solution:`.ocs-demo-card {
+  background: var(--ocs-accent-bg);
+  color: var(--ocs-text);
+  padding: 16px;
+  border-radius: 12px;
+}`,
+  pass: s => /background[^;]*var\(--ocs-/.test(s) && /(^|[^-])color\s*:[^;]*var\(--ocs-/m.test(s)},
+
+ {id:3, ch:1, badge:'Theming', title:'Make the hover follow the theme',
+  learn:'Work out a colour in the browser instead of fixing it in advance.',
+  concept:{t:'Two places a colour can be worked out',
+    b:'Sass runs once, before anyone opens the page. Whatever it works out gets written into the CSS file and never changes. <code>color-mix()</code> runs in the browser instead. It sees the colour the reader picked, so the hover matches it.'},
+  brief:'The hover colour here is typed in by hand. Change the button colour and the hover no longer matches it. <code>color-mix()</code> mixes two colours in the browser, so the hover can follow.',
+  steps:[
+    {label:'Remove the hardcoded hover colour', test:s=>!/#[0-9a-f]{3,8}/i.test(s)},
+    {label:'Use <code>color-mix()</code> in the hover', test:s=>/color-mix/.test(s)},
+    {label:'Mix from <code>var(--ocs-accent)</code>', test:s=>/color-mix[^;]*var\(--ocs-accent\)/.test(s)}],
+  hints:['<code>color-mix()</code> takes a colour space, then two colours with a percentage.',
+         'Shape: <code>color-mix(in srgb, SOMECOLOUR 85%, black)</code> gives a slightly darker version.',
+         'Full answer: <code>background: color-mix(in srgb, var(--ocs-accent) 85%, black);</code>'],
+  start:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+
+  &:hover {
+    background: #B34E4D;
+  }
+}`,
+  html:`<button class="ocs-demo-btn">Hover over me</button>`,
+  goal:'The hover uses color-mix() with var(--ocs-accent). No hex codes.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+
+  &:hover {
+    background: color-mix(in srgb, var(--ocs-accent) 85%, black);
+  }
+}`,
+  pass: s => /color-mix/.test(s) && !/#[0-9a-f]{3,8}/i.test(s)},
+
+/* ============================ CHAPTER 2 ============================ */
+ {id:4, ch:2, badge:'Nesting', title:'Build a variant with &',
+  learn:'The <code>&</code> shortcut, and how components are named.',
+  concept:{t:'The & operator',
+    b:'Inside a rule, <code>&</code> means the name of the rule you are already in. So <code>&--ghost</code> inside <code>.ocs-demo-btn</code> becomes <code>.ocs-demo-btn--ghost</code>. That is a second class, not something inside the first one. Two dashes is how this codebase names a different version of a component.'},
+  brief:'Add a second version of this button. It should have no background fill, coloured text, and a visible border. Use <code>&</code> so it becomes its own class.',
+  steps:[
+    {label:'Add a nested block starting with <code>&--ghost</code>', test:s=>/&--ghost/.test(s)},
+    {label:'It compiles to <code>.ocs-demo-btn--ghost</code>', test:(s,c)=>/\.ocs-demo-btn--ghost/.test(c)},
+    {label:'Ghost has a see-through background', test:s=>/&--ghost[\s\S]*background\s*:\s*transparent/.test(s)}],
+  hints:['Add a nested block starting with <code>&--ghost</code>.',
+         'Ghost means <code>background: transparent</code>, with text and border taking the accent colour.',
+         'Full answer: <code>&--ghost { background: transparent; color: var(--ocs-accent); border-color: var(--ocs-accent-border); }</code>'],
+  start:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  // add your &--ghost block here
+}`,
+  html:`<button class="ocs-demo-btn">Primary</button>
+<button class="ocs-demo-btn demo-btn--ghost">Ghost</button>`,
+  goal:'A &--ghost block that becomes .ocs-demo-btn--ghost.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  &--ghost {
+    background: transparent;
+    color: var(--ocs-accent);
+    border-color: var(--ocs-accent-border);
+  }
+}`,
+  pass: (s,c) => /&--ghost/.test(s) && /\.ocs-demo-btn--ghost/.test(c)},
+
+ {id:5, ch:2, badge:'Focus', title:'Give it a focus ring',
+  learn:'How someone using a keyboard knows where they are.',
+  concept:{t:'focus vs focus-visible',
+    b:'<code>:focus</code> fires for mouse clicks too. That makes the outline show up when nobody needs it, so people delete it. <code>:focus-visible</code> only fires when the browser thinks you need to see it. That usually means you are using the keyboard. Use that one instead.'},
+  brief:'When you press Tab, the browser draws an outline around whatever you landed on. This input removes that outline and puts nothing in its place. Someone using the keyboard now has no idea where they are. Add an outline back for keyboard users only.',
+  steps:[
+    {label:'Use <code>:focus-visible</code> instead of <code>:focus</code>', test:s=>/focus-visible/.test(s)},
+    {label:'Add something you can actually see', test:s=>/box-shadow|outline\s*:\s*(?!none)/.test(s)}],
+  hints:['The selector <code>:focus-visible</code> matches keyboard focus but not a mouse click.',
+         'Inside <code>&:focus-visible</code>, add something you can see — a <code>box-shadow</code> ring works well.',
+         'Full answer: <code>&:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ocs-accent); }</code>'],
+  start:`.ocs-demo-input {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  border: 1px solid var(--ocs-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+
+  &:focus {
+    outline: none;
+  }
+}`,
+  html:`<input class="ocs-demo-input" value="Press Tab to reach me">`,
+  goal:'Uses :focus-visible, and you can see it. Press Tab in the preview.',
+  solution:`.ocs-demo-input {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  border: 1px solid var(--ocs-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ocs-accent);
+  }
+}`,
+  pass: s => /focus-visible/.test(s) && /(box-shadow|outline\s*:\s*(?!none))/.test(s)},
+
+ {id:6, ch:2, badge:'Disabled', title:'Style the disabled state',
+  learn:'Style the state the browser already knows about.',
+  concept:{t:'Style from state, not a class',
+    b:'A disabled button already has the <code>disabled</code> attribute. Screen readers read that attribute out. If you make your own <code>.is-disabled</code> class instead, you now have two things to keep in step. Forget one and a button looks disabled but still works. Style <code>&:disabled</code> and there is only one thing to get right.'},
+  brief:'This button looks the same whether it works or not. Style the real <code>:disabled</code> state so you can tell. Do not add a new class.',
+  steps:[
+    {label:'Add a <code>&:disabled</code> block', test:s=>/&:disabled|:disabled/.test(s)},
+    {label:'It compiles to <code>.ocs-demo-btn:disabled</code>', test:(s,c)=>/\.ocs-demo-btn:disabled/.test(c)},
+    {label:'Make it look unavailable', test:s=>/opacity|cursor\s*:\s*not-allowed/.test(s)}],
+  hints:['Use the pseudo-class <code>&:disabled</code>, not a class name.',
+         'Disabled usually means dimmed and a <code>not-allowed</code> cursor. <code>opacity</code> is the simplest way.',
+         'Full answer: <code>&:disabled { opacity: 0.45; cursor: not-allowed; }</code>'],
+  start:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  // style the disabled state here
+}`,
+  html:`<button class="ocs-demo-btn">Works</button>
+<button class="ocs-demo-btn" disabled>Disabled</button>`,
+  goal:'A &:disabled block. The second button should look like you cannot click it.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}`,
+  pass: (s,c) => /&:disabled|:disabled/.test(s) && /\.ocs-demo-btn:disabled/.test(c)},
+
+ {id:7, ch:2, badge:'Spacing', title:'Use the spacing scale',
+  learn:'Why spacing comes from a fixed set of sizes.',
+  concept:{t:'The spacing scale',
+    b:'Pages has eleven spacing sizes. They run from <code>--ocs-space-1</code> at 0.25rem up to <code>--ocs-space-16</code> at 4rem. Picking from a fixed set keeps every gap on the page related. Typing your own numbers is what makes a layout feel slightly off.'},
+  brief:'The spacing on this card was guessed: 13px, 19px, 7px. Swap each one for a spacing token. Pick the closest size.',
+  steps:[
+    {label:'Replace the padding numbers with spacing tokens', test:s=>/padding[^;]*var\(--ocs-space-/.test(s)},
+    {label:'Replace the gap number too', test:s=>/gap[^;]*var\(--ocs-space-/.test(s)},
+    {label:'No raw pixel values left', test:s=>!/(padding|gap)\s*:[^;]*\d+px/.test(s)}],
+  hints:['Spacing tokens are <code>var(--ocs-space-1)</code> through <code>var(--ocs-space-16)</code>.',
+         '<code>--ocs-space-3</code> is 0.75rem (12px) and <code>--ocs-space-5</code> is 1.25rem (20px).',
+         'Full answer: <code>padding: var(--ocs-space-3) var(--ocs-space-5); gap: var(--ocs-space-2);</code>'],
+  start:`.ocs-demo-card {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  border: 1px solid var(--ocs-border);
+  border-radius: 12px;
+  padding: 13px 19px;
+  display: flex;
+  gap: 7px;
+}`,
+  html:`<div class="ocs-demo-card"><b>Unit 3</b><span>due Friday</span></div>`,
+  goal:'No pixel numbers left in padding or gap.',
+  solution:`.ocs-demo-card {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  border: 1px solid var(--ocs-border);
+  border-radius: 12px;
+  padding: var(--ocs-space-3) var(--ocs-space-5);
+  display: flex;
+  gap: var(--ocs-space-2);
+}`,
+  pass: s => /var\(--ocs-space-/.test(s) && !/(padding|gap)\s*:[^;]*\d+px/.test(s)},
+
+/* ============================ CHAPTER 3 ============================ */
+ {id:8, ch:3, badge:'Badge', title:'Build a status badge',
+  learn:'Build a small component from an empty rule.',
+  concept:{t:'Small things get seen the most',
+    b:'A badge shows up hundreds of times on a site. A big hero image shows up once. So the small details here matter more. You need a pill shape, tight padding, small bold text, and a background the text stays readable on.'},
+  brief:'Build a badge from an empty rule. Make it a pill shape. Give it a soft green background and text you can read on it. Use small text and spacing from the scale.',
+  steps:[
+    {label:'Make it a pill with <code>--ocs-radius-full</code>', test:s=>/radius-full/.test(s)},
+    {label:'Use the success colour set', test:s=>/var\(--ocs-success/.test(s)},
+    {label:'Pad it from the spacing scale', test:s=>/padding[^;]*var\(--ocs-space-/.test(s)}],
+  hints:['Pill shape comes from <code>border-radius: var(--ocs-radius-full)</code>.',
+         'Success has a set: <code>--ocs-success</code>, <code>--ocs-success-bg</code>, <code>--ocs-success-border</code>.',
+         'Full answer: <code>background: var(--ocs-success-bg); color: var(--ocs-success); border: 1px solid var(--ocs-success-border); border-radius: var(--ocs-radius-full); padding: var(--ocs-space-1) var(--ocs-space-3); font-size: 0.8rem; font-weight: 600;</code>'],
+  start:`.ocs-demo-badge {
+  display: inline-block;
+  // build it from here
+}`,
+  html:`<span class="ocs-demo-badge">Passing</span>`,
+  goal:'Pill shape, colours from tokens, spacing from the scale, and readable text.',
+  solution:`.ocs-demo-badge {
+  display: inline-block;
+  background: var(--ocs-success-bg);
+  color: var(--ocs-success);
+  border: 1px solid var(--ocs-success-border);
+  border-radius: var(--ocs-radius-full);
+  padding: var(--ocs-space-1) var(--ocs-space-3);
+  font-size: 0.8rem;
+  font-weight: 600;
+}`,
+  pass: s => /radius-full/.test(s) && /var\(--ocs-success/.test(s) && /var\(--ocs-space-/.test(s)},
+
+ {id:9, ch:3, badge:'Alert', title:'Build an alert with a border accent',
+  learn:'Use a border to say something, not just to decorate.',
+  concept:{t:'Never let colour be the only clue',
+    b:'About 1 in 12 people cannot tell red from green. Say your warning is red and your success message is green. If that colour is the only difference, those readers see no difference at all. Add something else as well: a thick border, an icon, or just the word.'},
+  brief:'Build a warning box. Give it a soft background and a thick left border in the warning colour. The text needs to be readable. Use padding from the scale.',
+  steps:[
+    {label:'Add a thick <code>border-left</code>', test:s=>/border-left/.test(s)},
+    {label:'Use the warning colour set', test:s=>/var\(--ocs-warning/.test(s)},
+    {label:'Pad it from the spacing scale', test:s=>/padding[^;]*var\(--ocs-space-/.test(s)}],
+  hints:['A left accent uses <code>border-left: 4px solid ...</code> on top of a thin border, or on its own.',
+         'The warning set is <code>--ocs-warning</code>, <code>--ocs-warning-bg</code>, <code>--ocs-warning-border</code>.',
+         'Full answer: <code>background: var(--ocs-warning-bg); color: var(--ocs-text); border-left: 4px solid var(--ocs-warning); border-radius: var(--ocs-radius-md); padding: var(--ocs-space-3) var(--ocs-space-4);</code>'],
+  start:`.ocs-demo-alert {
+  // build it from here
+}`,
+  html:`<div class="ocs-demo-alert"><b>Heads up.</b> Your last submission had no tests.</div>`,
+  goal:'Soft background, warning-coloured left border, spacing from tokens.',
+  solution:`.ocs-demo-alert {
+  background: var(--ocs-warning-bg);
+  color: var(--ocs-text);
+  border-left: 4px solid var(--ocs-warning);
+  border-radius: var(--ocs-radius-md);
+  padding: var(--ocs-space-3) var(--ocs-space-4);
+}`,
+  pass: s => /border-left/.test(s) && /var\(--ocs-warning/.test(s) && /var\(--ocs-space-/.test(s)},
+
+ {id:10, ch:3, badge:'Motion', title:'Respect reduced motion',
+  learn:'Let people switch the movement off.',
+  concept:{t:'prefers-reduced-motion',
+    b:'Movement on screen gives some people motion sickness or migraines. Every operating system has a setting to turn it down. The browser tells your CSS about that setting. Nothing in the current OCS stylesheets checks for it, and 71 rules animate. Yours should.'},
+  brief:'This button lifts and grows when you hover it. Keep that for people who like it. Turn the movement off for anyone who has asked their computer for less motion.',
+  steps:[
+    {label:'Add a <code>@media (prefers-reduced-motion: reduce)</code> block', test:s=>/prefers-reduced-motion/.test(s)},
+    {label:'Switch the movement off inside it', test:s=>/(transform|transition)\s*:\s*none/.test(s)}],
+  hints:['The query is <code>@media (prefers-reduced-motion: reduce)</code>.',
+         'You can nest a media query inside the rule in SCSS. Set <code>transition</code> and <code>transform</code> to <code>none</code> inside it.',
+         'Full answer: add <code>@media (prefers-reduced-motion: reduce) { transition: none; &:hover { transform: none; } }</code>'],
+  start:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  transition: transform var(--ocs-duration-fast) var(--ocs-ease);
+
+  &:hover { transform: translateY(-2px) scale(1.03); }
+
+  // make the movement optional here
+}`,
+  html:`<button class="ocs-demo-btn">Hover me</button>`,
+  goal:'A prefers-reduced-motion block that turns the movement off.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  transition: transform var(--ocs-duration-fast) var(--ocs-ease);
+
+  &:hover { transform: translateY(-2px) scale(1.03); }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover { transform: none; }
+  }
+}`,
+  pass: s => /prefers-reduced-motion/.test(s) && /(transform|transition)\s*:\s*none/.test(s)}
+];
+</script>
+<script>const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+// checker levels map onto the system's own alert variants
+const ALERT={error:'danger', warn:'warning', info:'info', pass:'success'};
+const editor=$('#editor'),preview=$('#preview'),cssout=$('#cssout'),notesEl=$('#notes'),
+      briefEl=$('#brief'),chapsEl=$('#chapters'),verdict=$('#verdict'),
+      gutter=$('#gutter'),badgesEl=$('#badges'),ccount=$('#ccount'),meterEl=$('#meter');
+let active=0, hintLevel=0, lastNotes=[], lastCss='';
+const styleTag=document.createElement('style'); document.head.appendChild(styleTag);
+let progress=store.get('progress',{});
+let drafts=store.get('drafts',{});
+const MAXXP=EXERCISES.length*100;
+
+/* ---------- toast ---------- */
+let tt;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200);}
+
+/* ---------- progress ---------- */
+function totalXP(){return Object.values(progress).reduce((a,p)=>a+(p.xp||0),0);}
+function paintXP(){
+  const xp=totalXP(), pct=Math.round(xp/MAXXP*100);
+  $('#xptxt').textContent=xp+' XP';
+  $('#xpbar').style.width=pct+'%';
+  // Eleven two-letter pills were unreadable and told a reader nothing they
+  // could act on. The same fact, in words.
+  const doneCount=EXERCISES.filter(e=>progress[e.id]?.done).length;
+  badgesEl.textContent=`${doneCount} of ${EXERCISES.length} quests`;
+  $('#cert').classList.toggle('show', EXERCISES.every(e=>progress[e.id]?.done));
+  $('#certXP').textContent=xp;
+  $('#certDone').textContent=EXERCISES.filter(e=>progress[e.id]?.done).length;
+}
+function award(id,xp){
+  const cur=progress[id]||{};
+  const fresh=!cur.done;
+  if((cur.xp||0)>=xp && cur.done) return false;
+  progress[id]={done:true,xp:Math.max(cur.xp||0,xp)};
+  store.set('progress',progress);
+  if(fresh) addCredits(10);
+  paintXP(); renderChapters();
+  // The per-quest pills that this animated are gone; the quest card itself is
+  // now the thing that visibly changes state.
+
+  return true;
+}
+
+function paintCredits(){
+  const c=credits();
+  const el=$('#credtxt'); if(el) el.textContent=c+' cr';
+  const list=$('#shoplist'); if(!list) return;
+  list.innerHTML=SHOP.map(it=>{
+    const has=owns(it.id), afford=c>=it.cost;
+    const active=store.get('activeTheme','')===it.id||store.get('activeAccent','')===it.id;
+    return `<div class="shopitem ${has?'owned':''}">
+      <div><b>${it.name}</b><p>${it.what}</p></div>
+      <button class="ocs-btn ocs-btn--sm ${has?'ocs-btn--secondary':'ocs-btn--primary'}" data-buy="${it.id}" ${!has&&!afford?'disabled':''}>
+        ${has?(it.id.startsWith('theme')||it.id.startsWith('accent')?(active?'On':'Use'):'Unlocked'):it.cost+' cr'}</button>
+    </div>`;}).join('');
+  $$('#shoplist [data-buy]').forEach(b=>b.onclick=()=>{
+    const it=SHOP.find(x=>x.id===b.dataset.buy);
+    if(owns(it.id)){
+      if(it.id.startsWith('theme')) store.set('activeTheme', store.get('activeTheme','')===it.id?'':it.id);
+      if(it.id.startsWith('accent')) store.set('activeAccent', store.get('activeAccent','')===it.id?'':it.id);
+      applyUnlocks(); paintCredits(); return;
+    }
+    const r=buy(it);
+    if(r==='poor') toast('Not enough credits yet');
+    else { toast(it.name+' unlocked'); paintCredits(); }
+  });
+}
+
+/* ---------- step checklist ---------- */
+function renderSteps(){
+  const e=EXERCISES[active], box=$('#steps'); if(!box) return;
+  const {css}=compileScss(editor.value);
+  let worstOk=true;
+  preview.querySelectorAll('*').forEach(el=>{
+    const txt=(el.textContent||el.value||'').trim();
+    if(txt&&!el.children.length&&contrastOf(el)<4.5) worstOk=false;
+  });
+  const done=e.steps.map(st=>{try{return !!st.test(editor.value,css,worstOk);}catch{return false;}});
+  box.innerHTML=e.steps.map((st,i)=>
+    `<li class="${done[i]?'on':''}"><span class="tk">${done[i]?'&#10003;':i+1}</span>${st.label}</li>`).join('');
+  $('#stepcount').textContent=done.filter(Boolean).length+'/'+e.steps.length;
+  paintCoach();
+}
+
+/* ---------- visual target ---------- */
+function showTarget(on){
+  const box=$('#targetbox'); if(!box) return;
+  box.classList.toggle('on',on);
+  $('#targetbtn').textContent=on?'Hide target':'Show target';
+  if(!on) return;
+  const e=EXERCISES[active];
+  const {css}=compileScss(e.solution);
+  $('#targetprev').innerHTML=e.html;
+  $('#targetstyle').textContent=css.replace(/(^|})\s*([^{}@]+)\{/g,(m,a,sel)=>
+    `${a} ${sel.split(',').map(s=>'#targetprev '+s.trim()).join(', ')}{`);
+}
+
+/* ---------- chapters + quests ------------------------------------------------
+   A chapter opens when the one before it is finished, the same rule the token
+   drawer uses. Locking is not there to be strict - it is there so the page a
+   beginner lands on shows four quests, not twelve.
+
+   Every state is carried by a class AND by something a screen reader can
+   reach: aria-current for the open quest, aria-disabled plus a caption for a
+   locked one, and a visually-hidden word for done. Colour is never the only
+   thing saying which is which.                                             */
+
+// Chapter 0 is always open. After that, finish the previous one.
+function chapterOpen(n){
+  return n <= (CHAPTERS[0]?.n ?? 0) || chapterDone(n - 1);
+}
+
+function questState(e){
+  if (progress[e.id]?.done) return 'done';
+  if (!chapterOpen(e.ch))   return 'locked';
+  return 'todo';
+}
+
+function renderChapters(){
+  chapsEl.innerHTML = CHAPTERS.map(c => {
+    const list = EXERCISES.filter(e => e.ch === c.n);
+    const done = list.filter(e => progress[e.id]?.done).length;
+    const open = chapterOpen(c.n);
+    const prev = CHAPTERS.find(x => x.n === c.n - 1);
+
+    const quests = list.map(e => {
+      const i = EXERCISES.indexOf(e);
+      const st = questState(e);
+      const isOpen = i === active;
+      // The open quest reads as in progress unless it is already solved.
+      const cls = ['ocs-card', 'ocs-card--interactive', 'q', `q--${st}`,
+                   isOpen && st !== 'done' ? 'q--active' : ''].filter(Boolean).join(' ');
+
+      const badge = st === 'done'
+        ? '<span class="q__mark q__mark--done" aria-hidden="true">&#10003;</span>'
+        : st === 'locked'
+          ? '<span class="q__mark q__mark--locked" aria-hidden="true">'
+            + '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">'
+            + '<rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/>'
+            + '<path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.6"/>'
+            + '</svg></span>'
+          : isOpen ? '<span class="q__mark q__mark--active" aria-hidden="true"></span>' : '';
+
+      const foot = st === 'locked' && prev
+        ? `<p class="q__gate">Finish Chapter ${prev.n} first</p>` : '';
+
+      // The state in words, for anyone who cannot see the tint or the badge.
+      const said = st === 'done' ? 'Solved. ' : st === 'locked' ? 'Locked. ' : '';
+
+      return `<button class="${cls}" data-i="${i}"
+          aria-current="${isOpen}"${st === 'locked' ? ' aria-disabled="true"' : ''}>
+        ${badge}
+        <span class="ocs-sr-only">${said}</span>
+        <span class="q__n">QUEST ${e.id}</span>
+        <h4 class="q__t">${e.title}</h4>
+        <p class="q__d">${e.learn}</p>
+        ${foot}</button>`;
+    }).join('');
+
+    return `<section class="ocs-card chap${open ? '' : ' chap--locked'}">
+      <div class="chap__head">
+        <div class="chap__id">
+          <span class="chap__n">CHAPTER ${c.n}</span>
+          <h3 class="chap__t">${c.name}</h3>
+          <p class="chap__blurb">${c.blurb}</p>
+        </div>
+        <span class="chap__cnt${done === list.length ? ' is-done' : ''}">${done}/${list.length}</span>
+      </div>
+      <div class="quests">${quests}</div>
+    </section>`;
+  }).join('');
+
+  $$('.q').forEach(b => b.onclick = () => {
+    if (b.getAttribute('aria-disabled') === 'true') {
+      toast('Finish the chapter before this one first');
+      return;
+    }
+    active = +b.dataset.i; hintLevel = 0; coachThread = []; load();
+    briefEl.scrollIntoView({block:'start', behavior:'smooth'});
+  });
+}
+
+/* ---------- brief ---------- */
+function renderBrief(){
+  const e=EXERCISES[active];
+  briefEl.innerHTML=`
+    <p class="kicker">Quest ${e.id} &middot; ${e.badge}</p>
+    <h3>${e.title}</h3>
+    <p>${e.brief}</p>
+    <details class="concept"><summary>${e.concept.t}</summary>
+      <div class="cbody">${e.concept.b}</div></details>
+    <p class="goal"><b>Done when:</b> ${e.goal}</p>
+    <div class="hintbar"><button class="ocs-btn ocs-btn--secondary" id="hint">Need a hint?</button>
+      <span class="tiny" id="hintleft"></span></div>
+    <div class="hints" id="hintlist"></div>`;
+  $('#hint').onclick=()=>{ if(hintLevel<e.hints.length){ hintLevel++; paintHints(); } };
+  paintHints();
+}
+function paintHints(){
+  const e=EXERCISES[active];
+  $('#hintlist').innerHTML=e.hints.slice(0,hintLevel)
+    .map((h,i)=>`<div class="ocs-alert ocs-alert--info"><div class="ocs-alert__content">
+       <p><b>Hint ${i+1}.</b> ${h}</p></div></div>`).join('');
+  const left=e.hints.length-hintLevel;
+  $('#hintleft').textContent = left ? `${left} more available` : 'that was the last one';
+  $('#hint').disabled=!left;
+}
+
+/* ---------- editor ---------- */
+function syncGutter(){
+  const n=editor.value.split('\n').length;
+  gutter.innerHTML=Array.from({length:n},(_,i)=>i+1).join('<br>');
+  editor.style.height='auto';editor.style.height=editor.scrollHeight+'px';
+  gutter.style.height=editor.style.height;
+}
+function insertAtCursor(txt){
+  const s=editor.selectionStart,en=editor.selectionEnd;
+  editor.value=editor.value.slice(0,s)+txt+editor.value.slice(en);
+  editor.selectionStart=editor.selectionEnd=s+txt.length;
+  editor.focus();syncGutter();run();saveDraft();
+}
+function saveDraft(){drafts[EXERCISES[active].id]=editor.value;store.set('drafts',drafts);}
+
+
+/* ---------- coach --------------------------------------------------------------
+   The page already knows everything a stuck student needs: which steps are
+   ticked, what the checker is complaining about, and the finished code. The
+   coach turns that into one instruction at a time, and will make the change
+   for you if reading it is not enough.
+
+   No API key, no network. An LLM is not what is missing here - the answer is
+   already on the page, it was just never said as a single next action.       */
+
+// The first line where the student's code differs from the finished version,
+// ignoring blank lines and whitespace-only changes.
+function nextDiff(){
+  const e = EXERCISES[active];
+  const cur  = editor.value.split('\n');
+  const want = (e.solution || '').split('\n');
+  const norm = s => s.replace(/\s+/g, ' ').trim();
+
+  for (let i = 0; i < want.length; i++){
+    if (norm(cur[i] ?? '') !== norm(want[i])) {
+      return {line: i + 1, from: cur[i] ?? '', to: want[i]};
+    }
+  }
+  // Same prefix but the student has extra lines at the end.
+  if (cur.length > want.length) return {line: want.length + 1, from: cur[want.length], to: null};
+  return null;
+}
+
+function coachAdvice(){
+  const e = EXERCISES[active];
+  if (progress[e.id]?.done) {
+    return {head: 'This one is done.', body: 'Pick the next quest above, or change the code and watch what happens.'};
+  }
+
+  // Which checklist step is still open? Its label is already written as an
+  // instruction, so it is the clearest thing to say.
+  const {css} = compileScss(editor.value);
+  let worstOk = true;
+  preview.querySelectorAll('*').forEach(el => {
+    const txt = (el.textContent || el.value || '').trim();
+    if (txt && !el.children.length && contrastOf(el) < 4.5) worstOk = false;
+  });
+  const open = e.steps.findIndex(st => { try { return !st.test(editor.value, css, worstOk); } catch { return true; } });
+
+  // The remaining difference from the finished code is the reliable guide, not
+  // the checklist. A quest is only solved when the code also compiles and the
+  // checker is quiet, and the steps can all tick before that is true - the
+  // last version of this stopped offering help at that point and left the
+  // student with an unclosed brace.
+  const d = nextDiff();
+  const head = open < 0 ? 'Nearly there' : `Step ${open + 1} of ${e.steps.length}`;
+
+  if (!d) {
+    return open < 0
+      ? {head: 'Every step is ticked.', body: 'If it has not turned green yet, read the Checks panel under the editor. Something in there is still marked as a problem.'}
+      : {head, body: e.steps[open].label};
+  }
+  if (d.to === null) {
+    return {head, body: `Delete line ${d.line}. It is not part of the answer.`, line: d.line};
+  }
+  if (!d.from.trim()) {
+    return {head, body: `Add this as line ${d.line}: <code>${esc(d.to.trim())}</code>`, line: d.line, apply: true};
+  }
+  return {
+    head,
+    body: `Change line ${d.line}. It says <code>${esc(d.from.trim())}</code> and it needs to say <code>${esc(d.to.trim())}</code>`,
+    line: d.line, apply: true
+  };
+}
+
+function esc(s){
+  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+// Apply just the one line the coach is talking about, so a student sees the
+// single change happen rather than the whole answer appearing at once.
+function coachApply(){
+  const d = nextDiff();
+  if (!d) return;
+  const lines = editor.value.split('\n');
+  if (d.to === null) lines.splice(d.line - 1, 1);
+  else lines[d.line - 1] = d.to;
+  editor.value = lines.join('\n');
+  syncGutter(); run(); saveDraft();
+  toast(`Line ${d.line} updated`);
+  paintCoach();
+}
+
+
+/* ---------- asking the coach ---------------------------------------------------
+   Answers come from what the page already contains: the concept written for
+   every quest, all 78 tokens, the checker's own explanations, and the hints.
+   A question is matched against those by word overlap.
+
+   No key needed. If a student saves a Groq key the coach will send anything it
+   cannot answer there instead of shrugging, but that is the extra, not the
+   floor.                                                                     */
+
+// Words that carry no meaning for matching.
+const STOP = new Set(('a an the is are was were do does did what why how when '
+  + 'i im i\'m me my it its this that of to in on for and or but can cant could '
+  + 'should would there here about with not no yes please help').split(' '));
+
+const words = s => String(s).toLowerCase().replace(/[^a-z0-9\-_ ]/g, ' ')
+  .split(/\s+/).filter(w => w.length > 1 && !STOP.has(w));
+
+// Everything the coach can quote, built once from the lesson content.
+function knowledge(){
+  const out = [];
+  EXERCISES.forEach(e => {
+    out.push({q: `${e.concept.t} ${e.title} ${e.learn}`,
+              a: `<b>${e.concept.t}</b><br>${e.concept.b}`, w: 3});
+    out.push({q: `${e.title} ${e.brief}`, a: `<b>Quest ${e.id}: ${e.title}</b><br>${e.brief}`, w: 1});
+  });
+  TOKENS.forEach(tk => {
+    const name = tk.n.replace('--ocs-', '');
+    out.push({token: name, q: `${name} ${tk.n} ${tk.g} token`,
+              a: `<code>${tk.n}</code> is a ${tk.g.toLowerCase()} token. Its value is <code>${tk.v}</code>.`
+                 + ` Use it as <code>var(${tk.n})</code>.`, w: 2});
+  });
+  // Things a beginner asks that the lessons never define.
+  [['selector what part before the curly brace',
+    'The <b>selector</b> is the bit before the <code>{</code>. It says which things on the page this rule applies to. <code>.ocs-demo-btn</code> means "every element with the class ocs-demo-btn".'],
+   ['property value colon semicolon line inside braces',
+    'Inside the braces you write <b>property: value;</b> one per line. The property is what you are changing, like <code>background</code>. The value is what you are changing it to, like <code>blue</code>. Always end the line with a semicolon.'],
+   ['padding space inside',
+    '<b>padding</b> is space inside an element, between its edge and its text. More padding makes a button bigger and roomier.'],
+   ['margin space outside',
+    '<b>margin</b> is space outside an element, pushing other things away from it.'],
+   ['px rem unit size',
+    '<code>px</code> is a pixel, a fixed size. <code>rem</code> is relative to the reader\'s own text size, so it grows if they have made text bigger. This system uses rem for spacing.'],
+   ['hover',
+    '<code>&:hover</code> styles an element while the mouse is over it. Nothing changes until someone points at it.'],
+   ['contrast readable ratio 4.5',
+    'Contrast is how different two colours are. Text needs a ratio of at least <b>4.5:1</b> against its background to be readable. The number under the preview tells you where you are.'],
+   ['nesting nested inside indent scss',
+    'In SCSS you can put one rule inside another. The inner one only applies inside the outer one. That is nesting, and it is the main thing SCSS adds to CSS.'],
+   ['save saved progress lost',
+    'Your code saves by itself, per quest, in this browser. Closing the tab will not lose it.'],
+   ['stuck lost dont know understand confused',
+    null],
+  ].forEach(([q, a]) => out.push({q, a, w: 5, faq: true}));
+  return out;
+}
+let KB = null;
+
+function answerLocally(question){
+  KB = KB || knowledge();
+
+  // The intent checks run BEFORE the empty-words guard below. "what do i do"
+  // is entirely stop words, so the guard used to reject the single most likely
+  // question on the page.
+  //
+  // Only FIRST-PERSON stuck phrasing routes to the next action. Matching a bare
+  // "what.*do" sent "what does the selector do" here instead of to its
+  // definition.
+  if (/\b(i'?m |i am )?(stuck|lost|confused)\b|what (do|should) i do|where do i (start|begin)|help me|i don'?t know what/i.test(question)) {
+    const a = coachAdvice();
+    return `${a.body}` + (a.apply ? ' Use the button above and I will do it for you.' : '');
+  }
+  // "why is it not working" reads the checker.
+  if (/wrong|not work|broken|fail|error|red|why.*(not|isn)/i.test(question)) {
+    const bad = (lastNotes || []).filter(n => n.level !== 'pass');
+    if (bad.length) return `<b>${bad[0].title}</b><br>${bad[0].why}<br><b>Fix:</b> ${bad[0].fix}`;
+    return 'Nothing is flagged right now. The Checks panel under the editor is empty, so keep going.';
+  }
+
+  const qw = words(question);
+  if (!qw.length) return null;
+
+  const named = question.match(/--ocs-[a-z0-9-]+/)?.[0] || null;
+  let best = null;
+  for (const item of KB) {
+    if (!item.a) continue;
+    const iw = new Set(words(item.q));
+    let score = 0;
+    qw.forEach(w => { if (iw.has(w)) score += item.w; });
+
+    if (item.token) {
+      // A token entry only competes when the question actually names it.
+      // Otherwise 78 of them drown out the one hand-written answer.
+      if (named && item.q.includes(named)) score += 20;
+      else if (!qw.includes(item.token)) continue;
+    }
+    if (score && (!best || score > best.score)) best = {score, a: item.a};
+  }
+  return best && best.score >= 3 ? best.a : null;
+}
+
+async function askGroq(question){
+  const key = store.get('groqKey', '');
+  if (!key) return null;
+  const e = EXERCISES[active];
+  const sys = 'You help a beginner learning CSS and SCSS. Answer in at most three short '
+    + 'sentences. One idea per sentence. No jargon unless you define it in the same sentence.';
+  const ctx = `The student is on a quest called "${e.title}". The task is: ${e.brief.replace(/<[^>]+>/g,'')}. `
+    + `Their code right now is:\n${editor.value}`;
+  try {
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key},
+      body: JSON.stringify({model: 'llama-3.3-70b-versatile', max_tokens: 220, temperature: 0.3,
+        messages: [{role: 'system', content: sys},
+                   {role: 'user', content: ctx + '\n\nQuestion: ' + question}]})
+    });
+    if (!r.ok) return `That key was refused (HTTP ${r.status}). Check it in Settings below.`;
+    const j = await r.json();
+    return (j.choices?.[0]?.message?.content || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+  } catch { return 'Could not reach Groq. You may be offline.'; }
+}
+
+// The thread lives here, not in the DOM. paintCoach() rebuilds the panel on
+// every keystroke, and reading the messages back out of the element it is about
+// to replace dropped whichever one arrived mid-repaint.
+let coachThread = [];
+
+function renderThread(){
+  const log = $('#coachlog'); if (!log) return;
+  log.innerHTML = coachThread
+    .map(m => `<div class="coach__msg coach__msg--${m.who}">${m.html}</div>`).join('');
+  log.scrollTop = log.scrollHeight;
+}
+
+function pushAsk(who, html){
+  coachThread.push({who, html});
+  renderThread();
+}
+
+async function coachAsk(){
+  const box = $('#coachq'); const q = box.value.trim();
+  if (!q) return;
+  pushAsk('you', esc(q));
+  box.value = '';
+  const local = answerLocally(q);
+  if (local) { pushAsk('coach', local); return; }
+  pushAsk('coach', '<span class="coach__wait">Thinking…</span>');
+  const g = await askGroq(q);
+  coachThread.pop();
+  pushAsk('coach', g || 'I do not know that one. Try the hint button on the left, or ask '
+    + 'your question with the name of the thing in it, like "what is --ocs-accent".');
+}
+
+function paintCoach(){
+  const box = $('#coach'); if (!box) return;
+  const a = coachAdvice();
+
+
+  box.innerHTML = `
+    <div class="coach__top">
+      <span class="coach__name">Coach</span>
+      <span class="coach__step">${a.head}</span>
+    </div>
+    <p class="coach__b">${a.body}</p>
+    ${a.apply ? '<button class="ocs-btn ocs-btn--primary ocs-btn--sm" id="coachdo">Do this line for me</button>' : ''}
+    <div class="coach__log" id="coachlog"></div>
+    <form class="coach__ask" id="coachform">
+      <input class="ocs-input" id="coachq" placeholder="Ask me anything about this quest…"
+             aria-label="Ask the coach a question" autocomplete="off">
+      <button class="ocs-btn ocs-btn--primary ocs-btn--sm" type="submit">Ask</button>
+    </form>
+    <details class="coach__set">
+      <summary>Optional: use an AI for open questions</summary>
+      <p>The coach answers from this page on its own. Paste a free Groq key and it
+         can also answer anything else you ask. The key stays in this browser.</p>
+      <div class="coach__setrow">
+        <input class="ocs-input" id="groqkey" type="password" placeholder="gsk_…"
+               aria-label="Groq API key" autocomplete="off">
+        <button class="ocs-btn ocs-btn--secondary ocs-btn--sm" id="groqsave" type="button">Save</button>
+      </div>
+      <p class="coach__hintline">Get one free at console.groq.com/keys</p>
+    </details>`;
+
+  renderThread();
+  const b = $('#coachdo'); if (b) b.onclick = coachApply;
+  $('#coachform').onsubmit = ev => { ev.preventDefault(); coachAsk(); };
+  const k = $('#groqkey'); if (k) k.value = store.get('groqKey', '');
+  $('#groqsave').onclick = () => {
+    store.set('groqKey', $('#groqkey').value.trim());
+    toast($('#groqkey').value.trim() ? 'Key saved in this browser' : 'Key cleared');
+  };
+}
+
+/* ---------- contrast meter ---------- */
+function paintMeter(){
+  if(!lastCss.trim()){meterEl.className='meter';meterEl.innerHTML='<span class="dot"></span>nothing compiled';return;}
+  let worst=null;
+  preview.querySelectorAll('*').forEach(el=>{
+    const txt=(el.textContent||el.value||'').trim();
+    if(!txt||el.children.length)return;
+    const r=contrastOf(el);
+    if(worst===null||r<worst)worst=r;
+  });
+  if(worst===null){meterEl.className='meter';meterEl.innerHTML='<span class="dot"></span>no text yet';return;}
+  const ok=worst>=4.5;
+  meterEl.className='meter '+(ok?'good':'bad');
+  meterEl.innerHTML=`<span class="dot"></span>contrast ${worst.toFixed(2)}:1 ${ok?'passes':'needs 4.5:1'}`;
+}
+
+/* ---------- run ---------- */
+function load(){
+  const e=EXERCISES[active];
+  renderChapters();renderBrief();
+  editor.value=drafts[e.id]!==undefined?drafts[e.id]:e.start;
+  preview.innerHTML=e.html;
+    syncGutter();run();
+}
+function run(){
+  const e=EXERCISES[active];
+  const {css,errors}=compileScss(editor.value);
+  lastCss=css;
+  cssout.textContent=css||'/* nothing compiled yet */';
+  styleTag.textContent=css.replace(/(^|})\s*([^{}@]+)\{/g,(m,a,sel)=>
+    `${a} ${sel.split(',').map(s=>'#preview '+s.trim()).join(', ')}{`);
+  paintMeter();
+  renderSteps();
+
+  const notes=errors.map(x=>({level:'error',title:x,
+    why:'The compiler stopped here, so nothing after this point was applied.',
+    fix:'Check your braces and semicolons.'}));
+  notes.push(...runChecks(editor.value,css,preview));
+  lastNotes=notes;
+
+  const clean=!errors.length&&!notes.some(n=>n.level==='error');
+  const passed=clean&&e.pass(editor.value,css);
+  verdict.innerHTML=passed?'<span style="color:var(--ok);font-weight:650">&#10003; solved</span>':'';
+  ccount.textContent=notes.length?notes.length+' to look at':'all clear';
+
+  if(passed&&award(e.id,100)){
+    notes.unshift({level:'pass',title:'Solved. +100 XP',why:e.goal,
+      fix:'On to the next quest.'});
+    toast(`Quest ${e.id} solved`);
+    // Solving the last quest of a chapter opens the next band of tokens.
+    checkTokenUnlocks();
+  }else if(passed){
+    notes.unshift({level:'pass',title:'Still solved.',why:e.goal,fix:'Try the next quest.'});
+  }
+  notesEl.innerHTML=notes.length
+    ? notes.map(n=>`<div class="ocs-alert ocs-alert--${ALERT[n.level]||'info'}">
+        <div class="ocs-alert__content"><p class="ocs-alert__title">${n.title}</p>
+        <p>${n.why}</p><p><b>Fix:</b> ${n.fix}</p></div></div>`).join('')
+    : '<div class="empty">Nothing flagged yet.</div>';
+}
+
+/* ---------- token drawer ---------- */
+/* rgb(18, 18, 18) -> #121212. Alpha is kept as-is: rgba() is what the token
+   says, and rounding it to a hex would be a lie. */
+function toHex(c){
+  const m=c.match(/^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/);
+  if(!m) return c;
+  if(m[4]!==undefined && +m[4]<1) return c;
+  return '#'+[m[1],m[2],m[3]].map(n=>(+n).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+/* ---------- token tiers ----------------------------------------------------
+   Seventy-eight tokens on day one is the fastest way to make a beginner close
+   the drawer and never open it again. So each group is held back until the
+   chapter that teaches it, and the ladder is derived from the lessons rather
+   than guessed: every tier holds exactly what its chapter's quests use.
+
+   The last tier is the four groups no lesson touches at all. Those really are
+   advanced, and there is nothing to gain from showing them in week one.
+
+   A student is never stuck behind this. "Everything" shows the full list, and
+   the choice is remembered.                                              */
+const TIERS = [
+  {ch:-1, groups:['Semantic colour','Text'],
+   why:'available from the start'},
+  {ch:1,  groups:['Surface','Border','Spacing'],
+   why:'finish Chapter 1 &middot; Colour'},
+  {ch:2,  groups:['Radius','Motion'],
+   why:'finish Chapter 2 &middot; State'},
+  {ch:3,  groups:['Colour ramp','Shadow','Type','Other'],
+   why:'finish Chapter 3 &middot; Components'},
+];
+
+const chapterDone = ch => EXERCISES.filter(e=>e.ch===ch).every(e=>progress[e.id]?.done);
+
+// The tier a group belongs to, or 0 when a group somehow is not listed - an
+// unlisted group stays visible rather than disappearing.
+function tierOf(group){
+  const i = TIERS.findIndex(t=>t.groups.includes(group));
+  return i < 0 ? 0 : i;
+}
+
+const tierOpen = i => TIERS[i].ch < 0 || chapterDone(TIERS[i].ch);
+
+function unlockedCount(){
+  return TOKENS.filter(t=>tierOpen(tierOf(t.g))).length;
+}
+
+/* Show all tokens regardless of tier. Remembered per browser. */
+let showAll = store.get('tokensShowAll', false);
+
+function setTokenView(all){
+  showAll = all;
+  store.set('tokensShowAll', all);
+  $('#viewBeginner').classList.toggle('is-on', !all);
+  $('#viewAll').classList.toggle('is-on', all);
+  $('#viewBeginner').setAttribute('aria-pressed', String(!all));
+  $('#viewAll').setAttribute('aria-pressed', String(all));
+  renderTokens($('#tsearch').value);
+}
+
+/* The line under the toggle: how many are open, and what opens the rest. */
+function paintTokenProgress(){
+  const open = unlockedCount(), total = TOKENS.length;
+  const next = TIERS.find((t,i)=>!tierOpen(i));
+  const el = $('#tprog'); if(!el) return;
+  if(!next){
+    el.innerHTML = `All <b>${total}</b> tokens unlocked. Nothing left to earn here.`;
+  }else{
+    const n = TOKENS.filter(t=>next.groups.includes(t.g)).length;
+    el.innerHTML = `<b>${open}</b> of ${total} unlocked. `
+      + `<b>${n}</b> more (${next.groups.join(', ')}) when you ${next.why}.`;
+  }
+  $('#tsearch').placeholder = `Search ${showAll ? total : open} tokens...`;
+}
+
+function renderTokens(filter=''){
+  const f=filter.toLowerCase();
+  const match=t=>t.n.toLowerCase().includes(f)||t.g.toLowerCase().includes(f)||t.v.toLowerCase().includes(f);
+
+  let html='',last='';
+  const locked=new Map();
+
+  for(const t of TOKENS){
+    const tier=tierOf(t.g), open=tierOpen(tier);
+
+    // A locked group collapses to one row saying what opens it. The tokens
+    // are not listed, so the drawer stays short, but the fact that more exist
+    // is never hidden - that is the difference between gating and pretending.
+    // Collected here and emitted after the open groups, ordered by tier, so
+    // whatever unlocks next sits at the top of the locked list.
+    if(!open && !showAll){
+      if(!locked.has(t.g) && (!f || t.g.toLowerCase().includes(f))){
+        locked.set(t.g, {tier, n:TOKENS.filter(x=>x.g===t.g).length});
+      }
+      continue;
+    }
+
+    if(!match(t)) continue;
+    if(t.g!==last){html+=`<div class="tgrp">${t.g}</div>`;last=t.g;}
+
+    // An alias like --ocs-accent: var(--ocs-brand) is a colour even though the
+    // build could not fold it to a hex, so paint a swatch for those too.
+    const colour = t.c || /^var\(/.test(t.v);
+    const sw = colour ? `<span class="sw" style="background:var(${t.n})"></span>`
+                      : `<span class="sw sw--none"></span>`;
+    const ahead = !open ? ' <span class="tahead">not covered yet</span>' : '';
+    html+=`<button class="trow${open?'':' trow--ahead'}" data-t="${t.n}" title="Insert var(${t.n})">
+      ${sw}<span class="nm">${t.n.replace('--ocs-','')}${ahead}</span><span class="vl">${t.v}</span></button>`;
+  }
+
+  if(locked.size){
+    html+=`<div class="tgrp tgrp--locked">Unlock by finishing chapters</div>`;
+    [...locked.entries()]
+      .sort((a,b)=>a[1].tier-b[1].tier)
+      .forEach(([g,{tier,n}])=>{
+        html+=`<div class="tlock"><span class="tlock__i" aria-hidden="true">&#128274;</span>
+          <span class="tlock__n">${g}</span>
+          <span class="tlock__c">${n}</span>
+          <span class="tlock__w">${TIERS[tier].why}</span></div>`;
+      });
+  }
+
+  $('#tlist').innerHTML=html||'<div class="empty">No tokens match that.</div>';
+
+  /* The value baked into TOKENS is the dark-theme one, but this drawer sits
+     inside .ocs-light, so var(--ocs-text) here is near-black, not #FFFFFF.
+     Showing the build-time hex next to a live swatch would put a black chip
+     beside the label "#FFFFFF". Read what the token actually resolves to in
+     this context instead, so the chip and the label always agree - which is
+     also the point quest 3 makes about theming. */
+  $$('#tlist .trow').forEach(b=>{
+    const sw=b.querySelector('.sw');
+    if(sw && !sw.classList.contains('sw--none')){
+      const bg=getComputedStyle(sw).backgroundColor;
+      if(bg && bg!=='rgba(0, 0, 0, 0)') b.querySelector('.vl').textContent=toHex(bg);
+    }
+    b.onclick=()=>{ insertAtCursor(`var(${b.dataset.t})`); toast(`Inserted ${b.dataset.t}`); };
+  });
+
+  paintTokenProgress();
+}
+
+/* Called after a quest is solved. Announces a tier only on the run that opens
+   it, so finishing a chapter is a visible event rather than something a
+   student would only notice by reopening the drawer. */
+let tiersAnnounced = store.get('tiersAnnounced', []);
+function checkTokenUnlocks(){
+  TIERS.forEach((t,i)=>{
+    if(t.ch < 0 || tiersAnnounced.includes(i) || !tierOpen(i)) return;
+    tiersAnnounced.push(i);
+    store.set('tiersAnnounced', tiersAnnounced);
+    const n = TOKENS.filter(x=>t.groups.includes(x.g)).length;
+    toast(`Chapter ${t.ch} done - ${n} new tokens unlocked`);
+  });
+  renderTokens($('#tsearch').value);
+}
+
+function openDrawer(o){
+  if(o) renderTokens($('#tsearch').value);
+  $('#drawer').classList.toggle('open',o);$('#scrim').classList.toggle('on',o);
+  if(o)setTimeout(()=>$('#tsearch').focus(),120);}
+
+/* ---------- export ---------- */
+function exportAll(){
+  const lines=[`/* OCS SCSS Practice - my solutions */`,`/* ${EXERCISES.filter(e=>progress[e.id]?.done).length}/${EXERCISES.length} quests, ${totalXP()} XP */`,''];
+  EXERCISES.forEach(e=>{
+    const code=drafts[e.id];
+    if(code===undefined)return;
+    lines.push(`/* ---- Quest ${e.id}: ${e.title} ${progress[e.id]?.done?'[solved]':''} ---- */`,code,'');
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='ocs-practice-solutions.scss';a.click();
+  URL.revokeObjectURL(a.href);toast('Downloaded your solutions');
+}
+
+
+
+/* ---------- submission ------------------------------------------------------
+   At 100% a student can produce a receipt to hand in. The receipt is a
+   fingerprint of the code they actually wrote, so the same work always gives
+   the same code and two identical submissions are visible as such.
+
+   It is deliberately not presented as tamper-proof. Everything here runs in
+   the browser, so a determined student can edit any of it; this is a receipt
+   in the same sense as a piece of homework, and the UI says so.            */
+
+// djb2. Not a security hash - a short stable fingerprint for spotting two
+// identical submissions. crypto.subtle would be no more trustworthy here,
+// because the input is under the student's control either way.
+function fingerprint(text){
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0;
+  return h.toString(36).toUpperCase().padStart(7, '0').slice(-7);
+}
+
+function submissionData(){
+  const name = $('#subname').value.trim();
+  const gh   = $('#subgh').value.trim().replace(/^@/, '');
+  const quests = EXERCISES.map(e => ({
+    id: e.id, ch: e.ch, title: e.title,
+    solved: !!progress[e.id]?.done,
+    code: drafts[e.id] ?? ''
+  }));
+  // The fingerprint covers who submitted and what they wrote, and nothing
+  // else - not the timestamp, so re-submitting the same work is recognisable.
+  const basis = [name.toLowerCase(), gh.toLowerCase(),
+                 ...quests.map(q => `${q.id}:${q.code.replace(/\s+/g, ' ').trim()}`)].join('|');
+  const fp = fingerprint(basis);
+  return {
+    name, github: gh,
+    course: 'OCS SCSS Practice',
+    submitted: new Date().toISOString(),
+    quests_solved: quests.filter(q => q.solved).length,
+    quests_total: EXERCISES.length,
+    xp: totalXP(),
+    receipt: `OCS-${fp.slice(0,4)}-${fp.slice(4)}`,
+    quests
+  };
+}
+
+function buildSubmission(){
+  const name = $('#subname').value.trim();
+  if(!name){ $('#subname').focus(); toast('Add your name first'); return; }
+
+  const data = submissionData();
+  window.__submission = data;
+
+  $('#subcode').textContent = data.receipt;
+  $('#subsummary').textContent =
+    `${data.name}${data.github ? ' (@'+data.github+')' : ''} - `
+    + `${data.quests_solved} of ${data.quests_total} quests, ${data.xp} XP, `
+    + new Date(data.submitted).toLocaleString();
+  $('#submitout').hidden = false;
+  store.set('submission', {receipt: data.receipt, name: data.name, github: data.github});
+  toast('Receipt generated');
+}
+
+function downloadSubmission(){
+  const data = window.__submission || submissionData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ocs-practice-${(data.github || data.name || 'submission').toLowerCase().replace(/\W+/g,'-')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Downloaded your submission');
+}
+
+/* ---------- wire up ---------- */
+$('#reset').onclick=()=>{editor.value=EXERCISES[active].start;syncGutter();run();saveDraft();toast('Reset to the starting code');};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(editor.value);toast('Copied');}catch{toast('Could not copy');}};
+$('#tokbtn').onclick=()=>openDrawer(true);
+$('#tokclose').onclick=()=>openDrawer(false);
+$('#scrim').onclick=()=>openDrawer(false);
+$('#tsearch').addEventListener('input',e=>renderTokens(e.target.value));
+$('#viewBeginner').onclick=()=>setTokenView(false);
+$('#viewAll').onclick=()=>setTokenView(true);
+$('#export').onclick=exportAll;
+
+// Submission. The box only exists once every quest is solved, so these are
+// only reachable from the finished state.
+$('#submitbtn').onclick=()=>{
+  const box=$('#submitbox');
+  box.hidden=!box.hidden;
+  if(!box.hidden){
+    const saved=store.get('submission',null);
+    if(saved){ $('#subname').value=saved.name||''; $('#subgh').value=saved.github||''; }
+    setTimeout(()=>$('#subname').focus(),60);
+  }
+};
+$('#subgen').onclick=buildSubmission;
+$('#subfile').onclick=downloadSubmission;
+$('#subcopy').onclick=async()=>{
+  try{ await navigator.clipboard.writeText($('#subcode').textContent); toast('Receipt copied'); }
+  catch{ toast('Could not copy - select the code instead'); }
+};
+$('#resetall').onclick=()=>{
+  if(!confirm('Clear all progress, saved code and XP? This cannot be undone.'))return;
+  progress={};drafts={};store.set('progress',{});store.set('drafts',{});
+  paintXP();load();toast('Progress cleared');};
+
+let t;
+editor.addEventListener('input',()=>{syncGutter();clearTimeout(t);
+  t=setTimeout(()=>{run();saveDraft();},250);});
+/* ---------- editor keys ---------------------------------------------------------
+   A plain <textarea> puts the caret at column 0 on every Enter, so the second
+   line of a rule starts at the left edge and a beginner is fighting the box
+   instead of learning CSS. This adds the handful of behaviours an editor is
+   expected to have.
+
+   Every edit goes through execCommand('insertText') where it can. It is
+   deprecated, but it is the only way to change a textarea and keep the
+   browser's own undo stack, and Ctrl+Z working matters more here than
+   avoiding a deprecated call. Direct assignment is the fallback.           */
+
+const INDENT = '  ';
+
+function edit(text, selStart, selEnd){
+  editor.focus();
+  if (selStart !== undefined) editor.setSelectionRange(selStart, selEnd ?? selStart);
+  let ok = false;
+  try { ok = document.execCommand('insertText', false, text); } catch { ok = false; }
+  if (!ok) {
+    const s = editor.selectionStart, e = editor.selectionEnd;
+    editor.value = editor.value.slice(0, s) + text + editor.value.slice(e);
+    editor.setSelectionRange(s + text.length, s + text.length);
+  }
+  syncGutter();
+  editor.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+const lineStart = pos => editor.value.lastIndexOf('\n', pos - 1) + 1;
+const indentOf  = line => (line.match(/^[ \t]*/) || [''])[0];
+
+editor.addEventListener('keydown', ev => {
+  const v = editor.value, s = editor.selectionStart, e = editor.selectionEnd;
+  const ls = lineStart(s);
+  const lineSoFar = v.slice(ls, s);
+  const pad = indentOf(v.slice(ls, v.indexOf('\n', ls) < 0 ? v.length : v.indexOf('\n', ls)));
+
+  // --- Enter: keep this line's indent; go one deeper after an opening brace --
+  if (ev.key === 'Enter' && !ev.shiftKey) {
+    ev.preventDefault();
+    const before = v.slice(0, s).trimEnd().slice(-1);
+    const after  = v.slice(e).trimStart().slice(0, 1);
+    const deeper = before === '{';
+    const inner  = pad + (deeper ? INDENT : '');
+
+    // Enter between { and } opens a room: an indented blank line with the
+    // closing brace put back underneath it.
+    if (deeper && after === '}') {
+      edit('\n' + inner + '\n' + pad);
+      const caret = s + 1 + inner.length;
+      editor.setSelectionRange(caret, caret);
+      syncGutter();
+      return;
+    }
+    edit('\n' + inner);
+    return;
+  }
+
+  // --- Tab / Shift+Tab -------------------------------------------------------
+  if (ev.key === 'Tab') {
+    ev.preventDefault();
+    const multi = v.slice(s, e).includes('\n');
+
+    if (!multi && !ev.shiftKey) { edit(INDENT); return; }
+
+    // Whole-line indent or dedent across the selection.
+    const from = lineStart(s);
+    const to   = v.indexOf('\n', e) < 0 ? v.length : v.indexOf('\n', e);
+    const block = v.slice(from, to);
+    const out = block.split('\n').map(l =>
+      ev.shiftKey ? l.replace(new RegExp('^' + INDENT), '') : INDENT + l).join('\n');
+    edit(out, from, to);
+    editor.setSelectionRange(from, from + out.length);
+    syncGutter();
+    return;
+  }
+
+  // --- typing } on a blank line lines it up with its opener -------------------
+  if (ev.key === '}' && /^[ \t]+$/.test(lineSoFar)) {
+    ev.preventDefault();
+    const outdented = lineSoFar.slice(0, Math.max(0, lineSoFar.length - INDENT.length));
+    edit(outdented + '}', ls, s);
+    return;
+  }
+
+  // --- { closes itself, so a rule can never be left open by accident ----------
+  if (ev.key === '{' && s === e) {
+    ev.preventDefault();
+    edit('{}');
+    const caret = editor.selectionStart - 1;
+    editor.setSelectionRange(caret, caret);
+    return;
+  }
+
+  // --- typing } where one already sits just steps over it ---------------------
+  if (ev.key === '}' && s === e && v[s] === '}') {
+    ev.preventDefault();
+    editor.setSelectionRange(s + 1, s + 1);
+    return;
+  }
+
+  // --- Backspace inside pure indentation removes a whole level ----------------
+  if (ev.key === 'Backspace' && s === e && s > ls && /^[ \t]+$/.test(lineSoFar)
+      && lineSoFar.endsWith(INDENT)) {
+    ev.preventDefault();
+    edit('', s - INDENT.length, s);
+    return;
+  }
+});
+document.addEventListener('keydown',ev=>{
+  if((ev.metaKey||ev.ctrlKey)&&ev.key==='Enter'){ev.preventDefault();grade();}
+  if((ev.metaKey||ev.ctrlKey)&&ev.key.toLowerCase()==='k'){ev.preventDefault();openDrawer(true);}
+  if(ev.key==='Escape')openDrawer(false);
+});
+
+$('#targetbtn').onclick=()=>showTarget(!$('#targetbox').classList.contains('on'));
+$('#shopbtn').onclick=()=>{$('#shop').classList.toggle('on');
+  if($('#shop').classList.contains('on'))$('#shop').scrollIntoView({block:'center',behavior:'smooth'});};
+
+/* ---------- first-run guided tour ---------- */
+const TOUR=[
+ {sel:'#brief', t:'Read the task here', b:'Every quest explains what to do and why it matters. There is a checklist under it that ticks off as you go.'},
+ {sel:'.ed-wrap', t:'Type your code here', b:'This is a real code editor. Change something and the page updates as you type. You cannot break anything.'},
+ {sel:'#preview', t:'See it live', b:'Whatever you write shows up here instantly. This is the actual thing you are building.'},
+ {sel:'#notes', t:'Instant feedback', b:'Automatic checks run on every keystroke and explain anything that looks wrong, in plain words.'},
+ {sel:'#tokbtn', t:'Browse the colours', b:'Every colour, size and timing you can use lives here. Click one to drop it into your code. More unlock as you finish chapters.'}
+];
+let tourI=0;
+function tourStep(){
+  const s=TOUR[tourI]; const el=document.querySelector(s.sel);
+  const sp=$('#spot'), cd=$('#tourcard');
+  if(!el){endTour();return;}
+  // instant, not smooth: we measure straight after, and a smooth scroll is still
+  // animating at that point, which put the spotlight below the fold.
+  // scrollIntoView with behavior:'instant' is synchronous, so measure straight after.
+  // (rAF is unreliable in background/headless tabs, so no frame wrapper here.)
+  el.scrollIntoView({block:'center',behavior:'instant'});
+  {
+    const r=el.getBoundingClientRect();
+    // .tour is position:fixed, so its absolutely-positioned children are already in
+    // viewport coordinates. Adding scrollY here pushed the spotlight off-screen.
+    sp.style.cssText=`top:${r.top-8}px;left:${r.left-8}px;width:${r.width+16}px;height:${r.height+16}px`;
+    cd.innerHTML=`<h4>${s.t}</h4><p>${s.b}</p>
+      <div class="trow2"><span class="tiny">${tourI+1} of ${TOUR.length}</span>
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="tskip">Skip</button>
+      <button class="ocs-btn ocs-btn--primary ocs-btn--sm" id="tnext">${tourI===TOUR.length-1?'Start':'Next'}</button></div>`;
+    // keep the card on screen: below the target, or above it when there is no room
+    const below=r.bottom+14, fitsBelow=below+190<innerHeight;
+    cd.style.top=(fitsBelow?below:Math.max(14,r.top-204))+'px';
+    cd.style.left=Math.max(14,Math.min(r.left,innerWidth-330))+'px';
+    $('#tnext').onclick=()=>{tourI++;tourI<TOUR.length?tourStep():endTour();};
+    $('#tskip').onclick=endTour;
+  }
+}
+function startTour(){tourI=0;$('#tour').classList.add('on');tourStep();}
+function endTour(){$('#tour').classList.remove('on');store.set('tourDone',true);}
+$('#tourbtn').onclick=startTour;
+
+setTokenView(showAll);paintXP();paintCredits();applyUnlocks();load();
+if(!store.get('tourDone',false)) setTimeout(startTour,700);
+</script>
+</body></html>
