@@ -1,0 +1,61 @@
+{% comment %}
+  lesson-slot-banner.html
+  One strip at the top of a lesson page that is in the teaching plan
+  (_data/teaching_plan/*.yml): when it is taught, by whom, when the homework
+  is due, and a way back to the calendar. A page that is not in the plan
+  renders nothing. Build-time only: no JavaScript, no backend calls.
+
+  Expects: page. Uses current_course and current_week when post.html set them.
+  A row matches when its `lesson` equals the page URL, with or without a
+  trailing slash.
+{% endcomment %}
+{% assign tsb_slot = nil %}
+{% assign tsb_url = page.url | remove: ".html" %}
+{% assign tsb_url_slash = tsb_url | append: "/" %}
+{% for tsb_pair in site.data.teaching_plan %}{% assign tsb_plan = tsb_pair[1] %}{% if tsb_plan.periods %}
+  {% for tsb_period in tsb_plan.periods %}{% for tsb_row in tsb_period[1].slots %}
+    {% if tsb_row.lesson and tsb_row.lesson != "" %}
+      {% assign tsb_row_slash = tsb_row.lesson | append: "/" %}
+      {% if tsb_row.lesson == tsb_url or tsb_row.lesson == tsb_url_slash or tsb_row_slash == tsb_url %}
+        {% assign tsb_slot = tsb_row %}
+        {% assign tsb_course = tsb_plan.course %}
+        {% assign tsb_period_n = tsb_period[0] %}
+        {% assign tsb_updated = tsb_plan.last_updated %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}{% endfor %}
+{% endif %}{% endfor %}
+{% if tsb_slot %}
+{% comment %} Until #35 puts ocs.css on the layout, this page links it here. {% endcomment %}
+<link rel="stylesheet" href="{{ '/assets/css/ocs.css' | relative_url }}">
+<style>
+  .lesson-slot-banner { margin: 0 0 1rem; align-items: center; }
+  .lesson-slot-banner .ocs-alert__title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
+  .lesson-slot-banner__sep { color: var(--ocs-text-muted, #a1a1aa); }
+  .lesson-slot-banner__action { flex: 0 0 auto; margin-inline-start: auto; }
+  .lesson-slot-banner p { margin: 0; }
+  .lesson-slot-banner p + p { margin-top: 0.25rem; color: var(--ocs-text-secondary, #c9c9d1); }
+</style>
+{% assign tsb_names = "" %}
+{% for tsb_p in tsb_slot.presenters %}{% assign tsb_names = tsb_names | append: tsb_p.name %}{% unless forloop.last %}{% assign tsb_names = tsb_names | append: ", " %}{% endunless %}{% endfor %}
+{% assign tsb_due = "" %}
+{% if page.dueDate %}{% assign tsb_dd = page.dueDate | split: "/" %}{% if tsb_dd.size == 3 %}{% assign tsb_due_iso = tsb_dd[2] | append: "-" | append: tsb_dd[0] | append: "-" | append: tsb_dd[1] %}{% assign tsb_due = tsb_due_iso | date: "%a %-d %b" %}{% endif %}{% endif %}
+<div class="ocs-alert ocs-alert--info lesson-slot-banner" role="note" aria-label="When this lesson is taught">
+  <div class="ocs-alert__content">
+    <p class="ocs-alert__title">
+      <span>Taught {{ tsb_slot.date | date: "%a %-d %b" }}</span>
+      <span class="lesson-slot-banner__sep">&middot;</span>
+      <span><span class="ocs-badge">P{{ tsb_period_n }}</span> {{ tsb_course }}</span>
+      {% if tsb_slot.team %}<span class="lesson-slot-banner__sep">&middot;</span>
+      <span>{{ tsb_slot.team }}{% if tsb_names != "" %}: {{ tsb_names }}{% endif %}</span>{% endif %}
+      {% if tsb_slot.status == "proposed" %}<span class="ocs-badge ocs-badge--warning" title="The teacher and the table confirm the row by pull request">proposed</span>{% endif %}
+    </p>
+    <p>
+      {% if tsb_due != "" %}Homework due {{ tsb_due }}, 8:35 AM.{% elsif page.assignment %}Homework due date not set yet.{% endif %}
+      {% if current_course and current_week %}Questions go in the <a href="{{ site.baseurl }}/navigation/courses/{{ current_course }}/#week-{{ current_week }}">Week {{ current_week }} chat</a>.{% endif %}
+      {% if tsb_updated %}Plan last changed {{ tsb_updated }}.{% endif %}
+    </p>
+  </div>
+  <a class="ocs-btn ocs-btn--ghost ocs-btn--sm lesson-slot-banner__action" href="{{ site.baseurl }}/student/calendar#lessons">Lessons tab</a>
+</div>
+{% endif %}
