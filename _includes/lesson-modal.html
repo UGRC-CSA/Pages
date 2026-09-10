@@ -1,0 +1,40 @@
+<!-- Lesson panel for the Sprint 2 teaching calendar.
+     A native <dialog> on the design system's ocs-modal. LessonPanel.js fills
+     it from the teaching plan and opens it with showModal(), so Escape, the
+     focus trap and the backdrop come from the browser. Nothing in here talks
+     to the backend; every value is from the plan embedded at build time. -->
+<dialog class="ocs-modal ocs-modal--wide lesson-panel" id="lessonModal" aria-labelledby="lessonModalTitle">
+  <form method="dialog" class="ocs-modal__panel">
+    <header class="ocs-modal__header">
+      <div class="lesson-panel__heading">
+        <p class="lesson-panel__kicker" id="lessonModalKicker"></p>
+        <h2 class="ocs-modal__title" id="lessonModalTitle"></h2>
+      </div>
+      <button class="ocs-modal__close" value="cancel" aria-label="Close">&times;</button>
+    </header>
+
+    <div class="ocs-modal__body">
+      <div class="ocs-alert ocs-alert--warning" id="lessonModalAlert" role="status" hidden>
+        <div class="ocs-alert__content">
+          <p class="ocs-alert__title" id="lessonModalAlertTitle"></p>
+          <p id="lessonModalAlertText"></p>
+        </div>
+      </div>
+
+      <dl class="ocs-kv ocs-kv--divided" id="lessonModalFacts"></dl>
+
+      <p class="lesson-panel__section" id="lessonModalLinksLabel">Open</p>
+      <div class="lesson-panel__links" id="lessonModalLinks" aria-labelledby="lessonModalLinksLabel"></div>
+
+      <div class="lesson-panel__actions" id="lessonModalActions" hidden></div>
+
+      <p class="lesson-panel__note" id="lessonModalUpdated"></p>
+    </div>
+
+    <footer class="ocs-modal__footer">
+      <span class="lesson-panel__copied" id="lessonModalCopied" role="status" aria-live="polite"></span>
+      <button type="button" class="ocs-btn ocs-btn--ghost" id="lessonModalCopy">Copy announcement</button>
+      <button class="ocs-btn ocs-btn--primary" value="cancel">Close</button>
+    </footer>
+  </form>
+</dialog>

@@ -366,6 +366,170 @@
   // ─── TESTS: CalendarData ────────────────────────────────────────
 
   function testCalendarData() {
+
+  // ─── TeachingSlots (Sprint 2 team teach) ──────────────────────
+  // Only present on /student/calendar, so the suite is skipped elsewhere.
+  function testTeachingSlots() {
+    const T = window.OCSTeaching;
+    if (!T) { console.log('%c▸ TeachingSlots: not loaded on this page, skipped', 'color:#9e9e9e'); return; }
+    suite('TeachingSlots');
+
+    const plan = { courses: { csa: { course: 'CSA', periods: {
+      '2': { leaders: ['leader1'], slots: [
+        { id: 'a', date: '2026-09-22', kind: 'lesson', topic: 'Chat and WebSockets', team: 'UGRC',
+          presenters: [{ name: 'Sam', uid: 'sam' }], lesson: '/csa/sprint2/chat', hasAssignment: true, dueDate: '09/24/2026' },
+        { id: 'c', date: '2026-09-21', kind: 'checkpoint', topic: 'Checkpoint on Lesson PRs' } ] },
+      '4': { leaders: [], slots: [ { id: 'b', date: '2026-09-23', kind: 'lesson', topic: 'Other period', team: 'AAA', presenters: [] } ] }
+    } } } };
+    const slots = T.flattenSlots(plan);
+    assertEqual(slots.length, 3, 'flattenSlots lists every slot in every period');
+    assertEqual(slots.find(s => s.id === 'a').period, '2', 'each slot carries its period');
+    assertEqual(slots.find(s => s.id === 'a').course, 'CSA', 'each slot carries its course code');
+
+    const csa2 = { loggedIn: true, uid: 'kid', roles: ['ROLE_STUDENT'], groups: [{ name: 'CSA', course: 'CSA', period: '2' }] };
+    const csa4 = { loggedIn: true, uid: 'kid', roles: ['ROLE_STUDENT'], groups: [{ name: 'CSA', course: 'CSA', period: '4' }] };
+    const csp3 = { loggedIn: true, uid: 'kid', roles: ['ROLE_STUDENT'], groups: [{ name: 'CSP', course: 'CSP', period: '3' }] };
+    const teacher = { loggedIn: true, uid: 't', roles: [{ name: 'ROLE_TEACHER' }], groups: [] };
+    const sam = { loggedIn: true, uid: 'sam', roles: ['ROLE_STUDENT'], groups: [{ name: 'CSP', course: 'CSP', period: '3' }] };
+    const ugrc = { loggedIn: true, uid: 'x', roles: ['ROLE_STUDENT'], groups: [{ name: 'UGRC', course: null, period: null }] };
+    const noClass = { loggedIn: true, uid: 'y', roles: ['ROLE_STUDENT'], groups: [] };
+    const tableOnly = { loggedIn: true, uid: 'z', roles: ['ROLE_STUDENT'], groups: [{ name: 'AAA', course: 'CSA', period: null }] };
+    const anon = { loggedIn: false, uid: '', roles: [], groups: [] };
+
+    const ids = v => T.visibleSlots(slots, v).slots.map(s => s.id).sort().join(',');
+    assertEqual(ids(csa2), 'a,c', 'a CSA period 2 student sees period 2 only');
+    assertEqual(ids(csa4), 'b', 'a CSA period 4 student sees period 4 only');
+    assertEqual(ids(csp3), '', 'a CSP student sees no CSA slots');
+    assertEqual(T.visibleSlots(slots, csp3).mode, 'scoped', '...and the mode is scoped, not a fallback');
+    assertEqual(ids(teacher), 'a,b,c', 'a teacher sees everything');
+    assertEqual(ids(sam), 'a', 'a presenter sees their own slot in another period');
+    assertEqual(ids(ugrc), 'a', "a member of the teaching table sees the table's slot");
+    assertEqual(T.visibleSlots(slots, noClass).mode, 'no-class', 'no group with a course: no-class');
+    assertEqual(ids(tableOnly), 'a,b,c', 'a course without a period falls back to the whole course');
+    assertEqual(T.visibleSlots(slots, tableOnly).mode, 'course-fallback', '...and says so');
+    assertEqual(T.visibleSlots(slots, anon).mode, 'anonymous', 'logged out: anonymous');
+    assertEqual(ids(anon), '', 'logged out: nothing');
+    assert(T.reasonToSee(slots[0], { loggedIn: true, uid: 'leader1', roles: [], groups: [] }) === 'leader', 'a leader sees their period');
+
+    const ev = T.buildEvents(T.visibleSlots(slots, csa2).slots, csa2);
+    assertEqual(ev.length, 3, 'a lesson with a due date makes two events; a checkpoint makes one');
+    const hw = ev.find(e => e.extendedProps.teachingKind === 'hw-due');
+    assertEqual(hw.start, '2026-09-24', 'MM/dd/yyyy due date becomes yyyy-MM-dd');
+    assertEqual(ev.find(e => e.id === 'teach-a').extendedProps.period, 'CSA', 'period carries the course for the My Groups filter');
+    assert(T.buildEvents(T.visibleSlots(slots, sam).slots, sam)[0].classNames.includes('fc-event-lesson--mine'), "a presenter's own slot is marked mine");
+
+    const chip = T.renderChip({ event: { title: 'x', extendedProps: ev.find(e => e.id === 'teach-a').extendedProps }, view: { type: 'dayGridWeek' } }).html;
+    assert(chip.includes('Chat and WebSockets') && chip.includes('UGRC · Sam'), 'week chip shows topic and who');
+    const evil = T.renderChip({ event: { title: 'x', extendedProps: { isTeaching: true, teachingKind: 'lesson', slot: { topic: '<img src=x onerror=alert(1)>', period: '2' } } }, view: { type: 'dayGridMonth' } }).html;
+    assert(!evil.includes('<img'), 'topic text is escaped');
+
+    assert(T.canEditEvent({ individual: 'kid' }, { uid: 'kid', roles: [] }), 'a person may edit their own event');
+    assert(!T.canEditEvent({ individual: 'someone' }, { uid: 'kid', roles: [] }), "not someone else's");
+    assert(T.canEditEvent({ individual: 'someone' }, { uid: 't', roles: ['ROLE_ADMIN'] }), 'staff may edit any');
+
+    // LessonPanel.js, when it is loaded
+    if (T.announcementText) {
+      const saved = T.state;
+      T.state = { plan: { weeks: [{ n: 6, monday: '2026-09-21', friday: '2026-09-25' }], coursePageBase: '/navigation/courses/', editBase: 'https://github.com/x/y/edit/main/_data/teaching_plan/' }, slots: slots };
+      const a = slots.find(s => s.id === 'a');
+      assertEqual(T.formatDay('2026-09-22'), 'Tue 22 Sep', 'formatDay reads the date as local parts');
+      assertEqual(T.weekOf('2026-09-24'), 6, 'weekOf finds the school week');
+      const ann = T.announcementText(a);
+      assert(/Chat and WebSockets \u2014 CSA period 2 \u2014 Tue 22 Sep/.test(ann), 'announcement: first line has topic, class, period, day');
+      assert(/Teaching: UGRC: Sam/.test(ann), 'announcement: who teaches');
+      assert(/#homework-hack \u2014 due Thu 24 Sep, 8:35 AM/.test(ann), 'announcement: homework link and due time');
+      assert(/Week 6 chat/.test(ann), 'announcement: week chat');
+      const links = T.linkList(a);
+      assert(links.some(l => l[0] === 'Grading plan' && /#grading-plan$/.test(l[1]) && l[2]), 'links: grading plan anchor is on when the page exists');
+      assert(links.some(l => l[0] === 'Week 6 chat' && /\/navigation\/courses\/csa\/#week-6$/.test(l[1])), 'links: week chat lands on the week card');
+      const off = T.linkList(Object.assign({}, a, { lesson: '' }));
+      assert(off.filter(l => !l[2]).length === 7 && off.some(l => l[0] === 'Week 6 chat' && l[2]), 'links: without a page, the seven page links are off and the chat stays on');
+      const rows = T.factRows(a).map(r => r[0]);
+      assert(rows.includes('Homework due') && rows.includes('Teachers') && rows.includes('Period'), 'facts: the rows a student needs are there');
+      assertEqual(T.factRows(slots.find(s => s.id === 'c')).length, 3, 'facts: a checkpoint has day, period and who');
+      assert(!T.factRows({ topic: '<b>x</b>', period: '2', course: 'CSA', date: '2026-09-22', kind: 'lesson', team: '<i>t</i>', presenters: [] }).some(r => /<i>/.test(r[1])), 'facts: text is escaped');
+      T.state = saved;
+    }
+
+    // TeachingPlan.js, when it is loaded
+    if (T.planModel) {
+      const weeks = [
+        { n: 5, monday: '2026-09-14', friday: '2026-09-18' },
+        { n: 6, monday: '2026-09-21', friday: '2026-09-25' },
+        { n: 7, monday: '2026-09-28', friday: '2026-10-02', notes: '9/29 Non-Student Day' },
+        { n: 8, monday: '2026-10-05', friday: '2026-10-09' }
+      ];
+      assertEqual(T.weekDays(weeks[1]).join(','), '2026-09-21,2026-09-22,2026-09-23,2026-09-24,2026-09-25', 'weekDays: Monday to Friday from the Monday');
+      assertEqual(T.teachingWeeks(weeks, slots).map(w => w.n).join(','), '6', 'teachingWeeks: only the weeks with a slot in the plan');
+      assertEqual(T.daysOff(weeks).join(','), '2026-09-29', 'daysOff: read from the notes line');
+      assertEqual(T.daysOff([{ monday: '2026-09-21', notes: 'Sprint 2 starts' }]).length, 0, 'daysOff: a note without a day off gives nothing');
+      assertEqual(T.daysOff([{ monday: '2026-12-28', friday: '2027-01-01', notes: '1/1 Holiday' }]).join(','), '2027-01-01', 'daysOff: a week across New Year takes the right year');
+
+      const asState = (viewer) => { const v = T.visibleSlots(slots, viewer); return { plan: { weeks }, slots, visible: v.slots, mode: v.mode, viewer }; };
+      const staff = asState(teacher), student = asState(csa2);
+      assertEqual(T.pickerChoices(staff).map(c => c.key).join(' '), 'CSA|2 CSA|4', 'picker: staff get every class and period in the plan');
+      assertEqual(T.pickerChoices(student).map(c => c.key).join(' '), 'CSA|2', 'picker: a student gets only their own, so no picker shows');
+      assertEqual(T.defaultChoice(T.pickerChoices(staff), csa2).key, 'CSA|2', 'default choice: the viewer\'s own class when it is in the list');
+
+      const m = T.planModel(student, { course: 'CSA', period: '2' }, '2026-09-22');
+      assertEqual(m.rows.length, 5, 'grid: five weekday rows');
+      assertEqual(m.columns.length, 1, 'grid: one column per teaching week');
+      const day = d => m.days.find(x => x.date === d);
+      assertEqual(day('2026-09-21').items.map(i => i.kind).join(','), 'checkpoint', 'grid: the checkpoint sits on its day');
+      assertEqual(day('2026-09-22').items.map(i => i.kind + ':' + i.slot.id).join(','), 'lesson:a', 'grid: the lesson sits on its day');
+      assert(day('2026-09-22').today, 'grid: today is marked');
+      assertEqual(day('2026-09-24').items.map(i => i.kind).join(','), 'hw-due', 'grid: homework due shows on the due day');
+      assertEqual(day('2026-09-23').items.length, 0, 'grid: another period\'s lesson is not in this class\'s grid');
+      assertEqual(m.counts.lessons + '/' + m.counts.withPage + '/' + m.counts.checkpoints, '1/1/1', 'counts: lessons, with a page, checkpoints');
+
+      const w7 = { id: 'w7', date: '2026-09-30', kind: 'lesson', course: 'CSA', period: '2', topic: 'Login', presenters: [] };
+      const m7 = T.planModel({ plan: { weeks }, slots: slots.concat([w7]), visible: slots.concat([w7]), mode: 'staff', viewer: teacher }, null, '2026-09-08');
+      assertEqual(m7.columns.map(c => c.week.n).join(','), '6,7', 'grid: a slot in week 7 adds the column');
+      assert(m7.days.find(x => x.date === '2026-09-29').off, 'grid: the non-student day is marked off');
+
+      assertEqual(T.emptyKind(asState(anon), T.planModel(asState(anon), null, '2026-09-22')), 'anonymous', 'empty: not logged in');
+      assertEqual(T.emptyKind(asState(noClass), T.planModel(asState(noClass), null, '2026-09-22')), 'no-class', 'empty: logged in without a class');
+      assertEqual(T.emptyKind(asState(csp3), T.planModel(asState(csp3), null, '2026-09-22')), 'nothing-planned', 'empty: a class with nothing planned');
+      assertEqual(T.emptyKind(student, m), null, 'empty: nothing to say when there are rows');
+      assert(/Mon 21 Sep to Fri 25 Sep/.test(T.weeksLine(m.weeks)), 'text: the week line names the first and last day');
+      assertEqual(T.shortRange(weeks[1]), '21\u201325 Sep', 'text: the column heading range');
+      assert(/1 lesson planned/.test(T.countsLine(m.counts)) && /1 checkpoint$/.test(T.countsLine(m.counts)), 'text: the counts line');
+      assertEqual(T.countsLine({ lessons: 0, proposed: 0, withPage: 0, checkpoints: 6 }), '0 lessons planned \u00B7 6 checkpoints', 'text: no lessons means no page count');
+      const html = T.renderGrid(m) + T.renderAgenda(m);
+      assert(/data-slot-id="a"/.test(html) && /data-slot-id="c"/.test(html), 'html: every row carries its slot id for the click');
+      assert(!/<i>/.test(T.renderItem({ kind: 'lesson', mine: false, slot: { id: 'x', topic: '<i>x</i>', presenters: [] } })), 'html: plan text is escaped');
+    }
+
+    // LessonActions.js, when it is loaded
+    if (T.findHomework) {
+      const a = slots.find(s => s.id === 'a'); // lesson: '/csa/sprint2/chat', presenter sam
+      const hwList = [
+        { id: '1', name: 'Other', description: '[CONTENT_URL: /csa/other] x' },
+        { id: '2', name: 'Chat and WebSockets', description: '[CONTENT_URL: csa/sprint2/chat] Created from lesson page' },
+        { id: '3', name: 'By title only', description: '' }
+      ];
+      assertEqual(T.findHomework(hwList, a).id, '2', 'findHomework: the marker without the leading slash matches');
+      assertEqual(T.findHomework([{ id: '4', name: 'x', description: '[CONTENT_URL: /csa/sprint2/chat]' }], a).id, '4', 'findHomework: the marker with the leading slash matches');
+      assertEqual(T.findHomework(hwList, Object.assign({}, a, { lesson: '/none', lessonTitle: 'By title only' })).id, '3', 'findHomework: falls back to the page title');
+      assertEqual(T.findHomework(hwList, Object.assign({}, a, { lesson: '' })), null, 'findHomework: nothing without a lesson page');
+      const groups = [{ id: 1, name: 'UGRC', members: [{ id: 11, uid: 'sam', name: 'Sam' }, { id: 12, uid: 'ak', name: 'Ak' }] }];
+      const c1 = T.graderCandidates(a, groups);
+      assertEqual(c1.via + ':' + c1.people.map(p => p.uid).join(','), 'presenters:sam', 'graders: presenters with login ids win');
+      const c2 = T.graderCandidates(Object.assign({}, a, { presenters: [{ name: 'Sam', uid: '' }] }), groups);
+      assertEqual(c2.via + ':' + c2.people.length, 'team:2', 'graders: without login ids, everyone in the team');
+      assertEqual(T.graderCandidates(a, []).via, 'none', 'graders: no group on the backend');
+      assert(T.canWriteHere('pages.opencodingsociety.com') && T.canWriteHere('localhost') && !T.canWriteHere('ugrc-csa.github.io'), 'writes: the main site and local only');
+      const rr = T.renderActionRows(a, { homework: hwList[1], graders: [{ id: 11, name: 'Sam' }], groups: groups, error: '' }, 'ugrc-csa.github.io');
+      assert(rr.rows.some(r => r[0] === 'Graders' && /Sam/.test(r[1])) && rr.canAssign && rr.writes === false, 'rows: record, graders, and read-only on a fork');
+      const gerr = T.renderActionRows(a, { homework: hwList[1], graders: [], gradersError: true, groups: groups, error: '' }, 'localhost');
+      assert(gerr.rows.some(r => r[0] === 'Graders' && /Could not read/.test(r[1])), 'rows: a failed grader read is not shown as None yet');
+      const esc = T.renderActionRows(Object.assign({}, a, { team: '<b>x</b>' }), { homework: null, graders: [], groups: [], error: '' }, 'localhost');
+      assert(!/<b>/.test(esc.rows.map(r => r[1]).join('')) && !esc.canAssign, 'rows: plan text is escaped; no record means no button');
+    }
+    endSuite();
+  }
+
+    testTeachingSlots();
     suite('CalendarData');
     const restoreCalendar = setupTestCalendarData();
 
