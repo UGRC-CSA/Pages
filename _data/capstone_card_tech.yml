@@ -162,3 +162,9 @@
   - "JWT Cookie Auth"
   - "JPA + S3 message store"
   - "Jekyll Includes"
+
+"OCS Design System":
+  - "SCSS (Ruby Sass 3.7)"
+  - "CSS custom properties"
+  - "Jekyll"
+  - "WCAG 2.1 AA"

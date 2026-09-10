@@ -321,6 +321,32 @@ Below are the capstone infographic pages created by student groups. Click an ima
 <div id="capstone-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 my-6">
 
 
+   <!-- OCS Design System -->
+   <div class="flex items-start space-x-4 p-4 border rounded-lg capstone-item CSA" data-year="2026-2027">
+     <a href="{% post_url capstone/2026-09-08-ocs-design-system-capstone %}">
+       <div class="w-28 h-28 flex items-center justify-center bg-blue-900 text-white text-2xl font-bold rounded" style="background: linear-gradient(135deg, #E06665, #9C3739);">OCS&nbsp;DS</div>
+     </a>
+     <div>
+       <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-09-08-ocs-design-system-capstone %}">OCS Design System</a></h3>
+       <p class="text-sm text-gray-700">A shelf of ready-made interface pieces for the Open Coding Society site: one shared list of colours and sizes, fifteen components, and a docs page showing all of them live.</p>
+       <p class="text-xs text-gray-500 mt-2">Team: Samarth Vaka</p>
+     </div>
+   </div>
+
+
+   <!-- OCS Communications -->
+   <div class="flex items-start space-x-4 p-4 border rounded-lg capstone-item CSA" data-year="2026-2027">
+     <a href="{% post_url capstone/2026-08-26-ocs-communications-capstone %}">
+       <div class="w-28 h-28 flex items-center justify-center bg-blue-900 text-white text-2xl font-bold rounded" style="background: linear-gradient(135deg, #065f46, #10b981);">OCS&nbsp;C</div>
+     </a>
+     <div>
+       <h3 class="text-lg font-semibold"><a href="{% post_url capstone/2026-08-26-ocs-communications-capstone %}">OCS Communications</a></h3>
+       <p class="text-sm text-gray-700">A communications platform for Open Coding Society: class-wide announcements, per-week discussion threads, and private direct messages, all running on one real-time backend.</p>
+       <p class="text-xs text-gray-500 mt-2">Team: Sathwik, Akhil, Skandan, Samarth, Akshaj, Tarun, Perry, Syowns, Leon</p>
+     </div>
+   </div>
+
+
    <!-- RFID + Camera-Correlated Classroom Presence -->
    <div class="flex items-start space-x-4 p-4 border rounded-lg capstone-item CSH" data-year="2026-2027">
      <a href="{% post_url capstone/2026-08-28-rfid-presence-capstone %}">
