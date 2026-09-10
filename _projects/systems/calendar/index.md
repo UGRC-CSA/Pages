@@ -6,9 +6,14 @@ layout: aesthetihawk
 active_tab: calendar
 ---
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css">
+{% comment %} The design system, for the lesson panel. #35 adds this same link to the
+aesthetihawk layout; when it lands this line can go. A second link to the same file
+is harmless in the meantime. {% endcomment %}
+<link rel="stylesheet" href="{{ '/assets/css/ocs.css' | relative_url }}">
 
 <div class="calendar-dashboard-tabs" role="tablist" aria-label="Calendar Dashboard Tabs">
     <button type="button" class="dashboard-tab-btn active" data-dashboard-tab="calendar" role="tab" aria-selected="true">Calendar</button>
+    <button type="button" class="dashboard-tab-btn" data-dashboard-tab="lessons" role="tab" aria-selected="false">Lessons</button>
     <button type="button" class="dashboard-tab-btn" data-dashboard-tab="cs-pathway" role="tab" aria-selected="false">CS Pathway</button>
     <button type="button" class="dashboard-tab-btn" data-dashboard-tab="issues" role="tab" aria-selected="false">Issues</button>
     <button type="button" class="dashboard-tab-btn" data-dashboard-tab="threads" role="tab" aria-selected="false">Threads</button>
@@ -20,6 +25,7 @@ active_tab: calendar
         <i class="fas fa-exclamation-triangle calendar-auth-banner-icon"></i>
         <span>Your session has expired. <a href="{{site.baseurl}}/login" class="calendar-auth-banner-link">Log in again</a> to view and manage your calendar events.</span>
     </div>
+    <p id="teaching-visibility-note" class="calendar-private-note" hidden></p>
     <p class="calendar-private-note">When you are signed in, the calendar shows your account's events. Use the <strong>CS Pathway</strong> tab or source filter for game tasks synced from your pathway start date (stored per user in Spring).</p>
     <div class="calendar-source-chips" role="group" aria-label="Calendar source filters">
         <button type="button" class="calendar-source-chip active" data-source-filter="all">All</button>
@@ -70,6 +76,11 @@ active_tab: calendar
         </label>
     </div>
     <div id="calendar" class="calendar-stage"></div>
+</section>
+
+<section id="dashboard-panel-lessons" class="dashboard-panel hidden" role="tabpanel" aria-label="Lessons Panel">
+    {% comment %} Filled by TeachingPlan.js from the plan below. {% endcomment %}
+    <div id="lessons-panel" class="calendar-lessons-panel"></div>
 </section>
 
 <section id="dashboard-panel-cs-pathway" class="dashboard-panel hidden" role="tabpanel" aria-label="CS Pathway Tasks Panel">
@@ -336,10 +347,82 @@ active_tab: calendar
     </div>
 </div>
 
+{% include lesson-modal.html %}
+{% include lesson-grading-modal.html %}
+
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+
+{% comment %}
+  The Sprint 2 teaching plan from _data/teaching_plan/*.yml, one JSON block
+  the page can read without a request. Each slot is joined to its lesson page
+  (by permalink) so the calendar can show the title and the homework due
+  date without asking the backend. Every string goes through jsonify.
+{% endcomment %}
+<script id="teaching-plan-json" type="application/json">
+{
+  "built": {{ site.time | date: "%Y-%m-%d %H:%M" | jsonify }},
+  "coursePageBase": {{ '/navigation/courses/' | relative_url | jsonify }},
+  "editBase": {{ 'https://github.com/' | append: site.github_username | append: '/' | append: site.github_repo | append: '/edit/main/_data/teaching_plan/' | jsonify }},
+  "weeks": [
+    {% for wk in site.data.school_calendar.weeks %}{ "n": {{ wk[0] | jsonify }}, "monday": {{ wk[1].monday | jsonify }}, "friday": {{ wk[1].friday | jsonify }}, "notes": {{ wk[1].notes | jsonify }}, "skip": {{ wk[1].skip_week | default: false | jsonify }} }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
+  "courses": {
+  {% assign tp_first_course = true %}
+  {% for tp_pair in site.data.teaching_plan %}{% assign tp_course = tp_pair[1] %}{% if tp_course.periods %}
+    {% unless tp_first_course %},{% endunless %}{% assign tp_first_course = false %}
+    {{ tp_pair[0] | jsonify }}: {
+      "course": {{ tp_course.course | jsonify }},
+      "sprint": {{ tp_course.sprint | jsonify }},
+      "last_updated": {{ tp_course.last_updated | jsonify }},
+      "periods": {
+      {% for tp_period in tp_course.periods %}
+        {{ tp_period[0] | jsonify }}: {
+          "leaders": {{ tp_period[1].leaders | jsonify }},
+          "slots": [
+          {% for slot in tp_period[1].slots %}
+            {% assign lp = nil %}
+            {% if slot.lesson and slot.lesson != "" %}
+              {% assign lp = site.pages | where: "url", slot.lesson | first %}
+              {% unless lp %}{% assign lp = site.posts | where: "url", slot.lesson | first %}{% endunless %}
+            {% endif %}
+            {
+              "id": {{ slot.id | jsonify }},
+              "date": {{ slot.date | jsonify }},
+              "kind": {{ slot.kind | jsonify }},
+              "status": {{ slot.status | jsonify }},
+              "topic": {{ slot.topic | jsonify }},
+              "team": {{ slot.team | jsonify }},
+              "presenters": {{ slot.presenters | jsonify }},
+              "builds": {{ slot.builds | jsonify }},
+              "project_url": {{ slot.project_url | jsonify }},
+              "lesson": {{ slot.lesson | jsonify }},
+              "frq": {{ slot.frq | jsonify }},
+              "lessonTitle": {{ lp.title | jsonify }},
+              "dueDate": {{ lp.dueDate | jsonify }},
+              "points": {{ lp.points | jsonify }},
+              "hasAssignment": {{ lp.assignment | default: false | jsonify }}
+            }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+      }
+    }
+  {% endif %}{% endfor %}
+  }
+}
+</script>
+<script>var SITE_BASEURL = '{{ site.baseurl }}';</script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/TeachingSlots.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonPanel.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/TeachingPlan.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonActions.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonGrading.js"></script>
+<script src="{{ site.baseurl }}/assets/js/projects/calendar/LessonAi.js"></script>
 <script type="module">
     import { javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
 
@@ -389,6 +472,8 @@ active_tab: calendar
     let allEvents = [];          // Every event from the backend + holidays
     let userGroups = [];         // Groups the current user belongs to
     let currentPersonId = null;
+    let currentPersonUid = '';   // login id, from /api/person/get
+    let currentPersonRoles = []; // role names, from /api/person/get
     // Filter mode: 'my-groups' (default) or 'all'
     let filterMode = 'my-groups';
     let activeToolbarGroupId = '';
@@ -539,6 +624,8 @@ active_tab: calendar
             }
             const personData = await personResponse.json();
             currentPersonId = personData.id;
+            currentPersonUid = personData.uid || '';
+            currentPersonRoles = Array.isArray(personData.roles) ? personData.roles.map(r => (r && r.name) || r).filter(Boolean) : [];
             if (!currentPersonId) { console.warn('No person ID'); return []; }
 
             const groupsResponse = await fetch(`${javaURI}/api/groups/person/${currentPersonId}`, fetchOptions);
@@ -833,6 +920,7 @@ active_tab: calendar
             btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
         document.getElementById('dashboard-panel-calendar')?.classList.toggle('hidden', tabName !== 'calendar');
+        document.getElementById('dashboard-panel-lessons')?.classList.toggle('hidden', tabName !== 'lessons');
         document.getElementById('dashboard-panel-cs-pathway')?.classList.toggle('hidden', tabName !== 'cs-pathway');
         document.getElementById('dashboard-panel-issues')?.classList.toggle('hidden', tabName !== 'issues');
         document.getElementById('dashboard-panel-threads')?.classList.toggle('hidden', tabName !== 'threads');
@@ -1422,6 +1510,31 @@ active_tab: calendar
                         }
                     });
 
+                    // --- Sprint 2 teaching slots (TeachingSlots.js) ---
+                    // Only the slots this viewer may see become events; the
+                    // rule is in TeachingSlots.visibleSlots.
+                    if (window.OCSTeaching) {
+                        const teaching = window.OCSTeaching.install({
+                            viewer: {
+                                loggedIn: !!currentPersonId,
+                                uid: currentPersonUid,
+                                personId: currentPersonId,
+                                roles: currentPersonRoles,
+                                groups: userGroups
+                            },
+                            profileUrl: `${SITE_BASEURL}/profile`,
+                            api: { javaURI, fetchOptions }
+                        });
+                        allEvents.push(...teaching.events);
+                        const noteEl = document.getElementById('teaching-visibility-note');
+                        if (noteEl) {
+                            noteEl.innerHTML = teaching.note;
+                            noteEl.hidden = !teaching.note;
+                        }
+                        // The Lessons tab (TeachingPlan.js) draws from the same state.
+                        window.OCSTeaching.renderLessonsTab?.();
+                    }
+
                     displayCalendar(filterEvents());
                     renderIssueViews();
                     renderThreadsPanel();
@@ -1637,6 +1750,9 @@ active_tab: calendar
                 eventContent: function(arg) {
                     const event = arg.event;
                     const ext = event.extendedProps || {};
+                    if (window.OCSTeaching && window.OCSTeaching.handles(ext)) {
+                        return window.OCSTeaching.renderChip(arg);
+                    }
                     const isAppointment = ext.type === 'appointment';
                     const isIssue = ext.isIssue === true;
                     const isBreak = ext.isBreak === true;
@@ -1678,6 +1794,16 @@ active_tab: calendar
                 eventClick: function (info) {
                     currentEvent = info.event;
                     isAddingNewEvent = false;
+                    if (window.OCSTeaching && window.OCSTeaching.handles(currentEvent.extendedProps || {})) {
+                        window.OCSTeaching.onEventClick(currentEvent.extendedProps || {});
+                        return;
+                    }
+                    // Edit and Delete are shown to staff and to whoever made the
+                    // event. This is a browser-side hide only; the server still
+                    // accepts the calls, and that is a separate change.
+                    const mayEditEvent = !window.OCSTeaching || window.OCSTeaching.canEditEvent(currentEvent.extendedProps || {}, {
+                        uid: currentPersonUid, roles: currentPersonRoles
+                    });
                     const isBreak = (currentEvent.extendedProps && currentEvent.extendedProps.isBreak === true) || currentEvent.isBreak === true;
                     const isIssue = currentEvent.extendedProps && currentEvent.extendedProps.isIssue === true;
                     if (isIssue) {
@@ -1713,16 +1839,16 @@ active_tab: calendar
                             document.getElementById("deleteButton").style.display = "none";
                             document.getElementById("editButton").style.display = "none";
                         } else {
-                            document.getElementById("deleteButton").style.display = "inline-block";
-                            document.getElementById("editButton").style.display = "inline-block";
+                            document.getElementById("deleteButton").style.display = mayEditEvent ? "inline-block" : "none";
+                            document.getElementById("editButton").style.display = mayEditEvent ? "inline-block" : "none";
                         }
                     } else if (isIssue) {
                         document.getElementById("deleteButton").style.display = "inline-block";
                         document.getElementById("editButton").style.display = "none";
                         document.getElementById("eventModal").dataset.isBreak = "false";
                     } else {
-                        document.getElementById("deleteButton").style.display = "inline-block";
-                        document.getElementById("editButton").style.display = "inline-block";
+                        document.getElementById("deleteButton").style.display = mayEditEvent ? "inline-block" : "none";
+                        document.getElementById("editButton").style.display = mayEditEvent ? "inline-block" : "none";
                         document.getElementById("eventModal").dataset.isBreak = "false";
                     }
                 },
@@ -2065,7 +2191,9 @@ active_tab: calendar
                 applyCalendarFilterUI();
             });
 
-            switchDashboardTab('calendar');
+            // /student/calendar#lessons opens on the Lessons tab, so lesson
+            // pages and week cards can link straight to it.
+            switchDashboardTab(window.location.hash === '#lessons' ? 'lessons' : 'calendar');
             switchIssuesSubtab('create');
         }
 
