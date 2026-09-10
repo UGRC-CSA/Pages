@@ -1,0 +1,1056 @@
+// =============================================================================
+// SCSS PRACTICE PAGE
+// =============================================================================
+// The page is built from the OCS components it teaches. Everything that a
+// component already does - cards, buttons, badges, alerts, progress, inputs -
+// uses the real class. What is left here is only what no component covers:
+// the editor pane, the token drawer, the guided tour, and the quest layout.
+//
+// Chrome sits inside .ocs-light so it reads as a workspace. The preview pane
+// deliberately does not, so a student can see their component on the same dark
+// surface the rest of OCS uses.
+//
+// Build:  sass --load-path=<ocs> page.scss page.css
+// =============================================================================
+
+@use "ocs/core/tokens" as t;
+@use "ocs/core/functions" as fn;
+
+$editor-mono: fn.font(mono);
+
+// The uppercase micro-labels on panel headers sit below `small`, the smallest
+// step in the type scale. Named here rather than pretending a token exists.
+$label-size: 0.69rem;
+
+// ---------- page frame -------------------------------------------------------
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ocs-surface-base);
+  color: var(--ocs-text);
+  font-family: fn.font(sans);
+  font-size: fn.typo(body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 fn.space(5) fn.space(16); }
+
+a { color: var(--ocs-info); }
+
+// ---------- top bar ----------------------------------------------------------
+.top {
+  position: sticky;
+  top: 0;
+  z-index: fn.z(sticky);
+  background: color-mix(in srgb, var(--ocs-surface-base) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-block-end: 1px solid var(--ocs-border);
+}
+
+.top-in {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: fn.space(3) fn.space(5);
+  display: flex;
+  align-items: center;
+  gap: fn.space(3);
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-inline-end: auto;
+  b { color: var(--ocs-brand); }
+}
+
+.xp {
+  display: flex;
+  align-items: center;
+  gap: fn.space(2);
+  font-family: $editor-mono;
+  font-size: fn.typo(small);
+  color: var(--ocs-text-secondary);
+
+  .ocs-progress { width: 120px; }
+}
+
+// A plain count beside the XP bar, where eleven two-letter pills used to be.
+.badges {
+  color: var(--ocs-text-muted);
+  font-size: fn.typo(small);
+  white-space: nowrap;
+}
+
+// ---------- hero -------------------------------------------------------------
+.hero {
+  padding: fn.space(8) 0 fn.space(5);
+
+  // Only the paragraph needs a reading measure. Capping the whole block wrapped
+  // the heading onto a second line and pushed everything below it down.
+  p { max-width: 58ch; }
+}
+
+h1 {
+  // Sized against the reference at 1024px, where its heading measures 29px
+  // tall against the 38px this used to render. 3.125vw hits 2rem there and
+  // still grows on a wide screen.
+  font-size: clamp(1.75rem, 3.125vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0 0 fn.space(3);
+  text-wrap: balance;
+
+  em { font-style: normal; color: var(--ocs-brand); }
+}
+
+.lede { color: var(--ocs-text-secondary); font-size: 1.04rem; margin: 0; }
+
+h2 {
+  font-size: fn.typo(h3);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: fn.space(10) 0 fn.space(1);
+}
+
+.sub { color: var(--ocs-text-muted); font-size: fn.typo(small); margin: 0 0 fn.space(4); }
+
+// ---------- chapters and quests ---------------------------------------------
+.chap { margin-block-start: fn.space(6); }
+
+.chap-h {
+  display: flex;
+  align-items: baseline;
+  gap: fn.space(2);
+  margin-block-end: fn.space(1);
+
+  .n {
+    font-family: $editor-mono;
+    font-size: $label-size;
+    letter-spacing: 0.11em;
+    color: var(--ocs-brand);
+  }
+  h3 { margin: 0; font-size: 1.02rem; font-weight: 650; }
+  .cnt { margin-inline-start: auto; }
+}
+
+.chap p.blurb {
+  margin: 0 0 fn.space(3);
+  color: var(--ocs-text-muted);
+  font-size: fn.typo(small);
+}
+
+.quests {
+  display: grid;
+  gap: fn.space(2);
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+// ---------- chapters -----------------------------------------------------------
+// Each chapter is its own card, so a student sees four groups rather than one
+// undifferentiated wall of twelve quests.
+.chap {
+  padding: fn.space(5);
+  margin-block-end: fn.space(5);
+  background: var(--ocs-surface-base);
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: fn.space(4);
+    margin-block-end: fn.space(4);
+  }
+
+  &__id { min-width: 0; }
+
+  &__n {
+    display: block;
+    font-family: $editor-mono;
+    font-size: $label-size;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ocs-accent);
+  }
+
+  &__t {
+    margin: fn.space(1) 0 0;
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  &__blurb {
+    margin: fn.space(1) 0 0;
+    color: var(--ocs-text-muted);
+    font-size: 0.95rem;
+  }
+
+  // Progress for the chapter. A fraction, not a bar: twelve quests is few
+  // enough that the exact numbers are more use than a proportion.
+  &__cnt {
+    flex: 0 0 auto;
+    padding: fn.space(1) fn.space(3);
+    border-radius: fn.radius(full);
+    background: var(--ocs-accent-bg);
+    color: var(--ocs-accent);
+    font-family: $editor-mono;
+    font-size: fn.typo(small);
+    font-weight: 600;
+
+    &.is-done { background: var(--ocs-success-bg); color: var(--ocs-success); }
+  }
+
+  &--locked { opacity: 0.92; }
+}
+
+.quests {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: fn.space(4);
+}
+
+// ---------- one quest ----------------------------------------------------------
+// Four states. Each is carried by a tint AND a mark AND a word in the markup,
+// so none of them depends on telling one pale colour from another.
+//
+// Every tint is the semantic token thinned with the page colour. Measured from
+// the reference: the fills there sit at roughly 70%, 40% and 50% of the full
+// token. At full strength --ocs-warning-bg is a heavy beige that reads as a
+// warning; thinned to 40% it is a warm off-white that reads as "you are here".
+// The borders stay at FULL token strength, because they are what a reader
+// actually has to perceive - the reference's own soft borders measure 1.32:1
+// to 1.57:1 against the page and miss the 3:1 floor for a control's boundary.
+.q {
+  position: relative;
+  padding: fn.space(5);
+  background: var(--ocs-surface-raised);
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &__n {
+    display: block;
+    font-family: $editor-mono;
+    font-size: $label-size;
+    letter-spacing: 0.09em;
+    color: var(--ocs-text-muted);
+  }
+
+  &__t {
+    margin: fn.space(2) 0 fn.space(2);
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--ocs-text);
+  }
+
+  &__d {
+    margin: 0;
+    color: var(--ocs-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  // Why a locked quest is locked, in words, on the card itself. No rule above
+  // it: the divider made a locked card noticeably taller than its neighbours,
+  // which drew the eye to the one thing a student cannot do yet.
+  &__gate {
+    margin: fn.space(2) 0 0;
+    color: var(--ocs-text-muted);
+    font-size: fn.typo(small);
+  }
+
+  // The state mark, top-right.
+  &__mark {
+    position: absolute;
+    inset-block-start: fn.space(4);
+    inset-inline-end: fn.space(4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: fn.radius(full);
+    font-size: 0.8rem;
+    line-height: 1;
+
+    // --ocs-success, not --ocs-success-border: white on the border step is
+    // 3.37:1, and on this one it is 5.83:1.
+    &--done   { background: var(--ocs-success); color: #FFFFFF; }
+    &--active { background: var(--ocs-warning); width: 0.75rem; height: 0.75rem;
+                margin: 0.375rem; }
+    &--locked { background: none; color: var(--ocs-text-muted); }
+  }
+
+  // --- states -----------------------------------------------------------------
+  // Plain fills first. color-mix() is not universal, and an unsupported
+  // declaration here would leave the card transparent rather than tinted.
+  &--done {
+    border-color: var(--ocs-success-border);
+    background: var(--ocs-success-bg);
+  }
+
+  &--active {
+    border-color: var(--ocs-warning-border);
+    background: var(--ocs-warning-bg);
+    box-shadow: fn.shadow(sm);
+
+    // A bar along the bottom edge, so the current quest is findable from
+    // across the grid and not only from the small dot.
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline: -1px;
+      inset-block-end: -1px;
+      height: 3px;
+      border-end-start-radius: fn.radius(lg);
+      border-end-end-radius: fn.radius(lg);
+      background: var(--ocs-warning);
+    }
+  }
+
+  &--locked {
+    background: var(--ocs-surface-base);
+    cursor: not-allowed;
+
+    .q__t { color: var(--ocs-text-muted); }
+
+    &:hover { border-color: var(--ocs-border); background: var(--ocs-surface-base); }
+  }
+
+  // The open quest already carries a border, a tint and a mark. A ring on top
+  // of that was a fourth signal saying the same thing.
+  &[aria-current="true"] { box-shadow: fn.shadow(md); }
+}
+
+// Thin every fill with the page colour. Guarded, because an unsupported
+// color-mix() computes to nothing and would strip the tint entirely.
+@supports (background: color-mix(in srgb, red 50%, white)) {
+  .q          { background: color-mix(in srgb, var(--ocs-surface-raised) 50%, var(--ocs-surface-base)); }
+  .q--done    { background: color-mix(in srgb, var(--ocs-success-bg)     70%, var(--ocs-surface-base)); }
+  .q--active  { background: color-mix(in srgb, var(--ocs-warning-bg)     40%, var(--ocs-surface-base)); }
+  .q--locked  { background: var(--ocs-surface-base); }
+}
+
+// ---------- quest brief ------------------------------------------------------
+.brief {
+  margin-block-start: fn.space(5);
+  // A bare .ocs-card carries no padding on purpose - that lives on __body.
+  // This card holds its content directly, so it supplies its own.
+  padding: fn.space(5);
+
+  .kicker {
+    font-family: $editor-mono;
+    font-size: $label-size;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ocs-brand);
+    margin: 0 0 fn.space(2);
+  }
+  h3 { margin: 0 0 fn.space(2); font-size: 1.1rem; font-weight: 650; letter-spacing: -0.015em; }
+  > p { margin: 0; color: var(--ocs-text-secondary); font-size: 0.95rem; }
+}
+
+.goal {
+  margin-block-start: fn.space(3);
+  padding-block-start: fn.space(3);
+  border-block-start: 1px solid var(--ocs-border-subtle);
+  font-size: fn.typo(small);
+  color: var(--ocs-text-muted);
+
+  b { color: var(--ocs-text-secondary); }
+}
+
+details.concept {
+  margin-block-start: fn.space(3);
+  border: 1px solid var(--ocs-border-subtle);
+  border-radius: fn.radius(lg);
+  background: var(--ocs-surface-raised);
+  overflow: hidden;
+
+  summary {
+    cursor: pointer;
+    padding: fn.space(2) fn.space(3);
+    font-size: fn.typo(small);
+    font-weight: 600;
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
+    &::before {
+      content: "?";
+      display: inline-grid;
+      place-items: center;
+      inline-size: 17px;
+      block-size: 17px;
+      border-radius: fn.radius(full);
+      background: var(--ocs-info);
+      color: var(--ocs-text-inverse);
+      font-size: 0.68rem;
+      margin-inline-end: fn.space(2);
+      vertical-align: -3px;
+    }
+  }
+  &[open] summary { border-block-end: 1px solid var(--ocs-border-subtle); }
+  .cbody { padding: fn.space(3); font-size: 0.89rem; color: var(--ocs-text-secondary); }
+}
+
+.hintbar { margin-block-start: fn.space(3); display: flex; gap: fn.space(2); align-items: center; flex-wrap: wrap; }
+.hints   { margin-block-start: fn.space(2); display: grid; gap: fn.space(2); }
+
+// ---------- workspace --------------------------------------------------------
+.ws, .fb {
+  display: grid;
+  gap: fn.space(3);
+  margin-block-start: fn.space(3);
+}
+.ws { grid-template-columns: 1.05fr 1fr; }
+.fb { grid-template-columns: 1fr 1fr; }
+
+@media (max-width: fn.breakpoint(tablet)) {
+  .ws, .fb { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--ocs-surface-raised);
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ph {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: fn.space(2);
+  padding: fn.space(2) fn.space(3);
+  border-block-end: 1px solid var(--ocs-border-subtle);
+  background: var(--ocs-surface-elevated);
+  flex-wrap: wrap;
+
+  .lbl {
+    font-family: $editor-mono;
+    font-size: $label-size;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ocs-text-muted);
+  }
+  .grp { display: flex; gap: fn.space(1); }
+}
+
+// ---------- editor -----------------------------------------------------------
+.ed-wrap { position: relative; display: flex; flex: 1; min-block-size: 290px; }
+
+.gutter {
+  padding: fn.space(3) fn.space(2) fn.space(3) fn.space(3);
+  font-family: $editor-mono;
+  font-size: 0.83rem;
+  line-height: 1.62;
+  color: var(--ocs-text-muted);
+  text-align: end;
+  user-select: none;
+  min-inline-size: 2.5rem;
+}
+
+textarea {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: var(--ocs-text);
+  font-family: $editor-mono;
+  font-size: 0.83rem;
+  line-height: 1.62;
+  padding: fn.space(3) fn.space(3) fn.space(3) 2px;
+  tab-size: 2;
+  overflow: hidden;
+
+  // No focus style of its own. A 3px bar inset on the left ran down the middle
+  // of the code and read as a stray rule; the whole pane takes the ring below.
+  &:focus-visible { outline: 0; }
+}
+
+// The pane, not the textarea, shows focus - so the indicator surrounds the
+// code instead of cutting through it.
+.ed-wrap:focus-within {
+  outline: 2px solid var(--ocs-accent);
+  outline-offset: -2px;
+  border-radius: fn.radius(md);
+}
+
+// The preview is deliberately NOT .ocs-light. A student styles a component on
+// the same dark surface the rest of OCS uses, so what they see here is what
+// the component will actually look like in the wild.
+#preview, #targetprev {
+  flex: 1;
+  min-block-size: 140px;
+  padding: fn.space(6);
+  display: flex;
+  flex-wrap: wrap;
+  gap: fn.space(3);
+  align-items: flex-start;
+  align-content: flex-start;
+  background: fn.surface(base);   // resolved at build time: the dark base
+}
+
+#cssout {
+  margin: 0;
+  padding: fn.space(3);
+  font-family: $editor-mono;
+  font-size: 0.75rem;
+  color: var(--ocs-text-secondary);
+  overflow: auto;
+  max-block-size: 132px;
+  white-space: pre;
+  background: var(--ocs-surface-elevated);
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: fn.space(1);
+  font-family: $editor-mono;
+  font-size: $label-size;
+  color: var(--ocs-text-muted);
+
+  .dot { inline-size: 8px; block-size: 8px; border-radius: fn.radius(full); background: currentColor; }
+  &.good { color: var(--ocs-success); }
+  &.bad  { color: var(--ocs-danger); }
+}
+
+.empty { padding: fn.space(4); color: var(--ocs-text-muted); font-size: fn.typo(small); text-align: center; }
+.pad   { padding: fn.space(3); display: grid; gap: fn.space(2); }
+
+// ---------- step checklist ---------------------------------------------------
+// The brief and its checklist sit together: the task, and how you know you
+// finished it. They stack on a narrow screen, where two columns would make
+// both of them too tight to read.
+.taskrow {
+  display: grid;
+  gap: fn.space(5);
+  align-items: start;
+  margin-block-start: fn.space(6);
+
+  @media (min-width: fn.breakpoint(tablet)) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+.taskrow .brief { margin-block-start: 0; }
+.steps-panel { margin-block-start: 0; }
+
+// ---------- coach ------------------------------------------------------------
+// Sits under the checklist. Says the one next thing to do, and takes questions.
+// Accent-tinted so it reads as help rather than as another status box.
+.coach {
+  margin: fn.space(3);
+  padding: fn.space(4);
+  border: 1px solid var(--ocs-accent-border);
+  border-radius: fn.radius(lg);
+  background: var(--ocs-accent-bg);
+
+  &__top {
+    display: flex;
+    align-items: baseline;
+    gap: fn.space(2);
+    margin-block-end: fn.space(2);
+  }
+
+  // Named, so it is obvious there is something here to talk to.
+  &__name {
+    color: var(--ocs-accent);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  &__step {
+    margin-inline-start: auto;
+    color: var(--ocs-text-muted);
+    font-family: $editor-mono;
+    font-size: $label-size;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__b {
+    margin: 0 0 fn.space(3);
+    color: var(--ocs-text);
+    font-size: 0.92rem;
+    line-height: 1.55;
+
+    code {
+      padding: 0.1em 0.35em;
+      border-radius: fn.radius(sm);
+      background: var(--ocs-surface-base);
+      font-family: $editor-mono;
+      font-size: 0.85em;
+    }
+  }
+
+  // The conversation. Empty until something is asked, so it costs no space.
+  &__log {
+    display: flex;
+    flex-direction: column;
+    gap: fn.space(2);
+    max-block-size: 15rem;
+    overflow-y: auto;
+
+    &:not(:empty) {
+      margin-block: fn.space(3);
+      padding-block-start: fn.space(3);
+      border-block-start: 1px solid var(--ocs-accent-border);
+    }
+  }
+
+  &__msg {
+    padding: fn.space(2) fn.space(3);
+    border-radius: fn.radius(md);
+    font-size: 0.88rem;
+    line-height: 1.5;
+
+    code {
+      padding: 0.1em 0.3em;
+      border-radius: fn.radius(sm);
+      background: var(--ocs-surface-raised);
+      font-family: $editor-mono;
+      font-size: 0.85em;
+    }
+
+    // The reader's own question, aligned right the way a sent message is.
+    &--you {
+      align-self: flex-end;
+      max-inline-size: 85%;
+      background: var(--ocs-accent);
+      color: var(--ocs-accent-contrast);
+    }
+
+    &--coach {
+      background: var(--ocs-surface-base);
+      color: var(--ocs-text);
+    }
+  }
+
+  &__wait { color: var(--ocs-text-muted); font-style: italic; }
+
+  &__ask {
+    display: flex;
+    gap: fn.space(2);
+    margin-block-start: fn.space(3);
+
+    .ocs-input { flex: 1 1 auto; min-inline-size: 0; }
+  }
+
+  // The key is optional, so it stays folded away.
+  &__set {
+    margin-block-start: fn.space(3);
+    font-size: fn.typo(small);
+    color: var(--ocs-text-muted);
+
+    summary { cursor: pointer; }
+    p { margin: fn.space(2) 0; line-height: 1.5; }
+  }
+
+  &__setrow {
+    display: flex;
+    gap: fn.space(2);
+
+    .ocs-input { flex: 1 1 auto; min-inline-size: 0; }
+  }
+
+  &__hintline { margin-block-end: 0 !important; }
+}
+
+ol.steps {
+  list-style: none;
+  margin: 0;
+  padding: fn.space(3);
+  display: grid;
+  gap: fn.space(2);
+
+  li {
+    display: flex;
+    gap: fn.space(2);
+    align-items: flex-start;
+    font-size: 0.89rem;
+    color: var(--ocs-text-secondary);
+
+    .tk {
+      flex: none;
+      inline-size: 19px;
+      block-size: 19px;
+      border-radius: fn.radius(full);
+      display: grid;
+      place-items: center;
+      font-size: 0.66rem;
+      font-family: $editor-mono;
+      background: var(--ocs-surface-elevated);
+      color: var(--ocs-text-muted);
+      border: 1px solid var(--ocs-border);
+      margin-block-start: 2px;
+      transition: background fn.duration(fast) fn.easing(standard),
+                  color fn.duration(fast) fn.easing(standard);
+    }
+
+    &.on {
+      color: var(--ocs-text-muted);
+      text-decoration: line-through;
+      text-decoration-color: var(--ocs-border-strong);
+      .tk { background: var(--ocs-success); color: var(--ocs-text-inverse); border-color: var(--ocs-success); }
+    }
+  }
+}
+
+.targetbox { display: none; border-block-start: 1px solid var(--ocs-border-subtle); &.on { display: block; } }
+
+// ---------- unlocks ----------------------------------------------------------
+.shop { display: none; margin-block-start: fn.space(3); &.on { display: block; } }
+
+.shopitem {
+  display: flex;
+  gap: fn.space(4);
+  align-items: center;
+  padding: fn.space(2) 0;
+  border-block-start: 1px solid var(--ocs-border-subtle);
+
+  &:first-of-type { border-block-start: 0; }
+  b { font-size: 0.92rem; font-weight: 600; }
+  p { margin: 2px 0 0; font-size: 0.83rem; color: var(--ocs-text-muted); }
+  button { margin-inline-start: auto; flex: none; min-inline-size: 82px; }
+  &.owned b { color: var(--ocs-success); }
+}
+
+// ---------- token drawer -----------------------------------------------------
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: min(400px, 92vw);
+  background: var(--ocs-surface-raised);
+  border-inline-start: 1px solid var(--ocs-border);
+  z-index: fn.z(modal);
+  transform: translateX(100%);
+  transition: transform fn.duration(base) fn.easing(standard);
+  display: flex;
+  flex-direction: column;
+  box-shadow: fn.shadow(xl);
+
+  &.open { transform: none; }
+
+  header {
+    padding: fn.space(4);
+    border-block-end: 1px solid var(--ocs-border-subtle);
+    display: flex;
+    align-items: center;
+    gap: fn.space(2);
+
+    h3 { margin: 0; font-size: 0.98rem; font-weight: 650; margin-inline-end: auto; }
+  }
+  .search { padding: fn.space(3) fn.space(4); border-block-end: 1px solid var(--ocs-border-subtle); }
+}
+
+// ---------- beginner / everything ---------------------------------------------
+.tviews {
+  display: flex;
+  gap: fn.space(1);
+  margin: fn.space(3) fn.space(4) 0;
+  padding: fn.space(1);
+  border-radius: fn.radius(lg);
+  background: var(--ocs-surface-elevated);
+}
+
+.tview {
+  flex: 1 1 0;
+  padding: fn.space(2) fn.space(3);
+  border: 0;
+  border-radius: fn.radius(md);
+  background: none;
+  color: var(--ocs-text-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background fn.duration(fast) fn.easing(standard),
+              color      fn.duration(fast) fn.easing(standard);
+
+  &:focus-visible { outline: 2px solid var(--ocs-accent); outline-offset: -2px; }
+
+  // The chosen view is stated by aria-pressed as well; this is the visible half.
+  &.is-on {
+    background: var(--ocs-surface-base);
+    color: var(--ocs-text);
+    box-shadow: fn.shadow(sm);
+  }
+}
+
+// What is open, and what opens the rest. A student should never have to guess
+// whether the list is short because that is all there is.
+.tprog {
+  margin: fn.space(3) fn.space(4) 0;
+  color: var(--ocs-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+
+  b { color: var(--ocs-text); font-weight: 650; }
+}
+
+.tlist { flex: 1; overflow-y: auto; padding: fn.space(2); }
+
+// A group that has not been reached yet: one row, not thirty. It says how many
+// are inside and what opens them, so the gate reads as progress rather than as
+// something missing.
+// Sits above the locked rows, so the gate reads as one section rather than
+// as groups that went missing.
+.tgrp--locked {
+  margin-block-start: fn.space(4);
+  padding-block-start: fn.space(3);
+  border-block-start: 1px solid var(--ocs-border-subtle);
+}
+
+.tlock {
+  display: flex;
+  align-items: center;
+  gap: fn.space(2);
+  margin: fn.space(1) 0;
+  padding: fn.space(2) fn.space(3);
+  border: 1px dashed var(--ocs-border);
+  border-radius: fn.radius(lg);
+  color: var(--ocs-text-muted);
+  font-size: 0.82rem;
+
+  &__i { opacity: 0.75; font-size: 0.8rem; }
+  &__n { color: var(--ocs-text-secondary); font-weight: 550; }
+
+  &__c {
+    padding: 0 fn.space(2);
+    border-radius: fn.radius(full);
+    background: var(--ocs-surface-elevated);
+    font-family: $editor-mono;
+    font-size: $label-size;
+  }
+
+  &__w { margin-inline-start: auto; font-size: 0.74rem; text-align: end; }
+}
+
+// In Everything view a token past the current chapter is still usable, just
+// marked, so nobody pastes one thinking the lessons have covered it.
+.trow--ahead { opacity: 0.72; }
+
+.tahead {
+  margin-inline-start: fn.space(2);
+  padding: 0 fn.space(1) + 0.1rem;
+  border-radius: fn.radius(sm);
+  background: var(--ocs-warning-bg);
+  color: var(--ocs-warning);
+  font-family: $editor-mono;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tgrp {
+  font-family: $editor-mono;
+  font-size: $label-size;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+  padding: fn.space(3) fn.space(2) fn.space(1);
+}
+
+.trow {
+  display: flex;
+  align-items: center;
+  gap: fn.space(2);
+  inline-size: 100%;
+  text-align: start;
+  font: inherit;
+  background: none;
+  border: 0;
+  border-radius: fn.radius(lg);
+  padding: fn.space(1) fn.space(2);
+  cursor: pointer;
+  color: inherit;
+
+  &:hover { background: var(--ocs-surface-elevated); }
+  &:focus-visible { outline: 2px solid var(--ocs-accent); outline-offset: -2px; }
+
+  .sw {
+    inline-size: 19px;
+    block-size: 19px;
+    border-radius: fn.radius(md);
+    border: 1px solid var(--ocs-border);
+    flex: none;
+
+    // Spacing, radius and motion tokens have no colour to show. A dashed
+    // outline reads as "nothing to swatch here" rather than as a white chip
+    // that could be mistaken for the token's value.
+    &--none {
+      border-style: dashed;
+      background: none;
+    }
+  }
+  .nm { font-family: $editor-mono; font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vl { margin-inline-start: auto; font-family: $editor-mono; font-size: $label-size; color: var(--ocs-text-muted); flex: none; }
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--ocs-surface-overlay);
+  z-index: fn.z(modal-backdrop);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity fn.duration(base) fn.easing(standard);
+
+  &.on { opacity: 1; pointer-events: auto; }
+}
+
+// ---------- certificate ------------------------------------------------------
+.cert {
+  display: none;
+  margin-block-start: fn.space(8);
+  text-align: center;
+  padding: fn.space(8) fn.space(6);
+  background: linear-gradient(140deg, var(--ocs-accent-bg), var(--ocs-surface-raised));
+  border: 1px solid var(--ocs-accent-border);
+  border-radius: fn.radius(xl);
+
+  &.show { display: block; }
+  h3 { margin: 0 0 fn.space(2); font-size: 1.4rem; letter-spacing: -0.02em; }
+  > p { margin: 0 0 fn.space(4); color: var(--ocs-text-secondary); }
+
+  .stat {
+    display: flex;
+    justify-content: center;
+    gap: fn.space(8);
+    margin: fn.space(5) 0;
+    flex-wrap: wrap;
+
+    div  { font-family: $editor-mono; }
+    b    { display: block; font-size: 1.6rem; color: var(--ocs-brand); font-variant-numeric: tabular-nums; }
+    span { font-size: $label-size; color: var(--ocs-text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  }
+}
+
+// ---------- guided tour ------------------------------------------------------
+.tour { position: fixed; inset: 0; z-index: fn.z(tooltip); pointer-events: none; display: none; &.on { display: block; } }
+
+.spot {
+  position: absolute;
+  border-radius: fn.radius(xl);
+  box-shadow: 0 0 0 9999px rgba(12, 10, 9, 0.62);
+  transition: all fn.duration(slow) fn.easing(standard);
+  pointer-events: none;
+}
+
+.tourcard {
+  position: absolute;
+  inline-size: min(310px, 88vw);
+  background: var(--ocs-surface-raised);
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(xl);
+  padding: fn.space(4);
+  box-shadow: fn.shadow(xl);
+  pointer-events: auto;
+  transition: all fn.duration(slow) fn.easing(standard);
+
+  h4 { margin: 0 0 fn.space(1); font-size: 0.98rem; font-weight: 650; }
+  p  { margin: 0 0 fn.space(3); font-size: fn.typo(small); color: var(--ocs-text-secondary); line-height: 1.5; }
+}
+
+.trow2 { display: flex; gap: fn.space(1); align-items: center; .tiny { margin-inline-end: auto; } }
+
+// ---------- submission -------------------------------------------------------
+.submit {
+  margin-block-start: fn.space(4);
+  padding-block-start: fn.space(4);
+  border-block-start: 1px solid var(--ocs-border-subtle);
+  text-align: start;
+
+  &[hidden] { display: none; }
+
+  &__who {
+    display: grid;
+    gap: fn.space(2);
+    max-inline-size: 22rem;
+
+    .ocs-btn { justify-self: start; margin-block-start: fn.space(2); }
+  }
+
+  &__out {
+    margin-block-start: fn.space(5);
+
+    &[hidden] { display: none; }
+  }
+
+  &__label {
+    margin: 0 0 fn.space(2);
+    font-size: $label-size;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ocs-text-muted);
+  }
+
+  // The receipt is the thing a teacher copies, so it gets the weight of a
+  // value rather than of body text.
+  &__code {
+    display: flex;
+    align-items: center;
+    gap: fn.space(2);
+    padding: fn.space(3) fn.space(4);
+    border: 1px solid var(--ocs-accent-border);
+    border-radius: fn.radius(lg);
+    background: var(--ocs-accent-bg);
+
+    code {
+      flex: 1 1 auto;
+      font-family: $editor-mono;
+      font-size: 1.05rem;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+      color: var(--ocs-text);
+      user-select: all;
+    }
+  }
+
+  &__summary {
+    margin: fn.space(3) 0;
+    color: var(--ocs-text-secondary);
+    font-size: 0.85rem;
+  }
+}
+
+// ---------- odds and ends ----------------------------------------------------
+.tiny  { font-size: 0.78rem; color: var(--ocs-text-muted); margin: fn.space(2) 0 0; }
+.limits{ margin-block-start: fn.space(5); }
+.foot  { margin-block-start: fn.space(10); padding-block-start: fn.space(5);
+         border-block-start: 1px solid var(--ocs-border-subtle);
+         color: var(--ocs-text-muted); font-size: fn.typo(small); }
+
+.toast {
+  position: fixed;
+  inset-block-end: fn.space(5);
+  inset-inline-start: 50%;
+  transform: translate(-50%, 150%);
+  background: var(--ocs-text);
+  color: var(--ocs-surface-base);
+  padding: fn.space(2) fn.space(5);
+  border-radius: fn.radius(full);
+  font-size: fn.typo(small);
+  font-weight: 500;
+  z-index: fn.z(toast);
+  transition: transform fn.duration(base) fn.easing(standard);
+
+  &.on { transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, .spot, .tourcard, .drawer, .toast { transition: none !important; animation: none !important; }
+}

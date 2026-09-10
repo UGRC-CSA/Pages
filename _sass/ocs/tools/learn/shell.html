@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>SCSS Practice — OCS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn SCSS by building real components for the Open Coding Society design system.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>__OCSCSS__</style>
+<style>__PAGECSS__</style>
+</head>
+<!-- The page chrome runs on .ocs-light, one of the system's own themes. The
+     preview pane deliberately stays on the dark base so a student sees their
+     component on the surface it will actually live on. -->
+<body class="ocs-light">
+
+<header class="top"><div class="top-in">
+  <div class="brand"><b>OCS</b> SCSS Practice</div>
+  <div class="badges" id="badges"></div>
+  <div class="xp">
+    <span id="xptxt">0 XP</span>
+    <div class="ocs-progress"><div class="ocs-progress__bar" id="xpbar" style="width:0%"></div></div>
+  </div>
+  <span class="ocs-badge ocs-badge--brand" id="credtxt" title="Credits">0 cr</span>
+  <button class="ocs-btn ocs-btn--primary" id="shopbtn">Unlocks</button>
+  <button class="ocs-btn ocs-btn--primary" id="tokbtn" title="Ctrl/Cmd + K">Tokens</button>
+</div></header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Learn SCSS by <em>building real components</em></h1>
+    <p class="lede">Eleven quests across four chapters. Write code, watch it render, and get
+    checked as you type. Nothing to install.</p>
+  </div>
+
+  <div id="chapters"></div>
+
+  <!-- The brief and the checklist are one unit: what to do, and how you will
+       know you did it. Side by side on a wide screen so a student can read the
+       task and tick the steps without scrolling between them. -->
+  <div class="taskrow">
+  <div class="ocs-card brief" id="brief"></div>
+
+  <div class="panel steps-panel">
+    <div class="ph"><span class="lbl">your checklist</span>
+      <span class="grp">
+        <span class="ocs-badge ocs-badge--neutral" id="stepcount"></span>
+        <button class="ocs-btn ocs-btn--ghost" id="targetbtn">Show target</button>
+      </span></div>
+    <ol class="steps" id="steps"></ol>
+
+    <!-- Always visible, never behind a button. A student who does not know
+         what to do next should not have to work out where to ask. -->
+    <div class="coach" id="coach"></div>
+    <div class="targetbox" id="targetbox">
+      <div class="ph"><span class="lbl">what it should look like</span></div>
+      <div id="targetprev"></div>
+      <style id="targetstyle"></style>
+    </div>
+  </div>
+  </div>
+
+  <div class="ws">
+    <div class="panel">
+      <div class="ph"><span class="lbl">your scss</span>
+        <span class="grp">
+          <button class="ocs-btn ocs-btn--ghost" id="copy">Copy</button>
+          <button class="ocs-btn ocs-btn--ghost" id="reset">Start over</button>
+        </span></div>
+      <div class="ed-wrap">
+        <div class="gutter" id="gutter">1</div>
+        <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off"
+          aria-label="SCSS editor"></textarea>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="lbl">live preview</span><span id="verdict"></span></div>
+      <div id="preview"></div>
+      <div class="ph"><span class="lbl">compiled css</span><span class="meter" id="meter"></span></div>
+      <pre id="cssout"></pre>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-block-start:var(--ocs-space-3)">
+    <div class="ph"><span class="lbl">checks</span>
+      <span class="ocs-badge ocs-badge--neutral" id="ccount"></span></div>
+    <div class="pad" id="notes"></div>
+  </div>
+
+  <div class="cert" id="cert">
+    <h3>All eleven quests done.</h3>
+    <p>You can write components for the OCS design system now.</p>
+    <div class="stat">
+      <div><b id="certDone">0</b><span>quests</span></div>
+      <div><b id="certXP">0</b><span>xp earned</span></div>
+      <div><b>11</b><span>badges</span></div>
+    </div>
+    <div class="grp">
+      <button class="ocs-btn ocs-btn--primary" id="submitbtn">Submit my work</button>
+      <button class="ocs-btn ocs-btn--secondary" onclick="exportAll()">Download my solutions</button>
+    </div>
+
+    <!-- Filled in by buildSubmission(). Kept in the page rather than a modal so
+         a student can read the receipt and their own code side by side. -->
+    <div class="submit" id="submitbox" hidden>
+      <div class="submit__who">
+        <label class="ocs-label" for="subname">Your name</label>
+        <input class="ocs-input" id="subname" autocomplete="name" placeholder="Ada Lovelace">
+        <label class="ocs-label" for="subgh">GitHub username</label>
+        <input class="ocs-input" id="subgh" autocomplete="username" placeholder="alovelace">
+        <button class="ocs-btn ocs-btn--primary" id="subgen">Generate receipt</button>
+      </div>
+
+      <div class="submit__out" id="submitout" hidden>
+        <p class="submit__label">Paste this into the gradebook</p>
+        <div class="submit__code"><code id="subcode"></code>
+          <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="subcopy">Copy</button></div>
+        <p class="submit__summary" id="subsummary"></p>
+        <button class="ocs-btn ocs-btn--secondary" id="subfile">Download the full submission</button>
+        <p class="tiny">The code is made from the work you actually wrote. Hand in the same
+          work twice and you get the same code. It is a receipt, not a lock. Everything on
+          this page runs in your browser, so treat it like any other homework.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ocs-card shop" id="shop">
+    <div class="ocs-card__header"><h3 class="ocs-card__title">Unlocks</h3></div>
+    <div class="ocs-card__body">
+      <p class="tiny" style="margin-block-start:0">You earn 10 credits each time you solve a quest.
+         These are things that let you keep going further, not decorations.</p>
+      <div id="shoplist"></div>
+    </div>
+  </div>
+
+  <div class="ocs-alert ocs-alert--info limits">
+    <div class="ocs-alert__content">
+      <p class="ocs-alert__title">Shortcuts and limits</p>
+      <p><kbd class="ocs-kbd">Tab</kbd> indents &middot;
+         <kbd class="ocs-kbd">Ctrl</kbd>+<kbd class="ocs-kbd">K</kbd> opens the token list.
+         Your code saves automatically per quest.</p>
+      <p>The compiler in this page handles the part of SCSS you need for components: nesting, the
+         <code class="ocs-code-inline">&amp;</code> parent selector,
+         <code class="ocs-code-inline">$variables</code>, and comments. It is not full Sass &mdash; no
+         <code class="ocs-code-inline">@mixin</code>, <code class="ocs-code-inline">@each</code> or
+         <code class="ocs-code-inline">@if</code>. Those work in the real repo, which builds with
+         Ruby Sass 3.7.4.</p>
+    </div>
+  </div>
+
+  <p class="foot">
+    See the finished system: <a href="./design-system/">component docs</a> &middot;
+    <a href="./capstone/ocs-design-system/">capstone page</a><br>
+    This page is itself built from the components it teaches.<br>
+    Source in <code class="ocs-code-inline">_sass/ocs/tools/learn/</code> &middot;
+    <a href="https://github.com/UGRC-CSA/Pages/issues/34">discussion</a><br>
+    <span class="grp" style="display:inline-flex;gap:.4rem;margin-block-start:.6rem">
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="tourbtn">Replay the tour</button>
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="export">Download my solutions</button>
+      <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="resetall">Clear progress</button>
+    </span>
+  </p>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Design tokens">
+  <header><h3>Design tokens</h3>
+    <button class="ocs-btn ocs-btn--ghost ocs-btn--sm" id="tokclose">Close</button></header>
+
+  <!-- Beginner hides the groups no lesson has reached yet. Everything is the
+       way out for anyone who wants to look ahead, and for a mentor demoing. -->
+  <div class="tviews" role="group" aria-label="How many tokens to show">
+    <button class="tview is-on" id="viewBeginner" aria-pressed="true">Beginner</button>
+    <button class="tview" id="viewAll" aria-pressed="false">Everything</button>
+  </div>
+
+  <p class="tprog" id="tprog" role="status"></p>
+
+  <div class="search">
+    <input class="ocs-input" id="tsearch" placeholder="Search tokens..." aria-label="Search tokens">
+  </div>
+  <div class="tlist" id="tlist"></div>
+</aside>
+<div class="toast" id="toast"></div>
+<div class="tour" id="tour"><div class="spot" id="spot"></div><div class="tourcard" id="tourcard"></div></div>
+
+<script>__COMPILER__</script>
+<script>__TUTOR__</script>
+<script>__TOKENS__</script>
+<script>__SHOP__</script>
+<script>__EXERCISES__</script>
+<script>__APP__</script>
+</body></html>
