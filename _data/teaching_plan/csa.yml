@@ -1,0 +1,147 @@
+# CSA Sprint 2 teaching plan: who teaches what, on which day, for which period.
+#
+# Change this file by pull request. The calendar reads it when the site builds.
+# Every key is explained in README.md next to this file. Dates come from
+# _data/school_calendar.yml: week 6 is 2026-09-21 to 09-25, week 7 is
+# 2026-09-28 to 10-02, and 2026-09-29 is a non-student day.
+
+course: CSA
+sprint: 2
+
+# Bump the date and add a line each time the plan changes, so a stale plan is
+# visible on the calendar.
+last_updated: "2026-09-08"
+changes:
+  - date: "2026-09-08"
+    note: "First version. Checkpoints follow the teacher's sample weeks. Lesson rows are proposed, not confirmed."
+
+# The four College Board FRQ types. `frq` on a lesson row must be one of these.
+frq_types:
+  - "Methods and Control Structures"
+  - "Classes"
+  - "Arrays / ArrayLists"
+  - "2D Array"
+
+periods:
+  # CSA runs in bell period 2 this year (application.properties on the backend).
+  "2":
+    # OCS login ids of the Education Leaders for this period. Empty until the
+    # teacher names them.
+    leaders: []
+
+    slots:
+      # ---------------------------------------------------------------- Week 6
+      - id: csa-p2-w6-mon-checkpoint
+        date: "2026-09-21"
+        kind: checkpoint
+        topic: "Checkpoint on Lesson PRs"
+
+      - id: csa-p2-w6-tue-chat
+        date: "2026-09-22"
+        kind: lesson
+        status: proposed
+        topic: "Chat and WebSockets"
+        team: "UGRC"
+        presenters:
+          - { name: "Samarth", uid: "" }
+          - { name: "Akshaj", uid: "" }
+          - { name: "Tarun", uid: "" }
+        builds: "UGRC builds the course chat: class announcements, week threads, and direct messages."
+        project_url: /capstone/ocs-communications/
+        lesson: ""
+        frq: "Classes"
+
+      - id: csa-p2-w6-wed-checkpoint
+        date: "2026-09-23"
+        kind: checkpoint
+        topic: "Create HW and Grading Stats"
+
+      - id: csa-p2-w6-wed-groups
+        date: "2026-09-23"
+        kind: lesson
+        status: proposed
+        topic: "API, MVC, and security systems"
+        team: "UGRC"
+        presenters:
+          - { name: "Sathwik", uid: "" }
+          - { name: "Akhil", uid: "" }
+          - { name: "Skandan", uid: "" }
+        builds: "This UGRC team hosts the backend on AWS and owns the Groups management page."
+        project_url: /capstone/ocs-communications/
+        lesson: ""
+        frq: "Methods and Control Structures"
+
+      - id: csa-p2-w6-thu-roles
+        date: "2026-09-24"
+        kind: lesson
+        status: proposed
+        topic: "Roles in submitting, teaching, and grading"
+        team: "AAA"
+        presenters:
+          - { name: "Aneesh Deevi", uid: "" }
+          - { name: "Aditya Srivastava", uid: "" }
+          - { name: "Aaryav Lal", uid: "" }
+        builds: "AAA builds OCS Submissions: who may create an assignment, who may grade it, and the analytics behind it."
+        project_url: ""   # AAA's capstone page is not on this site yet
+        lesson: ""
+        frq: "Classes"
+
+      - id: csa-p2-w6-fri-ai-grading
+        date: "2026-09-25"
+        kind: lesson
+        status: proposed
+        topic: "AI pipeline in grading"
+        team: "Compute-Cuties"
+        presenters: []
+        builds: "Compute-Cuties builds the AI autograder: a rubric per assignment and a Gemini call that scores a submission against it."
+        project_url: ""
+        lesson: ""
+        frq: "Arrays / ArrayLists"
+
+      # ---------------------------------------------------------------- Week 7
+      - id: csa-p2-w7-mon-checkpoint
+        date: "2026-09-28"
+        kind: checkpoint
+        topic: "Checkpoint and Lesson Grades"
+
+      - id: csa-p2-w7-mon-update
+        date: "2026-09-28"
+        kind: checkpoint
+        topic: "Update HW and Grading Stats"
+
+      # 2026-09-29 is a non-student day. No lesson.
+
+      - id: csa-p2-w7-wed-checkpoint
+        date: "2026-09-30"
+        kind: checkpoint
+        topic: "Update HW and Grading Stats"
+
+      - id: csa-p2-w7-wed-login
+        date: "2026-09-30"
+        kind: lesson
+        status: proposed
+        topic: "JWT login and cookies"
+        team: "Admin"
+        presenters: []
+        builds: "The Admin table owns login: password reset with OAuth and student ID, password rules, rate limits, and the code runner's sandbox."
+        project_url: ""
+        lesson: ""
+        frq: "Methods and Control Structures"
+
+      - id: csa-p2-w7-thu-sass
+        date: "2026-10-01"
+        kind: lesson
+        status: proposed
+        topic: "Designing SASS utilities and runners similar to Tailwind class definitions"
+        team: "UGRC"
+        presenters:
+          - { name: "Samarth", uid: "" }
+        builds: "The OCS design system: one list of colours and sizes, fifteen components, and a docs page, all in SCSS."
+        project_url: /capstone/ocs-design-system/   # lands with UGRC-CSA/Pages#38
+        lesson: ""
+        frq: "2D Array"
+
+      - id: csa-p2-w7-fri-submit
+        date: "2026-10-02"
+        kind: checkpoint
+        topic: "Complete and Submit HW and Grading Stats"
