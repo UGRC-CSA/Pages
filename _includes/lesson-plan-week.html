@@ -1,0 +1,82 @@
+{% comment %}
+  lesson-plan-week.html
+  The teaching plan rows for one week, on a course page's week card.
+
+  Expects: index (the week number) and page.course (for example "csa").
+  Sets lpw_count in the caller's scope, so the card can decide to show.
+  Include with mode="count" to only compute lpw_count; include without it
+  to render. Renders nothing when the plan has no row in the week.
+
+  Rows are strings "date||period||slot index" so they sort by day, then
+  period, across every period of the course.
+{% endcomment %}
+{% assign lpw_plan = site.data.teaching_plan[page.course] %}
+{% assign lpw_week = site.data.school_calendar.weeks[index] %}
+{% assign lpw_keys = "" | split: "" %}
+{% if lpw_plan and lpw_plan.periods and lpw_week %}
+  {% for lpw_period in lpw_plan.periods %}
+    {% for lpw_slot in lpw_period[1].slots %}
+      {% if lpw_slot.date and lpw_slot.date >= lpw_week.monday and lpw_slot.date <= lpw_week.friday %}
+        {% assign lpw_key = lpw_slot.date | append: "||" | append: lpw_period[0] | append: "||" | append: forloop.index0 %}
+        {% assign lpw_keys = lpw_keys | push: lpw_key %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+{% endif %}
+{% assign lpw_count = lpw_keys.size %}
+{% if include.mode != "count" and lpw_count > 0 %}
+{% unless lpw_css_done %}
+{% comment %} Until #35 puts ocs.css on the layout, the first card links it. {% endcomment %}
+<link rel="stylesheet" href="{{ '/assets/css/ocs.css' | relative_url }}">
+<style>
+  .week-plan { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--ocs-border-subtle, #26262c); border-radius: 10px; }
+  .week-plan__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .week-plan__title { font-weight: 600; font-size: 0.95rem; }
+  .week-plan__links { font-size: 0.82rem; color: var(--ocs-text-muted, #a1a1aa); }
+  .week-plan .ocs-agenda__day { padding-bottom: 8px; }
+</style>
+{% assign lpw_css_done = true %}
+{% endunless %}
+{% assign lpw_sorted = lpw_keys | sort %}
+{% assign lpw_prev = "" %}
+<div class="week-plan">
+  <div class="week-plan__head">
+    <span class="week-plan__title">Teaching this week</span>
+    <span class="week-plan__links"><a href="{{ '/student/calendar' | relative_url }}#lessons">Lessons tab</a> &middot; <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}/edit/main/_data/teaching_plan/{{ page.course }}.yml">Edit the plan</a></span>
+  </div>
+  <ol class="ocs-agenda ocs-agenda--compact">
+  {% for lpw_key in lpw_sorted %}
+    {% assign lpw_p = lpw_key | split: "||" %}
+    {% assign lpw_pk = lpw_p[1] %}
+    {% assign lpw_i = lpw_p[2] | plus: 0 %}
+    {% assign lpw_period_slots = lpw_plan.periods[lpw_pk].slots %}
+    {% assign lpw_slot = lpw_period_slots[lpw_i] %}
+    {% if lpw_p[0] != lpw_prev %}
+      {% unless lpw_prev == "" %}</ul></li>{% endunless %}
+      <li class="ocs-agenda__day">
+        <div class="ocs-agenda__heading"><span class="ocs-agenda__date">{{ lpw_p[0] | date: "%a %-d %b" }}</span></div>
+        <ul class="ocs-agenda__items">
+      {% assign lpw_prev = lpw_p[0] %}
+    {% endif %}
+    {% if lpw_slot.kind == "checkpoint" %}
+      <li><div class="ocs-agenda__item ocs-agenda__item--muted">
+        <span class="ocs-agenda__lead">All</span>
+        <span class="ocs-agenda__body"><span class="ocs-agenda__title">{{ lpw_slot.topic | escape }}</span></span>
+      </div></li>
+    {% else %}
+      {% if lpw_slot.lesson and lpw_slot.lesson != "" %}{% assign lpw_href = lpw_slot.lesson | relative_url %}{% else %}{% assign lpw_href = '/student/calendar' | relative_url | append: '#lessons' %}{% endif %}
+      {% assign lpw_names = "" %}{% for lpw_pr in lpw_slot.presenters %}{% assign lpw_names = lpw_names | append: lpw_pr.name %}{% unless forloop.last %}{% assign lpw_names = lpw_names | append: ", " %}{% endunless %}{% endfor %}
+      <li><a class="ocs-agenda__item" href="{{ lpw_href }}">
+        <span class="ocs-agenda__lead"><span class="ocs-badge">P{{ lpw_p[1] }}</span></span>
+        <span class="ocs-agenda__body">
+          <span class="ocs-agenda__title">{{ lpw_slot.topic | escape }}</span>
+          <span class="ocs-agenda__meta">{{ lpw_slot.team | escape }}{% if lpw_names != "" %} &middot; {{ lpw_names | escape }}{% endif %}{% if lpw_slot.lesson == "" or lpw_slot.lesson == nil %} &middot; page not published yet{% endif %}</span>
+        </span>
+        {% if lpw_slot.status == "proposed" %}<span class="ocs-agenda__tail"><span class="ocs-badge ocs-badge--warning">proposed</span></span>{% endif %}
+      </a></li>
+    {% endif %}
+  {% endfor %}
+  {% unless lpw_prev == "" %}</ul></li>{% endunless %}
+  </ol>
+</div>
+{% endif %}

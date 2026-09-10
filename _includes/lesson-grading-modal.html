@@ -1,0 +1,27 @@
+<!-- Grading view for one lesson's homework, opened from the lesson panel.
+     LessonGrading.js fills it. A native <dialog> on ocs-modal, like the
+     lesson panel. -->
+<dialog class="ocs-modal ocs-modal--wide lesson-panel lesson-grading" id="gradingModal" aria-labelledby="gradingModalTitle">
+  <form method="dialog" class="ocs-modal__panel">
+    <header class="ocs-modal__header">
+      <div class="lesson-panel__heading">
+        <p class="lesson-panel__kicker">Grading</p>
+        <h2 class="ocs-modal__title" id="gradingModalTitle"></h2>
+      </div>
+      <button class="ocs-modal__close" value="cancel" aria-label="Close">&times;</button>
+    </header>
+
+    <div class="ocs-modal__body">
+      <p class="lesson-panel__note" id="gradingModalFacts"></p>
+      <p class="lesson-grading__scale" id="gradingModalScale"></p>
+      <div id="gradingModalBody"></div>
+    </div>
+
+    <footer class="ocs-modal__footer">
+      <span class="lesson-panel__copied" id="gradingModalCopied" role="status" aria-live="polite"></span>
+      <button type="button" class="ocs-btn ocs-btn--ghost" id="gradingModalBack">Back to the lesson</button>
+      <button type="button" class="ocs-btn ocs-btn--ghost" id="gradingModalCopy">Copy summary</button>
+      <button class="ocs-btn ocs-btn--primary" value="cancel">Close</button>
+    </footer>
+  </form>
+</dialog>
