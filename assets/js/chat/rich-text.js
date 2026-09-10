@@ -24,6 +24,12 @@ const MAX_LENGTH_DEFAULT = 2000;
 
 const URL_RE = /https?:\/\/[^\s<>()]+/g;
 
+// Zero-width space + BOM: some browsers seed an empty contenteditable with one
+// and paste can carry them in. They must never count as content or reach a
+// stored message, so strip them on the way through the sanitiser and in the
+// composer's own length / empty checks.
+const INVISIBLE_RE = /[​﻿]/g;
+
 // The only inline tags a message may contain. Anything else is unwrapped
 // (its text is kept, the tag is dropped).
 const INLINE_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE']);
@@ -63,7 +69,7 @@ const EMOJI = [
 
 function linkifyText(text, insideAnchor) {
   const frag = document.createDocumentFragment();
-  const value = String(text);
+  const value = String(text).replace(INVISIBLE_RE, '');
   if (insideAnchor) {
     frag.appendChild(document.createTextNode(value));
     return frag;
@@ -105,6 +111,13 @@ function safeHref(raw) {
   return /^(https?:\/\/|mailto:)/i.test(href) ? href : null;
 }
 
+// True unless the element is empty or holds nothing but empty text nodes —
+// used to discard the leftover carrier spans the composer parks the caret in.
+function hasContent(el) {
+  if (el.querySelector('br, li')) return true;
+  return el.textContent.replace(INVISIBLE_RE, '').length > 0;
+}
+
 function cleanChildren(source, target, insideAnchor) {
   source.childNodes.forEach((child) => {
     target.appendChild(cleanNode(child, insideAnchor));
@@ -132,9 +145,17 @@ function cleanNode(node, insideAnchor) {
     return frag;
   }
 
-  if (INLINE_TAGS.has(tag) || LIST_TAGS.has(tag)) {
+  if (INLINE_TAGS.has(tag)) {
     const el = document.createElement(tag.toLowerCase());
     cleanChildren(node, el, insideAnchor);
+    return hasContent(el) ? el : document.createDocumentFragment();
+  }
+
+  if (LIST_TAGS.has(tag)) {
+    const el = document.createElement(tag.toLowerCase());
+    cleanChildren(node, el, insideAnchor);
+    // contenteditable pads an empty/just-typed <li> with a trailing <br>
+    if (tag === 'LI' && el.lastChild && el.lastChild.nodeName === 'BR') el.removeChild(el.lastChild);
     return el;
   }
 
@@ -151,6 +172,7 @@ function cleanNode(node, insideAnchor) {
     const el = document.createElement(kept.length ? 'span' : decoration);
     if (kept.length) el.className = kept.join(' ');
     cleanChildren(node, el, insideAnchor);
+    if (!hasContent(el)) return document.createDocumentFragment();
     if (kept.length && decoration) {
       const outer = document.createElement(decoration);
       outer.appendChild(el);
@@ -184,6 +206,7 @@ function sanitizeToFragment(raw) {
   const doc = new DOMParser().parseFromString(String(raw ?? ''), 'text/html');
   const frag = document.createDocumentFragment();
   cleanChildren(doc.body, frag, false);
+  while (frag.lastChild && frag.lastChild.nodeName === 'BR') frag.removeChild(frag.lastChild);
   return frag;
 }
 
@@ -266,22 +289,135 @@ export function createRichComposer(opts = {}) {
   function restoreSelection() {
     editor.focus();
     if (!savedRange) return false;
+    try {
+      const sel = document.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(savedRange);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /* Sticky font family / size. Picking "Monospace" or "Large" sets the mode
+     here; the beforeinput handler then wraps whatever the user types next
+     until they pick "Sans-serif" / "Normal" again (or hit Clear formatting).
+     A selection that isn't collapsed is still styled in place, one shot. */
+  const typingFormat = { 'rt-font-': '', 'rt-size-': '' };
+  let suppressSticky = false;
+
+  function stickyClasses() {
+    return [typingFormat['rt-font-'], typingFormat['rt-size-']].filter(Boolean);
+  }
+
+  const RT_SPAN_SEL = 'span[class*="rt-font-"], span[class*="rt-size-"]';
+
+  // The rt-styled span the caret is directly inside, if its class set is
+  // exactly `classes` (so more typing can just flow into it).
+  function styledSpanAtCaret(classes) {
     const sel = document.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    let node = sel.getRangeAt(0).startContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    const span = node && node.closest ? node.closest('span[class]') : null;
+    if (!span || !editor.contains(span)) return null;
+    const wanted = classes.slice().sort().join(' ');
+    const have = Array.from(span.classList).sort().join(' ');
+    return wanted === have ? span : null;
+  }
+
+  function caretInRtSpan() {
+    const sel = document.getSelection();
+    if (!sel || !sel.rangeCount) return false;
+    let node = sel.getRangeAt(0).startContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    return !!(node && node.closest && editor.contains(node) && node.closest(RT_SPAN_SEL));
+  }
+
+  // Step the caret just past the nearest font/size span (splitting it so text
+  // after the caret stays put) so a new run lands beside it, not nested inside
+  // and inheriting it. Anything else the caret is in — <b>, <li> — is left
+  // alone; only the font/size wrapper is escaped.
+  function escapeRtSpan(sel) {
+    let range = sel.getRangeAt(0);
+    let el = range.startContainer;
+    if (el.nodeType === Node.TEXT_NODE) el = el.parentElement;
+    const rtSpan = el && el.closest ? el.closest(RT_SPAN_SEL) : null;
+    if (!rtSpan || !editor.contains(rtSpan)) return range;
+
+    const tail = document.createRange();
+    tail.setStart(range.startContainer, range.startOffset);
+    tail.setEnd(rtSpan, rtSpan.childNodes.length);
+    const tailFrag = tail.extractContents();
+
+    const next = document.createRange();
+    if (tailFrag.textContent.replace(INVISIBLE_RE, '') !== '' || tailFrag.querySelector('br')) {
+      const clone = rtSpan.cloneNode(false);
+      clone.appendChild(tailFrag);
+      rtSpan.parentNode.insertBefore(clone, rtSpan.nextSibling);
+      next.setStartBefore(clone);
+    } else {
+      next.setStartAfter(rtSpan);
+    }
+    next.collapse(true);
     sel.removeAllRanges();
-    sel.addRange(savedRange);
+    sel.addRange(next);
+    return next;
+  }
+
+  function insertStyledText(text) {
+    const classes = stickyClasses();
+    if (!restoreSelection()) return false;
+    const sel = document.getSelection();
+    if (!sel.rangeCount) return false;
+    let range = sel.getRangeAt(0);
+    range.deleteContents();
+    range = escapeRtSpan(sel);
+
+    // Merge into an identical span sitting right before the caret, if any.
+    const want = classes.slice().sort().join(' ');
+    const prev = range.startContainer.nodeType === Node.ELEMENT_NODE
+      ? range.startContainer.childNodes[range.startOffset - 1]
+      : null;
+    const mergeInto = classes.length && prev && prev.nodeType === Node.ELEMENT_NODE
+      && prev.tagName === 'SPAN' && Array.from(prev.classList).sort().join(' ') === want
+      ? prev : null;
+
+    let textNode;
+    if (mergeInto) {
+      textNode = document.createTextNode(text);
+      mergeInto.appendChild(textNode);
+    } else if (classes.length) {
+      const span = document.createElement('span');
+      span.className = classes.join(' ');
+      textNode = document.createTextNode(text);
+      span.appendChild(textNode);
+      range.insertNode(span);
+    } else {
+      textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+    }
+    const after = document.createRange();
+    after.setStart(textNode, text.length);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+    savedRange = after.cloneRange();
     return true;
   }
 
-  function exec(command) {
-    editor.focus();
-    // Emit tags (<b>, <i>…) rather than inline styles, so the sanitiser keeps them.
-    try { document.execCommand('styleWithCSS', false, false); } catch (_) { /* ignore */ }
-    document.execCommand(command, false, null);
-    syncToolbarState();
-    handleChange();
+  // Empty font/size spans left behind when a run is stepped out of — drop the
+  // ones the caret isn't in so they don't accumulate while composing.
+  function pruneEmptyRtSpans() {
+    const sel = document.getSelection();
+    const caretNode = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    editor.querySelectorAll(RT_SPAN_SEL).forEach((span) => {
+      if (caretNode && span.contains(caretNode)) return;
+      if (!span.querySelector('br') && span.textContent.replace(INVISIBLE_RE, '') === '') span.remove();
+    });
   }
 
-  function applyGroupClass(prefix, className) {
+  function applyGroupToRange(prefix, className) {
     if (!restoreSelection()) return;
     const sel = document.getSelection();
     if (!sel.rangeCount) return;
@@ -317,26 +453,53 @@ export function createRichComposer(opts = {}) {
     handleChange();
   }
 
-  function insertText(text) {
+  function setGroupFormat(prefix, className) {
+    typingFormat[prefix] = className;
     restoreSelection();
-    if (!document.execCommand('insertText', false, text)) {
-      const sel = document.getSelection();
-      if (sel && sel.rangeCount) {
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
-        const node = document.createTextNode(text);
-        range.insertNode(node);
-        range.setStartAfter(node);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        editor.appendChild(document.createTextNode(text));
-      }
+    const sel = document.getSelection();
+    if (sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+      applyGroupToRange(prefix, className);
     }
-    savedRange = document.getSelection().rangeCount
-      ? document.getSelection().getRangeAt(0).cloneRange()
-      : null;
+    editor.focus();
+    handleChange();
+  }
+
+  function exec(command) {
+    editor.focus();
+    // Emit tags (<b>, <i>…) rather than inline styles, so the sanitiser keeps them.
+    try { document.execCommand('styleWithCSS', false, false); } catch (_) { /* ignore */ }
+    document.execCommand(command, false, null);
+    syncToolbarState();
+    handleChange();
+  }
+
+  // Insert a literal string (emoji, pasted text) at the caret. Bypasses the
+  // sticky font/size wrapping — these are "drop this in", not "type".
+  function insertText(text) {
+    suppressSticky = true;
+    try {
+      restoreSelection();
+      if (!document.execCommand('insertText', false, text)) {
+        const sel = document.getSelection();
+        if (sel && sel.rangeCount) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          const node = document.createTextNode(text);
+          range.insertNode(node);
+          range.setStartAfter(node);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          editor.appendChild(document.createTextNode(text));
+        }
+      }
+      savedRange = document.getSelection().rangeCount
+        ? document.getSelection().getRangeAt(0).cloneRange()
+        : null;
+    } finally {
+      suppressSticky = false;
+    }
     handleChange();
   }
 
@@ -372,46 +535,61 @@ export function createRichComposer(opts = {}) {
   const bulletBtn = button('&#8226; &#8801;', 'Bulleted list', () => exec('insertUnorderedList'));
   const numberBtn = button('1. &#8801;', 'Numbered list', () => exec('insertOrderedList'));
 
+  function resetTypingFormat() {
+    typingFormat['rt-font-'] = '';
+    typingFormat['rt-size-'] = '';
+    fontSelect.value = '';
+    sizeSelect.value = '';
+  }
+
   const fontSelect = document.createElement('select');
   fontSelect.className = 'rt-select rt-font-select';
-  fontSelect.title = 'Font';
+  fontSelect.title = 'Font — applies to selected text, or to what you type next';
   fontSelect.setAttribute('aria-label', 'Font family');
   FONT_OPTIONS.forEach((o) => fontSelect.add(new Option(o.label, o.value)));
   fontSelect.addEventListener('mousedown', () => restoreSelection());
-  fontSelect.addEventListener('change', () => {
-    applyGroupClass('rt-font-', fontSelect.value);
-    fontSelect.selectedIndex = 0;
-  });
+  fontSelect.addEventListener('change', () => setGroupFormat('rt-font-', fontSelect.value));
 
   const sizeSelect = document.createElement('select');
   sizeSelect.className = 'rt-select rt-size-select';
-  sizeSelect.title = 'Font size';
+  sizeSelect.title = 'Size — applies to selected text, or to what you type next';
   sizeSelect.setAttribute('aria-label', 'Font size');
   SIZE_OPTIONS.forEach((o) => sizeSelect.add(new Option(o.label, o.value)));
   sizeSelect.value = '';
   sizeSelect.addEventListener('mousedown', () => restoreSelection());
-  sizeSelect.addEventListener('change', () => {
-    applyGroupClass('rt-size-', sizeSelect.value);
-    sizeSelect.value = '';
-  });
+  sizeSelect.addEventListener('change', () => setGroupFormat('rt-size-', sizeSelect.value));
 
   const emojiBtn = button('🙂', 'Emoji', () => toggleEmojiPanel(), 'rt-emoji-toggle');
-  const clearBtn = button('&#10007;', 'Clear formatting', () => {
-    editor.focus();
-    document.execCommand('removeFormat', false, null);
-    // removeFormat leaves our font/size spans alone — strip those too.
+
+  // An eraser — "remove every style from the selection and go back to plain text".
+  const ERASER_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" '
+    + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/>'
+    + '<path d="M22 21H7"/><path d="m5 11 9 9"/></svg>';
+  const clearBtn = button(ERASER_ICON, 'Clear formatting — back to plain text', () => {
+    resetTypingFormat();
+    if (!restoreSelection()) editor.focus();
     const sel = document.getSelection();
     if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
       const range = sel.getRangeAt(0);
       const holder = document.createElement('div');
       holder.appendChild(range.extractContents());
-      stripGroupSpans(holder, 'rt-font-');
-      stripGroupSpans(holder, 'rt-size-');
+      // Drop every character-formatting wrapper, keep the text, <br>, and any
+      // list structure inside the selection.
+      holder.querySelectorAll('b, strong, i, em, u, s, strike, font, span').forEach((el) => {
+        el.replaceWith(...el.childNodes);
+      });
       const frag = document.createDocumentFragment();
       frag.append(...holder.childNodes);
       range.insertNode(frag);
+      editor.normalize();
+      const end = document.createRange();
+      end.selectNodeContents(editor);
+      end.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(end);
+      savedRange = end.cloneRange();
     }
-    editor.normalize();
     syncToolbarState();
     handleChange();
   });
@@ -448,7 +626,12 @@ export function createRichComposer(opts = {}) {
     document.addEventListener('click', (e) => {
       if (emojiOpen && !root.contains(e.target) && !emojiPanel.contains(e.target)) closeEmojiPanel();
     });
-    window.addEventListener('scroll', () => closeEmojiPanel(), true);
+    // Capture-phase, so it also sees scrolls on the page behind the panel —
+    // but scrolling *inside* the tray (its own element is the scroll target)
+    // is how the user reaches the emoji further down, so that must not close it.
+    window.addEventListener('scroll', (e) => {
+      if (e.target !== emojiPanel) closeEmojiPanel();
+    }, true);
   }
 
   function toggleEmojiPanel() {
@@ -463,7 +646,7 @@ export function createRichComposer(opts = {}) {
     const viewW = document.documentElement.clientWidth;
     const viewH = document.documentElement.clientHeight;
     const panelW = emojiPanel.offsetWidth || 300;
-    const panelH = Math.min(240, emojiPanel.offsetHeight || 240);
+    const panelH = Math.min(300, emojiPanel.offsetHeight || 300);
     emojiPanel.style.left = `${Math.max(8, Math.min(r.left, viewW - panelW - 8))}px`;
     emojiPanel.style.top = r.top > panelH + 12
       ? `${r.top - panelH - 6}px`
@@ -481,10 +664,8 @@ export function createRichComposer(opts = {}) {
 
   /* editor behaviour -------------------------------------------- */
 
-  // Character class holds a literal zero-width space and BOM — some browsers
-  // seed an empty contenteditable with one, and it must not count as content.
   function plainText() {
-    return editor.textContent.replace(/[​﻿]/g, '');
+    return editor.textContent.replace(INVISIBLE_RE, '');
   }
 
   function isEmpty() {
@@ -511,6 +692,7 @@ export function createRichComposer(opts = {}) {
   }
 
   function handleChange() {
+    pruneEmptyRtSpans();
     updatePlaceholder();
     editor.classList.toggle('is-over-limit', textLength() > maxLength);
     onInput({ isEmpty: isEmpty(), length: textLength(), overLimit: textLength() > maxLength });
@@ -520,11 +702,45 @@ export function createRichComposer(opts = {}) {
   editor.addEventListener('keyup', syncToolbarState);
   editor.addEventListener('mouseup', syncToolbarState);
 
-  editor.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
-      e.preventDefault();
-      onSubmit();
+  function inListItem() {
+    const sel = document.getSelection();
+    if (!sel || !sel.rangeCount) return false;
+    let node = sel.getRangeAt(0).startContainer;
+    while (node && node !== editor) {
+      if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'LI') return true;
+      node = node.parentNode;
     }
+    return false;
+  }
+
+  editor.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    if (e.shiftKey) {
+      // Shift+Enter is a soft newline; inside a list that means the next item.
+      if (inListItem()) {
+        e.preventDefault();
+        document.execCommand('insertParagraph', false, null);
+        syncToolbarState();
+        handleChange();
+      }
+      return; // outside a list, let the browser drop in its <br>
+    }
+    e.preventDefault();
+    onSubmit();
+  });
+
+  // Sticky font / size. If the caret is already in a span that carries exactly
+  // the armed mode, let the browser type into it. Otherwise take over: wrap the
+  // text in the armed mode, or — when nothing is armed but the caret is stuck
+  // in a stale font/size span — step the new text out to plain.
+  editor.addEventListener('beforeinput', (e) => {
+    if (suppressSticky || e.isComposing) return;
+    if (e.inputType !== 'insertText' || typeof e.data !== 'string' || !e.data) return;
+    const classes = stickyClasses();
+    if (styledSpanAtCaret(classes)) return;
+    if (!classes.length && !caretInRtSpan()) return;
+    e.preventDefault();
+    if (insertStyledText(e.data)) handleChange();
   });
 
   // Strip formatting from pasted content — paste as plain text, then let the
@@ -546,6 +762,7 @@ export function createRichComposer(opts = {}) {
     clear() {
       editor.innerHTML = '';
       savedRange = null;
+      resetTypingFormat();
       handleChange();
     },
     setEnabled(enabled) {

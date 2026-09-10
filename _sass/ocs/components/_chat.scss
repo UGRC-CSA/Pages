@@ -1069,9 +1069,11 @@ $micro-size: 0.6875rem;
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
   width: 18.75rem;
-  max-height: 15rem;
+  max-height: 18.75rem;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: fn.space(2);
   border: 1px solid var(--ocs-border);
   border-radius: fn.radius(lg);
@@ -1094,6 +1096,9 @@ $micro-size: 0.6875rem;
   &:focus         { outline: none; }
   &:focus-visible { @include a11y.focus-ring(1px); }
 }
+
+// The eraser icon inside the Clear-formatting button.
+.rt-btn svg { display: block; }
 
 .rt-font-serif { font-family: Georgia, "Times New Roman", serif; }
 .rt-font-mono  { font-family: var(--ocs-font-mono); }

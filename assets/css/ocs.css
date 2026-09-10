@@ -2821,9 +2821,11 @@
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
   width: 18.75rem;
-  max-height: 15rem;
+  max-height: 18.75rem;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 0.5rem;
   border: 1px solid var(--ocs-border);
   border-radius: 10px;
@@ -2852,6 +2854,10 @@
   outline: 2px solid var(--ocs-accent);
   outline-offset: 1px;
   box-shadow: 0 0 0 1px var(--ocs-surface-base);
+}
+
+.rt-btn svg {
+  display: block;
 }
 
 .rt-font-serif {
