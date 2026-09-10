@@ -32,6 +32,11 @@
   background: transparent;
   color: var(--ocs-text);
 
+  // The browser centers a modal <dialog> with margin: auto. A page reset such
+  // as `* { margin: 0 }` overrides that and pins the dialog to the top-left,
+  // so say it here too.
+  margin: auto;
+
   // <dialog> defaults to max 80% of the viewport; widen it and let the panel
   // decide.
   max-width: min(32rem, calc(100vw - #{fn.space(8)}));
