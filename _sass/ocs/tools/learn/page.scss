@@ -1054,3 +1054,18 @@ ol.steps {
 @media (prefers-reduced-motion: reduce) {
   *, .spot, .tourcard, .drawer, .toast { transition: none !important; animation: none !important; }
 }
+
+/* The line that appears when the compiled CSS is not usable. It replaces the
+   ticks rather than sitting beside them, so nothing reads as done. */
+#steps li.steps__block {
+  color: var(--ocs-danger);
+  align-items: flex-start;
+  line-height: 1.45;
+
+  .tk {
+    background: var(--ocs-danger);
+    color: var(--ocs-danger-contrast, #fff);
+    border-color: var(--ocs-danger);
+    flex: 0 0 auto;
+  }
+}

@@ -96,10 +96,21 @@ const EXERCISES = [
   concept:{t:'Two places a colour can be worked out',
     b:'Sass runs once, before anyone opens the page. Whatever it works out gets written into the CSS file and never changes. <code>color-mix()</code> runs in the browser instead. It sees the colour the reader picked, so the hover matches it.'},
   brief:'The hover colour here is typed in by hand. Change the button colour and the hover no longer matches it. <code>color-mix()</code> mixes two colours in the browser, so the hover can follow.',
+  // These read the compiled rule, not the letters in the editor. `color-mix(
+  // var(--ocs-accent));` used to tick all three: it has no property, no colon,
+  // and the browser drops it, but every word the old regexes wanted was there.
   steps:[
     {label:'Remove the hardcoded hover colour', test:s=>!/#[0-9a-f]{3,8}/i.test(s)},
-    {label:'Use <code>color-mix()</code> in the hover', test:s=>/color-mix/.test(s)},
-    {label:'Mix from <code>var(--ocs-accent)</code>', test:s=>/color-mix[^;]*var\(--ocs-accent\)/.test(s)}],
+    {label:'Use <code>color-mix()</code> in the hover',
+     // Chrome will say it "supports" color-mix() without a colour space, so ask
+     // for the `in <space>` explicitly rather than trusting CSS.supports alone.
+     test:(s,c)=>declarations(c).some(d => /:hover\b/.test(d.sel) && d.prop
+                && /color-mix\s*\(\s*in\s+[a-z-]+/i.test(codeOf(d.value))
+                && browserAccepts(d.prop, d.value))},
+    {label:'Mix from <code>var(--ocs-accent)</code>',
+     test:(s,c)=>declarations(c).some(d => /:hover\b/.test(d.sel) && d.prop
+                && /color-mix\s*\(\s*in\s+[a-z-]+[^)]*var\(\s*--ocs-accent\s*\)/i.test(codeOf(d.value))
+                && browserAccepts(d.prop, d.value))}],
   hints:['<code>color-mix()</code> takes a colour space, then two colours with a percentage.',
          'Shape: <code>color-mix(in srgb, SOMECOLOUR 85%, black)</code> gives a slightly darker version.',
          'Full answer: <code>background: color-mix(in srgb, var(--ocs-accent) 85%, black);</code>'],
@@ -127,7 +138,10 @@ const EXERCISES = [
     background: color-mix(in srgb, var(--ocs-accent) 85%, black);
   }
 }`,
-  pass: s => /color-mix/.test(s) && !/#[0-9a-f]{3,8}/i.test(s)},
+  pass: (s, c) => !/#[0-9a-f]{3,8}/i.test(s)
+    && declarations(c).some(d => /:hover\b/.test(d.sel) && d.prop
+         && /color-mix\s*\(\s*in\s+[a-z-]+[^)]*var\(\s*--ocs-accent\s*\)/i.test(codeOf(d.value))
+         && browserAccepts(d.prop, d.value))},
 
 /* ============================ CHAPTER 2 ============================ */
  {id:4, ch:2, badge:'Nesting', title:'Build a variant with &',

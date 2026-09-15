@@ -68,6 +68,86 @@ function paintCredits(){
   });
 }
 
+/* ---------- is the CSS actually CSS? ------------------------------------------
+   Every step used to be a text match on what the student typed. That meant
+   `color-mix(var(--ocs-accent));` ticked all three boxes on quest 3: it has no
+   property, no colon, and the browser throws it away, but the letters are all
+   there. These two helpers check the compiled result instead.                */
+
+// CSS.supports() says yes to anything containing var(), because a custom
+// property could hold anything. Swapping each var() for the value that token
+// actually holds makes the answer honest: color-mix(#EA706E) is rejected,
+// color-mix(in srgb, #EA706E 85%, black) is accepted.
+//
+// Substituting a colour for EVERY var() was the first attempt and it was wrong.
+// padding: var(--ocs-space-3) became padding: red, so four correct quests
+// started reporting themselves broken. The value has to come from the token.
+let TOKVAL = null;
+function tokenValue(name){
+  // TOKENS is a top-level const, so it is NOT a property of window. Reading
+  // window.TOKENS gave an empty map, every token resolved to null, and the
+  // check quietly passed everything.
+  if (!TOKVAL) { TOKVAL = {}; TOKENS.forEach(t => { TOKVAL[t.n] = t.v; }); }
+  let v = TOKVAL[name], guard = 0;
+  // A token can point at another token. Follow it, but never forever.
+  while (v && /^var\(\s*--/.test(v) && guard++ < 5) {
+    v = TOKVAL[v.replace(/^var\(\s*|\s*\).*$/g, '')];
+  }
+  return v || null;
+}
+function browserAccepts(prop, value){
+  let unknown = false;
+  const concrete = String(value).replace(/var\(\s*(--[a-z0-9-]+)\s*(?:,([^()]*))?\)/gi,
+    (_m, name, fallback) => {
+      const v = tokenValue(name) || (fallback || '').trim();
+      if (!v) { unknown = true; return 'red'; }
+      return v;
+    });
+  // An unknown custom property could legitimately hold anything, so say nothing
+  // rather than accuse a student of breaking something we cannot check.
+  if (unknown) return true;
+  try { return CSS.supports(prop, concrete); } catch { return false; }
+}
+
+// Every declaration in the compiled CSS, with the selector it sits under.
+// Anything between the braces that is not `property: value` is returned with
+// prop null, which is what catches a line that is not a declaration at all.
+// "color-mix(...)" inside quotes is a string the browser prints, not a colour
+// it works out. Blank the quotes before looking for code in a value.
+function codeOf(value){ return String(value).replace(/"[^"]*"|'[^']*'/g, '""'); }
+
+function declarations(css){
+  const out = [];
+  String(css).replace(/([^{}]+)\{([^{}]*)\}/g, (_m, sel, body) => {
+    body.split(';').forEach(piece => {
+      const raw = piece.trim();
+      if (!raw) return;
+      const i = raw.indexOf(':');
+      if (i < 1) { out.push({sel: sel.trim(), raw, prop: null, value: null}); return; }
+      out.push({sel: sel.trim(), raw, prop: raw.slice(0, i).trim(), value: raw.slice(i + 1).trim()});
+    });
+    return '';
+  });
+  return out;
+}
+
+// What is wrong with the compiled CSS, in words a beginner can act on.
+function cssProblems(css){
+  const bad = [];
+  for (const d of declarations(css)) {
+    if (!d.prop) {
+      bad.push(`<code>${esc(d.raw)}</code> is not a CSS line. A line needs a name, then `
+        + `<code>:</code>, then a value, like <code>background: blue</code>.`);
+    } else if (!d.prop.startsWith('--') && !browserAccepts(d.prop, d.value)) {
+      bad.push(`The browser will not accept <code>${esc(d.prop)}: ${esc(d.value)}</code>, `
+        + `so it gets thrown away and nothing changes.`);
+    }
+  }
+  return bad;
+}
+
+let lastProblems = [];
+
 /* ---------- step checklist ---------- */
 function renderSteps(){
   const e=EXERCISES[active], box=$('#steps'); if(!box) return;
@@ -77,10 +157,20 @@ function renderSteps(){
     const txt=(el.textContent||el.value||'').trim();
     if(txt&&!el.children.length&&contrastOf(el)<4.5) worstOk=false;
   });
-  const done=e.steps.map(st=>{try{return !!st.test(editor.value,css,worstOk);}catch{return false;}});
+  // Nothing ticks while the CSS is broken. A step that only reads the text the
+  // student typed cannot tell the difference between a working rule and a line
+  // the browser discards, so this gate runs first for every quest.
+  const problems = cssProblems(css);
+  const done = problems.length
+    ? e.steps.map(() => false)
+    : e.steps.map(st=>{try{return !!st.test(editor.value,css,worstOk);}catch{return false;}});
   box.innerHTML=e.steps.map((st,i)=>
-    `<li class="${done[i]?'on':''}"><span class="tk">${done[i]?'&#10003;':i+1}</span>${st.label}</li>`).join('');
+    `<li class="${done[i]?'on':''}"><span class="tk">${done[i]?'&#10003;':i+1}</span>${st.label}</li>`).join('')
+    + (problems.length
+        ? `<li class="steps__block"><span class="tk">!</span>${problems[0]}</li>`
+        : '');
   $('#stepcount').textContent=done.filter(Boolean).length+'/'+e.steps.length;
+  lastProblems = problems;
   paintCoach();
 }
 
@@ -580,10 +670,16 @@ function run(){
     why:'The compiler stopped here, so nothing after this point was applied.',
     fix:'Check your braces and semicolons.'}));
   notes.push(...runChecks(editor.value,css,preview));
+  cssProblems(css).forEach(msg => notes.unshift({level:'error',
+    title:'That line is not doing anything',
+    why: msg,
+    fix:'Every line inside the braces needs a name, a colon, then a value, and the value has to be one the browser understands.'}));
   lastNotes=notes;
 
   const clean=!errors.length&&!notes.some(n=>n.level==='error');
-  const passed=clean&&e.pass(editor.value,css);
+  // Same gate as the checklist: a quest is not solved by text that the browser
+  // discards, however well it matches what the answer is supposed to contain.
+  const passed=clean&&!cssProblems(css).length&&e.pass(editor.value,css);
   verdict.innerHTML=passed?'<span style="color:var(--ok);font-weight:650">&#10003; solved</span>':'';
   ccount.textContent=notes.length?notes.length+' to look at':'all clear';
 
