@@ -4534,6 +4534,12 @@ function answerLocally(question){
   // Only FIRST-PERSON stuck phrasing routes to the next action. Matching a bare
   // "what.*do" sent "what does the selector do" here instead of to its
   // definition.
+  // A greeting is not a question. Answer it instead of shrugging at it.
+  if (/^\s*(yo|hi|hey|hello|sup|hiya|howdy)\b[\s!.?]*$/i.test(question)) {
+    return 'Hello. Ask me about anything on this page. Try <b>what is contrast</b>, '
+      + '<b>what is padding</b>, <b>what is a selector</b>, or the name of any token, '
+      + 'like <b>what is --ocs-accent</b>.';
+  }
   if (/\b(i'?m |i am )?(stuck|lost|confused)\b|what (do|should) i do|where do i (start|begin)|help me|i don'?t know what/i.test(question)) {
     const a = coachAdvice();
     return `${a.body}` + (a.apply ? ' Use the button above and I will do it for you.' : '');
@@ -4552,9 +4558,20 @@ function answerLocally(question){
   let best = null;
   for (const item of KB) {
     if (!item.a) continue;
-    const iw = new Set(words(item.q));
-    let score = 0;
-    qw.forEach(w => { if (iw.has(w)) score += item.w; });
+    const iwList = words(item.q);
+    const iw = new Set(iwList);
+    let score = 0, exact = 0, partial = 0;
+    qw.forEach(w => {
+      if (iw.has(w)) { score += item.w; exact++; return; }
+      // Part-words, so a half-typed "contra" still finds "contrast".
+      if (w.length >= 4 && iwList.some(k => k.startsWith(w) || w.startsWith(k))) {
+        score += item.w; partial++;
+      }
+    });
+    // A part-word on its own is only trustworthy when it IS the question.
+    // Otherwise "why would a designer pick a pill shape" matches the entry for
+    // "design token" on one stem and answers something nobody asked.
+    if (!exact && partial && qw.length > 1) continue;
 
     if (item.token) {
       // A token entry only competes when the question actually names it.
@@ -4579,13 +4596,27 @@ async function askGroq(question){
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key},
-      body: JSON.stringify({model: 'llama-3.3-70b-versatile', max_tokens: 220, temperature: 0.3,
+      // gpt-oss models think before they answer, and that thinking spends the
+      // token budget. At 220 tokens the reply came back empty every time.
+      // reasoning_effort 'low' keeps it short; the headroom covers the rest.
+      body: JSON.stringify({model: 'openai/gpt-oss-20b', max_tokens: 900,
+        temperature: 0.3, reasoning_effort: 'low',
         messages: [{role: 'system', content: sys},
                    {role: 'user', content: ctx + '\n\nQuestion: ' + question}]})
     });
-    if (!r.ok) return `That key was refused (HTTP ${r.status}). Check it in Settings below.`;
+    if (r.status === 401 || r.status === 403) {
+      return 'That key was refused. Check it under Settings below, or make a new one at console.groq.com/keys.';
+    }
+    if (r.status === 429) return 'Groq is rate limiting that key. Wait a few seconds and ask again.';
+    if (!r.ok) return `Groq answered with HTTP ${r.status}. Try again in a moment.`;
     const j = await r.json();
-    return (j.choices?.[0]?.message?.content || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+    const raw = (j.choices?.[0]?.message?.content || '').trim();
+    if (!raw) return 'The model replied with nothing that time. Ask again, or word it differently.';
+    // Escape first, then allow the little markdown the model actually emits.
+    return raw.replace(/</g, '&lt;')
+              .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+              .replace(/`([^`]+)`/g, '<code>$1</code>')
+              .replace(/\n/g, '<br>');
   } catch { return 'Could not reach Groq. You may be offline.'; }
 }
 
@@ -4616,8 +4647,14 @@ async function coachAsk(){
   pushAsk('coach', '<span class="coach__wait">Thinking…</span>');
   const g = await askGroq(q);
   coachThread.pop();
-  pushAsk('coach', g || 'I do not know that one. Try the hint button on the left, or ask '
-    + 'your question with the name of the thing in it, like "what is --ocs-accent".');
+  pushAsk('coach', g || (
+    'I could not match that to anything on this page. I can answer:<br>'
+    + '\u2022 any token by name, like <b>what is --ocs-accent</b><br>'
+    + '\u2022 CSS words: <b>selector</b>, <b>property</b>, <b>padding</b>, <b>margin</b>, '
+    + '<b>hover</b>, <b>nesting</b>, <b>contrast</b>, <b>px</b> and <b>rem</b><br>'
+    + '\u2022 <b>what do I do</b> for the next step, or <b>why is it not working</b> '
+    + 'to read the checks<br>'
+    + 'For anything else, add your own Groq key under Settings below and I will ask it.'));
 }
 
 function paintCoach(){
