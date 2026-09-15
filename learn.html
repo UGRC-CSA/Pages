@@ -3340,6 +3340,151 @@ ol.steps li.on .tk {
   border-color: var(--ocs-danger);
   flex: 0 0 auto;
 }
+
+body[data-editor-theme=dusk] #editor, body[data-editor-theme=dusk] .gutter {
+  background: #12141a;
+  color: #d6dae6;
+}
+body[data-editor-theme=dusk] .gutter {
+  color: #545c70;
+}
+body[data-editor-theme=dusk] #editor::selection {
+  background: #35507d;
+}
+
+body[data-editor-theme=paper] #editor, body[data-editor-theme=paper] .gutter {
+  background: #f6f1e7;
+  color: #3a352c;
+}
+body[data-editor-theme=paper] .gutter {
+  color: #a89e8c;
+}
+body[data-editor-theme=paper] #editor::selection {
+  background: #e2d7bd;
+}
+
+body[data-editor-theme=crt] #editor, body[data-editor-theme=crt] .gutter {
+  background: #050a05;
+  color: #4dff8a;
+  text-shadow: 0 0 4px rgba(77, 255, 138, 0.55);
+  caret-color: #4dff8a;
+}
+body[data-editor-theme=crt] .gutter {
+  color: #1f6b38;
+}
+body[data-editor-theme=crt] #editor::selection {
+  background: rgba(77, 255, 138, 0.28);
+}
+body[data-editor-theme=crt] .ed-wrap {
+  position: relative;
+  overflow: hidden;
+}
+body[data-editor-theme=crt] .ed-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  animation: crtflicker 5s steps(30) infinite;
+}
+
+@keyframes crtflicker {
+  0%, 96%, 100% {
+    opacity: 0.55;
+  }
+  97% {
+    opacity: 0.4;
+  }
+  98% {
+    opacity: 0.7;
+  }
+}
+body[data-bigtype=on] #editor, body[data-bigtype=on] .gutter, body[data-bigtype=on] #cssout {
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+#previewLight {
+  background: #ffffff;
+  color: #1c1c1e;
+  padding: 1.25rem;
+  border-top: 1px solid var(--ocs-border);
+  color-scheme: light;
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+.confetti i {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confettifall 2.2s cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+}
+
+@keyframes confettifall {
+  to {
+    transform: translateY(102vh) rotate(540deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti {
+    display: none;
+  }
+  body[data-editor-theme=crt] .ed-wrap::after {
+    animation: none;
+  }
+}
+.shopgroup {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.69rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+}
+.shopgroup:first-child {
+  margin-top: 0;
+}
+
+.shopitem__act {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shopitem__dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  margin-right: 0.5rem;
+  vertical-align: baseline;
+}
+
+.shopitem__pick {
+  width: 2.2rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid var(--ocs-border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+#steps li.steps__none {
+  color: var(--ocs-text-muted);
+  font-style: italic;
+}
+#steps li.steps__none .tk {
+  display: none;
+}
 </style>
 </head>
 <!-- The page chrome runs on .ocs-light, one of the system's own themes. The
@@ -3398,6 +3543,7 @@ ol.steps li.on .tk {
       <div class="ph"><span class="lbl">your scss</span>
         <span class="grp">
           <button class="ocs-btn ocs-btn--ghost" id="copy">Copy</button>
+          <button class="ocs-btn ocs-btn--ghost" id="reveal" hidden>Show me the answer</button>
           <button class="ocs-btn ocs-btn--ghost" id="reset">Start over</button>
         </span></div>
       <div class="ed-wrap">
@@ -3409,6 +3555,7 @@ ol.steps li.on .tk {
     <div class="panel">
       <div class="ph"><span class="lbl">live preview</span><span id="verdict"></span></div>
       <div id="preview"></div>
+        <div id="previewLight" class="preview--light" hidden></div>
       <div class="ph"><span class="lbl">compiled css</span><span class="meter" id="meter"></span></div>
       <pre id="cssout"></pre>
     </div>
@@ -3746,21 +3893,60 @@ const store = {
 /* ---------------------------------------------------------------
    Credits. Deliberately NOT a cosmetics casino.
    Research is clear that pure extrinsic reward loops shift focus off
-   the learning (Hanus & Fox 2015). So credits buy things that let you
-   learn MORE, plus a couple of harmless personalisations. The only
-   "cost" in the learning path is the full-answer hint, which exists to
-   make you try first, never to block you.
+   the learning (Hanus & Fox 2015). So most of what credits buy is a
+   tool that lets you learn more. The looks are there because a page
+   you enjoy sitting in is a page you stay on, and because recolouring
+   this one is the same skill the quests teach.
+
+   Every entry below does something. The first version of this list was
+   six items and not one of them was wired to anything: sandbox and
+   challenge had no code at all, the editor themes had no CSS, and the
+   accents set a --coral variable the stylesheet never used.
    --------------------------------------------------------------- */
 const SHOP = [
-  {id:'sandbox', cost:30, name:'Sandbox mode',
-   what:'A blank canvas with every token available. Build whatever you like, no quest, no checks.'},
-  {id:'challenge', cost:40, name:'Challenge quests',
-   what:'Three harder builds with no starting code and no step list. Just a target to hit.'},
-  {id:'theme-dusk', cost:15, name:'Dusk editor theme', what:'A darker editor, easier at night.'},
-  {id:'theme-paper', cost:15, name:'Paper editor theme', what:'Warm and low-contrast, easier on long sessions.'},
-  {id:'accent-blue', cost:10, name:'Blue accent', what:'Recolour this page from coral to blue.'},
-  {id:'accent-green',cost:10, name:'Green accent', what:'Recolour this page from coral to green.'}
+  // ---- tools: these change what you can do -------------------------------
+  {id:'reveal', cost:20, kind:'tool', name:'Answer key',
+   what:'Adds a "Show me the answer" button to every quest. Fills the editor with the solution so you can read it and take it apart.'},
+  {id:'compare', cost:25, kind:'tool', name:'Light and dark side by side',
+   what:'Shows your component on both backgrounds at once. This is how you catch a colour that only works on one of them.'},
+  {id:'sandbox', cost:30, kind:'tool', name:'Sandbox',
+   what:'A blank canvas with every token available and nothing to solve. Build whatever you like.'},
+  {id:'challenge', cost:45, kind:'tool', name:'Challenge quests',
+   what:'Three harder builds with no starting code and no step list. A target, and that is all.'},
+
+  // ---- editor: how the code pane looks ------------------------------------
+  {id:'theme-dusk', cost:10, kind:'editor', name:'Dusk editor',
+   what:'A darker editor, easier at night.'},
+  {id:'theme-paper', cost:10, kind:'editor', name:'Paper editor',
+   what:'Warm and low contrast, easier on long sessions.'},
+  {id:'theme-crt', cost:25, kind:'editor', name:'Phosphor editor',
+   what:'Green text, black screen, scanlines and a slow flicker. A 1983 terminal.'},
+  {id:'bigtype', cost:10, kind:'editor', name:'Bigger code',
+   what:'Steps the editor text up two sizes.'},
+
+  // ---- accent: recolour this page -----------------------------------------
+  {id:'accent-blue', cost:8, kind:'accent', name:'Blue accent', what:'Recolour this page from coral to blue.', hex:'#4C8DF5'},
+  {id:'accent-green', cost:8, kind:'accent', name:'Green accent', what:'Recolour this page from coral to green.', hex:'#3DBE72'},
+  {id:'accent-violet', cost:8, kind:'accent', name:'Violet accent', what:'Recolour this page from coral to violet.', hex:'#9A7BE8'},
+  {id:'accent-pick', cost:40, kind:'accent', name:'Any colour you like',
+   what:'A colour picker for this page. Everything follows it, exactly the way the tokens you have been writing are supposed to.'},
+
+  // ---- flair ---------------------------------------------------------------
+  {id:'confetti', cost:15, kind:'flair', name:'Confetti',
+   what:'Solving a quest throws a handful of it across the screen.'},
+  {id:'ranks', cost:20, kind:'flair', name:'Ranks',
+   what:'A title next to your credits that changes as you finish quests, from Beginner up to Tokensmith.'}
 ];
+
+const RANKS = [
+  [0,'Beginner'], [2,'Apprentice'], [4,'Stylist'], [6,'Themer'],
+  [8,'Token wrangler'], [10,'Tokensmith'], [13,'Grandmaster of Braces']
+];
+function rankFor(solvedCount){
+  let name = RANKS[0][1];
+  for (const [n, label] of RANKS) if (solvedCount >= n) name = label;
+  return name;
+}
 
 function credits(){ return store.get('credits', 0); }
 function addCredits(n){ store.set('credits', credits()+n); paintCredits(); }
@@ -3771,23 +3957,72 @@ function buy(item){
   if(owns(item.id)) return 'already';
   if(!spend(item.cost)) return 'poor';
   store.set('owned', [...owned(), item.id]);
+  // Turning a look on the moment it is bought is the least surprising thing
+  // to do. Tools switch themselves on because there is nothing to choose.
+  if(item.kind==='editor') store.set('activeTheme', item.id);
+  // accent-pick has no fixed hex, so an `item.hex` guard here skipped it and
+  // buying the picker left the previous accent switched on.
+  if(item.kind==='accent') store.set('activeAccent', item.id);
   applyUnlocks();
   return 'ok';
 }
+
+// Everything a purchase actually changes, in one place, run on load too.
 function applyUnlocks(){
-  const o = owned();
-  document.body.dataset.editorTheme = o.includes('theme-dusk') && store.get('activeTheme','')==='theme-dusk' ? 'dusk'
-    : o.includes('theme-paper') && store.get('activeTheme','')==='theme-paper' ? 'paper' : '';
-  const acc = store.get('activeAccent','');
-  document.documentElement.style.setProperty('--coral',
-    acc==='accent-blue' ? '#2563A8' : acc==='accent-green' ? '#1F7A45' : '');
+  const o = owned(), root = document.documentElement, body = document.body;
+
+  // Editor look. The CSS lives under [data-editor-theme] in page.scss.
+  const th = store.get('activeTheme','');
+  body.dataset.editorTheme = (o.includes(th) && th.startsWith('theme-')) ? th.replace('theme-','') : '';
+  body.dataset.bigtype = o.includes('bigtype') && store.get('bigtype', true) ? 'on' : '';
+
+  // Page accent. The page is built on --ocs-brand, so that is what to move,
+  // along with the two tokens derived from it.
+  const accId = store.get('activeAccent','');
+  const acc = SHOP.find(s => s.id === accId);
+  let hex = null;
+  if (accId === 'accent-pick' && o.includes('accent-pick')) hex = store.get('pickHex', '#4C8DF5');
+  else if (acc && acc.hex && o.includes(accId)) hex = acc.hex;
+  if (hex) {
+    root.style.setProperty('--ocs-brand', hex);
+    root.style.setProperty('--ocs-accent', hex);
+    root.style.setProperty('--ocs-brand-border', hex);
+  } else {
+    root.style.removeProperty('--ocs-brand');
+    root.style.removeProperty('--ocs-accent');
+    root.style.removeProperty('--ocs-brand-border');
+  }
+
+  // Tools just flip a flag the rest of the page reads.
+  body.dataset.compare = o.includes('compare') && store.get('compare', true) ? 'on' : '';
+  if (typeof renderChapters === 'function') renderChapters();
+}
+
+// Confetti, drawn with nothing but divs so there is no library to load.
+function celebrate(){
+  if (!owns('confetti')) return;
+  const colours = ['#EA706E','#4C8DF5','#3DBE72','#F5C24C','#9A7BE8'];
+  const box = document.createElement('div');
+  box.className = 'confetti';
+  for (let i = 0; i < 40; i++) {
+    const bit = document.createElement('i');
+    bit.style.left = Math.random()*100 + '%';
+    bit.style.background = colours[i % colours.length];
+    bit.style.animationDelay = (Math.random()*0.35).toFixed(2) + 's';
+    bit.style.transform = `rotate(${Math.floor(Math.random()*360)}deg)`;
+    box.appendChild(bit);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 2600);
 }
 </script>
 <script>const CHAPTERS = [
   {n:0, name:'Warm-up',    blurb:'Never written CSS before? Start here. One line, one change.'},
   {n:1, name:'Colour',      blurb:'How the token system keeps everything readable and themeable.'},
   {n:2, name:'State',       blurb:'Making components respond to hover, focus and disabled.'},
-  {n:3, name:'Components',  blurb:'Putting it together into things people actually use.'}
+  {n:3, name:'Components',  blurb:'Putting it together into things people actually use.'},
+  {n:4, name:'Challenges',   blurb:'No starting code and no step list. Unlocked with credits.', locked:'challenge'},
+  {n:5, name:'Sandbox',      blurb:'No quest, no checks. Build whatever you want.', locked:'sandbox'}
 ];
 
 const EXERCISES = [
@@ -4178,6 +4413,147 @@ const EXERCISES = [
   }
 }`,
   pass: s => /prefers-reduced-motion/.test(s) && /(transform|transition)\s*:\s*none/.test(s)}
+
+/* ============================ CHALLENGES ============================
+   Bought with credits. No starting code and no step list: a target, a
+   goal sentence, and the checker. `locked` keeps them out of the
+   chapter list until the unlock is owned.                             */
+ ,{id:11, ch:4, badge:'Challenge', locked:'challenge', title:'Build a toast from nothing',
+  learn:'A whole component with no scaffolding.',
+  concept:{t:'No starting code',
+    b:'From here you get a description and a target picture. Everything else is yours. Use the token drawer when you cannot remember a name.'},
+  brief:'Build a toast: a dark rounded box, readable text, a coloured bar down the left edge, and comfortable padding. Every colour and every size has to come from a token.',
+  steps:[
+    {label:'Pad it from the spacing scale',
+     test:(s,c)=>declarations(c).some(d=>d.prop==='padding' && /var\(--ocs-space-/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'Round it from the radius scale',
+     test:(s,c)=>declarations(c).some(d=>/^border-radius$/.test(d.prop||'') && /var\(--ocs-radius-/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'A coloured bar down the left edge',
+     test:(s,c)=>declarations(c).some(d=>/^border-left/.test(d.prop||'') && /var\(--ocs-/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'No hex codes anywhere', test:s=>!/#[0-9a-f]{3,8}/i.test(s)}],
+  hints:['Start with the box: a background token, a text token, padding and a radius.',
+         'The bar is <code>border-left</code>. It takes a width, a style and a colour.',
+         'Full answer: <code>border-left: 4px solid var(--ocs-info);</code>'],
+  start:`.ocs-demo-toast {
+  /* nothing here yet. build it. */
+}`,
+  html:`<div class="ocs-demo-toast">Saved to your portfolio.</div>`,
+  goal:'A dark rounded toast with a coloured left bar, built only from tokens.',
+  solution:`.ocs-demo-toast {
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text);
+  padding: var(--ocs-space-3) var(--ocs-space-4);
+  border-radius: var(--ocs-radius-md);
+  border-left: 4px solid var(--ocs-info);
+}`,
+  pass:(s,c)=>!/#[0-9a-f]{3,8}/i.test(s)
+    && declarations(c).some(d=>d.prop==='padding' && /var\(--ocs-space-/.test(d.value))
+    && declarations(c).some(d=>/^border-left/.test(d.prop||'') && /var\(--ocs-/.test(d.value))}
+
+ ,{id:12, ch:4, badge:'Challenge', locked:'challenge', title:'Two states, one rule',
+  learn:'Hover and focus that agree with each other.',
+  concept:{t:'States are a set, not a list',
+    b:'A control needs to look different when you point at it and when you tab to it, and the two should feel like the same component. Build both from the same token so they cannot drift apart.'},
+  brief:'Build a button that lifts on hover and shows a visible ring on <code>:focus-visible</code>. Both effects must be built from <code>var(--ocs-accent)</code>, and the movement must switch off under reduced motion.',
+  steps:[
+    {label:'A hover state that uses the accent',
+     test:(s,c)=>declarations(c).some(d=>/:hover/.test(d.sel) && d.prop && /var\(--ocs-accent/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'A visible <code>:focus-visible</code> ring',
+     test:(s,c)=>declarations(c).some(d=>/:focus-visible/.test(d.sel) && /^(outline|box-shadow)/.test(d.prop||'') && !/none/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'Movement off under reduced motion', test:s=>/prefers-reduced-motion[\s\S]*(transform|transition)\s*:\s*none/.test(s)}],
+  hints:['Give the base button a transition first, then add the two state blocks.',
+         'A ring is <code>box-shadow: 0 0 0 3px SOMECOLOUR;</code>',
+         'Mix a see-through version: <code>color-mix(in srgb, var(--ocs-accent) 45%, transparent)</code>'],
+  start:`.ocs-demo-btn {
+  /* build the base, then &:hover and &:focus-visible */
+}`,
+  html:`<button class="ocs-demo-btn">Publish</button>`,
+  goal:'Lifts on hover, rings on keyboard focus, still on reduced motion.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: var(--ocs-space-2) var(--ocs-space-4);
+  border: none;
+  border-radius: var(--ocs-radius-md);
+  transition: transform var(--ocs-duration-fast) var(--ocs-ease);
+
+  &:hover {
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--ocs-accent) 85%, black);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ocs-accent) 45%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover { transform: none; }
+  }
+}`,
+  pass:(s,c)=>/prefers-reduced-motion/.test(s)
+    && declarations(c).some(d=>/:focus-visible/.test(d.sel) && /^(outline|box-shadow)/.test(d.prop||'') && !/none/.test(d.value))
+    && declarations(c).some(d=>/:hover/.test(d.sel) && d.prop && /var\(--ocs-accent/.test(d.value))}
+
+ ,{id:13, ch:4, badge:'Challenge', locked:'challenge', title:'A card that survives a theme change',
+  learn:'Everything from tokens, nothing typed in.',
+  concept:{t:'The real test',
+    b:'Change the page colour in Unlocks and watch. A component built from tokens follows it. A component with one typed-in value stands out immediately, and that is the bug this whole page is about.'},
+  brief:'Build a card: a raised surface, a border, a heading, body text and padding. Every single value has to be a token. No hex codes, no rgb(), no raw pixels except a border width.',
+  steps:[
+    {label:'Surface and text both from tokens',
+     test:(s,c)=>declarations(c).some(d=>/^background/.test(d.prop||'') && /var\(--ocs-/.test(d.value))
+              && declarations(c).some(d=>d.prop==='color' && /var\(--ocs-/.test(d.value))},
+    {label:'Padding and radius from the scales',
+     test:(s,c)=>declarations(c).some(d=>d.prop==='padding' && /var\(--ocs-space-/.test(d.value))
+              && declarations(c).some(d=>/^border-radius/.test(d.prop||'') && /var\(--ocs-radius-/.test(d.value))},
+    {label:'No hex, no rgb(), no raw px padding',
+     test:s=>!/#[0-9a-f]{3,8}/i.test(s) && !/rgba?\(/i.test(s) && !/padding\s*:[^;]*\d+px/.test(s)}],
+  hints:['Surfaces: <code>--ocs-surface-raised</code> and <code>--ocs-surface-elevated</code>.',
+         'Borders have their own token: <code>--ocs-border</code>.',
+         'Full answer is in the token drawer. Everything you need is already named.'],
+  start:`.ocs-demo-card {
+  /* every value a token. no exceptions. */
+}`,
+  html:`<div class="ocs-demo-card"><h4>Weekly report</h4><p>Three things shipped and one rolled back.</p></div>`,
+  goal:'A card that recolours itself when the page accent changes.',
+  solution:`.ocs-demo-card {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+  padding: var(--ocs-space-5);
+}`,
+  pass:s=>!/#[0-9a-f]{3,8}/i.test(s) && !/rgba?\(/i.test(s)
+    && /background[^;]*var\(--ocs-/.test(s) && /padding[^;]*var\(--ocs-space-/.test(s)}
+
+ ,{id:14, ch:5, badge:'Sandbox', locked:'sandbox', title:'Sandbox',
+  learn:'Nothing to solve. Every token, a blank file, and the live preview.',
+  concept:{t:'No checks here',
+    b:'The checklist is empty and nothing is marked solved, on purpose. The contrast reading under the preview still works, and so does the token drawer, so you can use this to try something out before you put it in a real component.'},
+  brief:'Write whatever you like. The preview shows a heading, a paragraph, a button and an input, so you have something to style. Your work saves in this browser like every other quest.',
+  steps:[],
+  hints:['Open the token drawer for the full list of names.',
+         'The preview markup is a heading, a paragraph, <code>.ocs-demo-btn</code> and <code>.ocs-demo-input</code>.',
+         'Nothing is checked here, so nothing can be wrong.'],
+  start:`/* Anything you like. The preview has a heading, a paragraph,
+   .ocs-demo-btn and .ocs-demo-input to aim at. */
+
+.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: var(--ocs-space-2) var(--ocs-space-4);
+  border: none;
+  border-radius: var(--ocs-radius-md);
+}`,
+  html:`<h3>A heading</h3>
+<p>A paragraph of body text to check your colours against.</p>
+<button class="ocs-demo-btn">A button</button>
+<input class="ocs-demo-input" placeholder="An input">`,
+  goal:'Whatever you want it to be.',
+  solution:null,
+  pass:()=>false}
 ];
 </script>
 <script>const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -4217,7 +4593,7 @@ function award(id,xp){
   if((cur.xp||0)>=xp && cur.done) return false;
   progress[id]={done:true,xp:Math.max(cur.xp||0,xp)};
   store.set('progress',progress);
-  if(fresh) addCredits(10);
+  if(fresh) { addCredits(10); celebrate(); }
   paintXP(); renderChapters();
   // The per-quest pills that this animated are gone; the quest card itself is
   // now the thing that visibly changes state.
@@ -4227,27 +4603,58 @@ function award(id,xp){
 
 function paintCredits(){
   const c=credits();
-  const el=$('#credtxt'); if(el) el.textContent=c+' cr';
+  const solved = EXERCISES.filter(e => (progress[e.id]||{}).done).length;
+  const el=$('#credtxt');
+  if (el) el.textContent = owns('ranks') ? `${rankFor(solved)} \u00B7 ${c} cr` : c + ' cr';
+
   const list=$('#shoplist'); if(!list) return;
-  list.innerHTML=SHOP.map(it=>{
-    const has=owns(it.id), afford=c>=it.cost;
-    const active=store.get('activeTheme','')===it.id||store.get('activeAccent','')===it.id;
-    return `<div class="shopitem ${has?'owned':''}">
-      <div><b>${it.name}</b><p>${it.what}</p></div>
-      <button class="ocs-btn ocs-btn--sm ${has?'ocs-btn--secondary':'ocs-btn--primary'}" data-buy="${it.id}" ${!has&&!afford?'disabled':''}>
-        ${has?(it.id.startsWith('theme')||it.id.startsWith('accent')?(active?'On':'Use'):'Unlocked'):it.cost+' cr'}</button>
-    </div>`;}).join('');
-  $$('#shoplist [data-buy]').forEach(b=>b.onclick=()=>{
-    const it=SHOP.find(x=>x.id===b.dataset.buy);
-    if(owns(it.id)){
-      if(it.id.startsWith('theme')) store.set('activeTheme', store.get('activeTheme','')===it.id?'':it.id);
-      if(it.id.startsWith('accent')) store.set('activeAccent', store.get('activeAccent','')===it.id?'':it.id);
-      applyUnlocks(); paintCredits(); return;
-    }
-    const r=buy(it);
-    if(r==='poor') toast('Not enough credits yet');
-    else { toast(it.name+' unlocked'); paintCredits(); }
+  const GROUPS = [['tool','Tools'], ['editor','Editor'], ['accent','Page colour'], ['flair','Flair']];
+  list.innerHTML = GROUPS.map(([kind, label]) => {
+    const rows = SHOP.filter(it => it.kind === kind).map(it => {
+      const has = owns(it.id), afford = c >= it.cost;
+      let btn;
+      if (!has) btn = `<button class="ocs-btn ocs-btn--sm ocs-btn--primary" data-buy="${it.id}" ${afford?'':'disabled'}>${it.cost} cr</button>`;
+      else if (it.kind === 'editor') {
+        const on = store.get('activeTheme','') === it.id;
+        btn = `<button class="ocs-btn ocs-btn--sm ${on?'ocs-btn--primary':'ocs-btn--secondary'}" data-use="${it.id}">${on?'On':'Use'}</button>`;
+      } else if (it.kind === 'accent') {
+        const on = store.get('activeAccent','') === it.id;
+        btn = `<button class="ocs-btn ocs-btn--sm ${on?'ocs-btn--primary':'ocs-btn--secondary'}" data-use="${it.id}">${on?'On':'Use'}</button>`
+            + (it.id === 'accent-pick' && on
+                ? `<input class="shopitem__pick" type="color" data-pick value="${store.get('pickHex','#4C8DF5')}" aria-label="Pick the page colour">` : '');
+      } else {
+        const on = store.get(it.id === 'bigtype' ? 'bigtype' : it.id, true);
+        btn = `<button class="ocs-btn ocs-btn--sm ${on?'ocs-btn--primary':'ocs-btn--secondary'}" data-toggle="${it.id}">${on?'On':'Off'}</button>`;
+      }
+      const swatch = it.hex ? `<span class="shopitem__dot" style="background:${it.hex}"></span>` : '';
+      return `<div class="shopitem ${has?'owned':''}">
+        <div><b>${swatch}${it.name}</b><p>${it.what}</p></div>
+        <div class="shopitem__act">${btn}</div>
+      </div>`;
+    }).join('');
+    return `<h4 class="shopgroup">${label}</h4>${rows}`;
+  }).join('');
+
+  $$('#shoplist [data-buy]').forEach(b => b.onclick = () => {
+    const it = SHOP.find(x => x.id === b.dataset.buy);
+    const r = buy(it);
+    if (r === 'poor') return toast('Not enough credits yet');
+    toast(it.name + ' unlocked');
+    paintCredits();
   });
+  $$('#shoplist [data-use]').forEach(b => b.onclick = () => {
+    const it = SHOP.find(x => x.id === b.dataset.use);
+    const key = it.kind === 'editor' ? 'activeTheme' : 'activeAccent';
+    store.set(key, store.get(key,'') === it.id ? '' : it.id);
+    applyUnlocks(); paintCredits();
+  });
+  $$('#shoplist [data-toggle]').forEach(b => b.onclick = () => {
+    const id = b.dataset.toggle, key = id === 'bigtype' ? 'bigtype' : id;
+    store.set(key, !store.get(key, true));
+    applyUnlocks(); paintCredits();
+  });
+  const pick = $('#shoplist [data-pick]');
+  if (pick) pick.oninput = () => { store.set('pickHex', pick.value); applyUnlocks(); };
 }
 
 /* ---------- is the CSS actually CSS? ------------------------------------------
@@ -4342,6 +4749,14 @@ function renderSteps(){
   // Nothing ticks while the CSS is broken. A step that only reads the text the
   // student typed cannot tell the difference between a working rule and a line
   // the browser discards, so this gate runs first for every quest.
+  // The sandbox has no steps. Say so instead of drawing an empty list.
+  if (!e.steps || !e.steps.length) {
+    box.innerHTML = '<li class="steps__none">Nothing to check here. Build whatever you like.</li>';
+    $('#stepcount').textContent = '';
+    lastProblems = [];
+    paintCoach();
+    return;
+  }
   const problems = cssProblems(css);
   const done = problems.length
     ? e.steps.map(() => false)
@@ -4391,8 +4806,10 @@ function questState(e){
 }
 
 function renderChapters(){
-  chapsEl.innerHTML = CHAPTERS.map(c => {
-    const list = EXERCISES.filter(e => e.ch === c.n);
+  // A chapter or a quest can be gated behind an unlock. Hide it until it is
+  // bought rather than showing a locked row, so the page is not a shop window.
+  chapsEl.innerHTML = CHAPTERS.filter(c => !c.locked || owns(c.locked)).map(c => {
+    const list = EXERCISES.filter(e => e.ch === c.n && (!e.locked || owns(e.locked)));
     const done = list.filter(e => progress[e.id]?.done).length;
     const open = chapterOpen(c.n);
     const prev = CHAPTERS.find(x => x.n === c.n - 1);
@@ -4836,6 +5253,10 @@ function load(){
   renderChapters();renderBrief();
   editor.value=drafts[e.id]!==undefined?drafts[e.id]:e.start;
   preview.innerHTML=e.html;
+  const lite = $('#previewLight');
+  if (lite) lite.innerHTML = e.html;
+  const rev = $('#reveal');
+  if (rev) rev.hidden = !owns('reveal');
     syncGutter();run();
 }
 function run(){
@@ -4843,8 +5264,14 @@ function run(){
   const {css,errors}=compileScss(editor.value);
   lastCss=css;
   cssout.textContent=css||'/* nothing compiled yet */';
-  styleTag.textContent=css.replace(/(^|})\s*([^{}@]+)\{/g,(m,a,sel)=>
-    `${a} ${sel.split(',').map(s=>'#preview '+s.trim()).join(', ')}{`);
+  // Scope the student's CSS to the preview so it cannot touch the page. When
+  // the compare unlock is on, the same rules are scoped to the light pane too.
+  const scopeTo = root => css.replace(/(^|})\s*([^{}@]+)\{/g,(m,a,sel)=>
+    `${a} ${sel.split(',').map(s=>root+' '+s.trim()).join(', ')}{`);
+  styleTag.textContent = scopeTo('#preview')
+    + (document.body.dataset.compare === 'on' ? '\n' + scopeTo('#previewLight') : '');
+  const lp = $('#previewLight');
+  if (lp) lp.hidden = document.body.dataset.compare !== 'on';
   paintMeter();
   renderSteps();
 
@@ -5132,6 +5559,13 @@ function downloadSubmission(){
 
 /* ---------- wire up ---------- */
 $('#reset').onclick=()=>{editor.value=EXERCISES[active].start;syncGutter();run();saveDraft();toast('Reset to the starting code');};
+$('#reveal').onclick=()=>{
+  const e = EXERCISES[active];
+  if (!owns('reveal')) return toast('Unlock the answer key first');
+  editor.value = e.solution || e.start;
+  syncGutter(); run(); saveDraft();
+  toast('Answer filled in. Read it, then press Start over and try it yourself.');
+};
 $('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(editor.value);toast('Copied');}catch{toast('Could not copy');}};
 $('#tokbtn').onclick=()=>openDrawer(true);
 $('#tokclose').onclick=()=>openDrawer(false);

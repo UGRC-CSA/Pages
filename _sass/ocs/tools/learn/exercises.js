@@ -2,7 +2,9 @@ const CHAPTERS = [
   {n:0, name:'Warm-up',    blurb:'Never written CSS before? Start here. One line, one change.'},
   {n:1, name:'Colour',      blurb:'How the token system keeps everything readable and themeable.'},
   {n:2, name:'State',       blurb:'Making components respond to hover, focus and disabled.'},
-  {n:3, name:'Components',  blurb:'Putting it together into things people actually use.'}
+  {n:3, name:'Components',  blurb:'Putting it together into things people actually use.'},
+  {n:4, name:'Challenges',   blurb:'No starting code and no step list. Unlocked with credits.', locked:'challenge'},
+  {n:5, name:'Sandbox',      blurb:'No quest, no checks. Build whatever you want.', locked:'sandbox'}
 ];
 
 const EXERCISES = [
@@ -393,4 +395,145 @@ const EXERCISES = [
   }
 }`,
   pass: s => /prefers-reduced-motion/.test(s) && /(transform|transition)\s*:\s*none/.test(s)}
+
+/* ============================ CHALLENGES ============================
+   Bought with credits. No starting code and no step list: a target, a
+   goal sentence, and the checker. `locked` keeps them out of the
+   chapter list until the unlock is owned.                             */
+ ,{id:11, ch:4, badge:'Challenge', locked:'challenge', title:'Build a toast from nothing',
+  learn:'A whole component with no scaffolding.',
+  concept:{t:'No starting code',
+    b:'From here you get a description and a target picture. Everything else is yours. Use the token drawer when you cannot remember a name.'},
+  brief:'Build a toast: a dark rounded box, readable text, a coloured bar down the left edge, and comfortable padding. Every colour and every size has to come from a token.',
+  steps:[
+    {label:'Pad it from the spacing scale',
+     test:(s,c)=>declarations(c).some(d=>d.prop==='padding' && /var\(--ocs-space-/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'Round it from the radius scale',
+     test:(s,c)=>declarations(c).some(d=>/^border-radius$/.test(d.prop||'') && /var\(--ocs-radius-/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'A coloured bar down the left edge',
+     test:(s,c)=>declarations(c).some(d=>/^border-left/.test(d.prop||'') && /var\(--ocs-/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'No hex codes anywhere', test:s=>!/#[0-9a-f]{3,8}/i.test(s)}],
+  hints:['Start with the box: a background token, a text token, padding and a radius.',
+         'The bar is <code>border-left</code>. It takes a width, a style and a colour.',
+         'Full answer: <code>border-left: 4px solid var(--ocs-info);</code>'],
+  start:`.ocs-demo-toast {
+  /* nothing here yet. build it. */
+}`,
+  html:`<div class="ocs-demo-toast">Saved to your portfolio.</div>`,
+  goal:'A dark rounded toast with a coloured left bar, built only from tokens.',
+  solution:`.ocs-demo-toast {
+  background: var(--ocs-surface-elevated);
+  color: var(--ocs-text);
+  padding: var(--ocs-space-3) var(--ocs-space-4);
+  border-radius: var(--ocs-radius-md);
+  border-left: 4px solid var(--ocs-info);
+}`,
+  pass:(s,c)=>!/#[0-9a-f]{3,8}/i.test(s)
+    && declarations(c).some(d=>d.prop==='padding' && /var\(--ocs-space-/.test(d.value))
+    && declarations(c).some(d=>/^border-left/.test(d.prop||'') && /var\(--ocs-/.test(d.value))}
+
+ ,{id:12, ch:4, badge:'Challenge', locked:'challenge', title:'Two states, one rule',
+  learn:'Hover and focus that agree with each other.',
+  concept:{t:'States are a set, not a list',
+    b:'A control needs to look different when you point at it and when you tab to it, and the two should feel like the same component. Build both from the same token so they cannot drift apart.'},
+  brief:'Build a button that lifts on hover and shows a visible ring on <code>:focus-visible</code>. Both effects must be built from <code>var(--ocs-accent)</code>, and the movement must switch off under reduced motion.',
+  steps:[
+    {label:'A hover state that uses the accent',
+     test:(s,c)=>declarations(c).some(d=>/:hover/.test(d.sel) && d.prop && /var\(--ocs-accent/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'A visible <code>:focus-visible</code> ring',
+     test:(s,c)=>declarations(c).some(d=>/:focus-visible/.test(d.sel) && /^(outline|box-shadow)/.test(d.prop||'') && !/none/.test(d.value) && browserAccepts(d.prop,d.value))},
+    {label:'Movement off under reduced motion', test:s=>/prefers-reduced-motion[\s\S]*(transform|transition)\s*:\s*none/.test(s)}],
+  hints:['Give the base button a transition first, then add the two state blocks.',
+         'A ring is <code>box-shadow: 0 0 0 3px SOMECOLOUR;</code>',
+         'Mix a see-through version: <code>color-mix(in srgb, var(--ocs-accent) 45%, transparent)</code>'],
+  start:`.ocs-demo-btn {
+  /* build the base, then &:hover and &:focus-visible */
+}`,
+  html:`<button class="ocs-demo-btn">Publish</button>`,
+  goal:'Lifts on hover, rings on keyboard focus, still on reduced motion.',
+  solution:`.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: var(--ocs-space-2) var(--ocs-space-4);
+  border: none;
+  border-radius: var(--ocs-radius-md);
+  transition: transform var(--ocs-duration-fast) var(--ocs-ease);
+
+  &:hover {
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--ocs-accent) 85%, black);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ocs-accent) 45%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover { transform: none; }
+  }
+}`,
+  pass:(s,c)=>/prefers-reduced-motion/.test(s)
+    && declarations(c).some(d=>/:focus-visible/.test(d.sel) && /^(outline|box-shadow)/.test(d.prop||'') && !/none/.test(d.value))
+    && declarations(c).some(d=>/:hover/.test(d.sel) && d.prop && /var\(--ocs-accent/.test(d.value))}
+
+ ,{id:13, ch:4, badge:'Challenge', locked:'challenge', title:'A card that survives a theme change',
+  learn:'Everything from tokens, nothing typed in.',
+  concept:{t:'The real test',
+    b:'Change the page colour in Unlocks and watch. A component built from tokens follows it. A component with one typed-in value stands out immediately, and that is the bug this whole page is about.'},
+  brief:'Build a card: a raised surface, a border, a heading, body text and padding. Every single value has to be a token. No hex codes, no rgb(), no raw pixels except a border width.',
+  steps:[
+    {label:'Surface and text both from tokens',
+     test:(s,c)=>declarations(c).some(d=>/^background/.test(d.prop||'') && /var\(--ocs-/.test(d.value))
+              && declarations(c).some(d=>d.prop==='color' && /var\(--ocs-/.test(d.value))},
+    {label:'Padding and radius from the scales',
+     test:(s,c)=>declarations(c).some(d=>d.prop==='padding' && /var\(--ocs-space-/.test(d.value))
+              && declarations(c).some(d=>/^border-radius/.test(d.prop||'') && /var\(--ocs-radius-/.test(d.value))},
+    {label:'No hex, no rgb(), no raw px padding',
+     test:s=>!/#[0-9a-f]{3,8}/i.test(s) && !/rgba?\(/i.test(s) && !/padding\s*:[^;]*\d+px/.test(s)}],
+  hints:['Surfaces: <code>--ocs-surface-raised</code> and <code>--ocs-surface-elevated</code>.',
+         'Borders have their own token: <code>--ocs-border</code>.',
+         'Full answer is in the token drawer. Everything you need is already named.'],
+  start:`.ocs-demo-card {
+  /* every value a token. no exceptions. */
+}`,
+  html:`<div class="ocs-demo-card"><h4>Weekly report</h4><p>Three things shipped and one rolled back.</p></div>`,
+  goal:'A card that recolours itself when the page accent changes.',
+  solution:`.ocs-demo-card {
+  background: var(--ocs-surface-raised);
+  color: var(--ocs-text);
+  border: 1px solid var(--ocs-border);
+  border-radius: var(--ocs-radius-lg);
+  padding: var(--ocs-space-5);
+}`,
+  pass:s=>!/#[0-9a-f]{3,8}/i.test(s) && !/rgba?\(/i.test(s)
+    && /background[^;]*var\(--ocs-/.test(s) && /padding[^;]*var\(--ocs-space-/.test(s)}
+
+ ,{id:14, ch:5, badge:'Sandbox', locked:'sandbox', title:'Sandbox',
+  learn:'Nothing to solve. Every token, a blank file, and the live preview.',
+  concept:{t:'No checks here',
+    b:'The checklist is empty and nothing is marked solved, on purpose. The contrast reading under the preview still works, and so does the token drawer, so you can use this to try something out before you put it in a real component.'},
+  brief:'Write whatever you like. The preview shows a heading, a paragraph, a button and an input, so you have something to style. Your work saves in this browser like every other quest.',
+  steps:[],
+  hints:['Open the token drawer for the full list of names.',
+         'The preview markup is a heading, a paragraph, <code>.ocs-demo-btn</code> and <code>.ocs-demo-input</code>.',
+         'Nothing is checked here, so nothing can be wrong.'],
+  start:`/* Anything you like. The preview has a heading, a paragraph,
+   .ocs-demo-btn and .ocs-demo-input to aim at. */
+
+.ocs-demo-btn {
+  background: var(--ocs-accent);
+  color: var(--ocs-accent-contrast);
+  padding: var(--ocs-space-2) var(--ocs-space-4);
+  border: none;
+  border-radius: var(--ocs-radius-md);
+}`,
+  html:`<h3>A heading</h3>
+<p>A paragraph of body text to check your colours against.</p>
+<button class="ocs-demo-btn">A button</button>
+<input class="ocs-demo-input" placeholder="An input">`,
+  goal:'Whatever you want it to be.',
+  solution:null,
+  pass:()=>false}
 ];

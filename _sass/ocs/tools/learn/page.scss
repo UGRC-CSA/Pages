@@ -1069,3 +1069,126 @@ ol.steps {
     flex: 0 0 auto;
   }
 }
+
+// =============================================================================
+// UNLOCKS
+// Everything credits can buy. The first version of this file had none of it:
+// the shop offered editor themes with no CSS behind them and accents that set
+// a variable nothing read, so buying anything changed nothing at all.
+// =============================================================================
+
+// ---------- editor looks -----------------------------------------------------
+// The editor is a textarea over a gutter, so both have to move together.
+body[data-editor-theme="dusk"] {
+  #editor, .gutter { background: #12141a; color: #d6dae6; }
+  .gutter { color: #545c70; }
+  #editor::selection { background: #35507d; }
+}
+
+body[data-editor-theme="paper"] {
+  #editor, .gutter { background: #f6f1e7; color: #3a352c; }
+  .gutter { color: #a89e8c; }
+  #editor::selection { background: #e2d7bd; }
+}
+
+// A 1983 terminal: phosphor green on black, scanlines over the top, and a
+// flicker slow enough to read through.
+body[data-editor-theme="crt"] {
+  #editor, .gutter {
+    background: #050a05;
+    color: #4dff8a;
+    text-shadow: 0 0 4px rgba(77, 255, 138, 0.55);
+    caret-color: #4dff8a;
+  }
+  .gutter { color: #1f6b38; }
+  #editor::selection { background: rgba(77, 255, 138, 0.28); }
+
+  .ed-wrap { position: relative; overflow: hidden; }
+  .ed-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom, rgba(0,0,0,0.22) 0 1px, transparent 1px 3px);
+    animation: crtflicker 5s steps(30) infinite;
+  }
+}
+@keyframes crtflicker { 0%,96%,100% { opacity: 0.55; } 97% { opacity: 0.4; } 98% { opacity: 0.7; } }
+
+body[data-bigtype="on"] {
+  #editor, .gutter, #cssout { font-size: 1.05rem; line-height: 1.7; }
+}
+
+// ---------- light and dark side by side --------------------------------------
+#previewLight {
+  background: #ffffff;
+  color: #1c1c1e;
+  padding: fn.space(5);
+  border-top: 1px solid var(--ocs-border);
+  color-scheme: light;
+}
+
+// ---------- confetti ---------------------------------------------------------
+// Forty divs falling. No library, and it removes itself after the animation.
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+
+  i {
+    position: absolute;
+    top: -12px;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    animation: confettifall 2.2s cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+  }
+}
+@keyframes confettifall {
+  to { transform: translateY(102vh) rotate(540deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti { display: none; }
+  body[data-editor-theme="crt"] .ed-wrap::after { animation: none; }
+}
+
+// ---------- the shop panel ---------------------------------------------------
+.shopgroup {
+  margin: fn.space(5) 0 fn.space(2);
+  font-size: $label-size;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ocs-text-muted);
+
+  &:first-child { margin-top: 0; }
+}
+
+.shopitem__act { display: flex; align-items: center; gap: fn.space(2); }
+
+.shopitem__dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  margin-right: fn.space(2);
+  vertical-align: baseline;
+}
+
+.shopitem__pick {
+  width: 2.2rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid var(--ocs-border);
+  border-radius: fn.radius(sm);
+  background: none;
+  cursor: pointer;
+}
+
+#steps li.steps__none {
+  color: var(--ocs-text-muted);
+  font-style: italic;
+  .tk { display: none; }
+}

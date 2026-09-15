@@ -35,7 +35,7 @@ function award(id,xp){
   if((cur.xp||0)>=xp && cur.done) return false;
   progress[id]={done:true,xp:Math.max(cur.xp||0,xp)};
   store.set('progress',progress);
-  if(fresh) addCredits(10);
+  if(fresh) { addCredits(10); celebrate(); }
   paintXP(); renderChapters();
   // The per-quest pills that this animated are gone; the quest card itself is
   // now the thing that visibly changes state.
@@ -45,27 +45,58 @@ function award(id,xp){
 
 function paintCredits(){
   const c=credits();
-  const el=$('#credtxt'); if(el) el.textContent=c+' cr';
+  const solved = EXERCISES.filter(e => (progress[e.id]||{}).done).length;
+  const el=$('#credtxt');
+  if (el) el.textContent = owns('ranks') ? `${rankFor(solved)} \u00B7 ${c} cr` : c + ' cr';
+
   const list=$('#shoplist'); if(!list) return;
-  list.innerHTML=SHOP.map(it=>{
-    const has=owns(it.id), afford=c>=it.cost;
-    const active=store.get('activeTheme','')===it.id||store.get('activeAccent','')===it.id;
-    return `<div class="shopitem ${has?'owned':''}">
-      <div><b>${it.name}</b><p>${it.what}</p></div>
-      <button class="ocs-btn ocs-btn--sm ${has?'ocs-btn--secondary':'ocs-btn--primary'}" data-buy="${it.id}" ${!has&&!afford?'disabled':''}>
-        ${has?(it.id.startsWith('theme')||it.id.startsWith('accent')?(active?'On':'Use'):'Unlocked'):it.cost+' cr'}</button>
-    </div>`;}).join('');
-  $$('#shoplist [data-buy]').forEach(b=>b.onclick=()=>{
-    const it=SHOP.find(x=>x.id===b.dataset.buy);
-    if(owns(it.id)){
-      if(it.id.startsWith('theme')) store.set('activeTheme', store.get('activeTheme','')===it.id?'':it.id);
-      if(it.id.startsWith('accent')) store.set('activeAccent', store.get('activeAccent','')===it.id?'':it.id);
-      applyUnlocks(); paintCredits(); return;
-    }
-    const r=buy(it);
-    if(r==='poor') toast('Not enough credits yet');
-    else { toast(it.name+' unlocked'); paintCredits(); }
+  const GROUPS = [['tool','Tools'], ['editor','Editor'], ['accent','Page colour'], ['flair','Flair']];
+  list.innerHTML = GROUPS.map(([kind, label]) => {
+    const rows = SHOP.filter(it => it.kind === kind).map(it => {
+      const has = owns(it.id), afford = c >= it.cost;
+      let btn;
+      if (!has) btn = `<button class="ocs-btn ocs-btn--sm ocs-btn--primary" data-buy="${it.id}" ${afford?'':'disabled'}>${it.cost} cr</button>`;
+      else if (it.kind === 'editor') {
+        const on = store.get('activeTheme','') === it.id;
+        btn = `<button class="ocs-btn ocs-btn--sm ${on?'ocs-btn--primary':'ocs-btn--secondary'}" data-use="${it.id}">${on?'On':'Use'}</button>`;
+      } else if (it.kind === 'accent') {
+        const on = store.get('activeAccent','') === it.id;
+        btn = `<button class="ocs-btn ocs-btn--sm ${on?'ocs-btn--primary':'ocs-btn--secondary'}" data-use="${it.id}">${on?'On':'Use'}</button>`
+            + (it.id === 'accent-pick' && on
+                ? `<input class="shopitem__pick" type="color" data-pick value="${store.get('pickHex','#4C8DF5')}" aria-label="Pick the page colour">` : '');
+      } else {
+        const on = store.get(it.id === 'bigtype' ? 'bigtype' : it.id, true);
+        btn = `<button class="ocs-btn ocs-btn--sm ${on?'ocs-btn--primary':'ocs-btn--secondary'}" data-toggle="${it.id}">${on?'On':'Off'}</button>`;
+      }
+      const swatch = it.hex ? `<span class="shopitem__dot" style="background:${it.hex}"></span>` : '';
+      return `<div class="shopitem ${has?'owned':''}">
+        <div><b>${swatch}${it.name}</b><p>${it.what}</p></div>
+        <div class="shopitem__act">${btn}</div>
+      </div>`;
+    }).join('');
+    return `<h4 class="shopgroup">${label}</h4>${rows}`;
+  }).join('');
+
+  $$('#shoplist [data-buy]').forEach(b => b.onclick = () => {
+    const it = SHOP.find(x => x.id === b.dataset.buy);
+    const r = buy(it);
+    if (r === 'poor') return toast('Not enough credits yet');
+    toast(it.name + ' unlocked');
+    paintCredits();
   });
+  $$('#shoplist [data-use]').forEach(b => b.onclick = () => {
+    const it = SHOP.find(x => x.id === b.dataset.use);
+    const key = it.kind === 'editor' ? 'activeTheme' : 'activeAccent';
+    store.set(key, store.get(key,'') === it.id ? '' : it.id);
+    applyUnlocks(); paintCredits();
+  });
+  $$('#shoplist [data-toggle]').forEach(b => b.onclick = () => {
+    const id = b.dataset.toggle, key = id === 'bigtype' ? 'bigtype' : id;
+    store.set(key, !store.get(key, true));
+    applyUnlocks(); paintCredits();
+  });
+  const pick = $('#shoplist [data-pick]');
+  if (pick) pick.oninput = () => { store.set('pickHex', pick.value); applyUnlocks(); };
 }
 
 /* ---------- is the CSS actually CSS? ------------------------------------------
@@ -160,6 +191,14 @@ function renderSteps(){
   // Nothing ticks while the CSS is broken. A step that only reads the text the
   // student typed cannot tell the difference between a working rule and a line
   // the browser discards, so this gate runs first for every quest.
+  // The sandbox has no steps. Say so instead of drawing an empty list.
+  if (!e.steps || !e.steps.length) {
+    box.innerHTML = '<li class="steps__none">Nothing to check here. Build whatever you like.</li>';
+    $('#stepcount').textContent = '';
+    lastProblems = [];
+    paintCoach();
+    return;
+  }
   const problems = cssProblems(css);
   const done = problems.length
     ? e.steps.map(() => false)
@@ -209,8 +248,10 @@ function questState(e){
 }
 
 function renderChapters(){
-  chapsEl.innerHTML = CHAPTERS.map(c => {
-    const list = EXERCISES.filter(e => e.ch === c.n);
+  // A chapter or a quest can be gated behind an unlock. Hide it until it is
+  // bought rather than showing a locked row, so the page is not a shop window.
+  chapsEl.innerHTML = CHAPTERS.filter(c => !c.locked || owns(c.locked)).map(c => {
+    const list = EXERCISES.filter(e => e.ch === c.n && (!e.locked || owns(e.locked)));
     const done = list.filter(e => progress[e.id]?.done).length;
     const open = chapterOpen(c.n);
     const prev = CHAPTERS.find(x => x.n === c.n - 1);
@@ -654,6 +695,10 @@ function load(){
   renderChapters();renderBrief();
   editor.value=drafts[e.id]!==undefined?drafts[e.id]:e.start;
   preview.innerHTML=e.html;
+  const lite = $('#previewLight');
+  if (lite) lite.innerHTML = e.html;
+  const rev = $('#reveal');
+  if (rev) rev.hidden = !owns('reveal');
     syncGutter();run();
 }
 function run(){
@@ -661,8 +706,14 @@ function run(){
   const {css,errors}=compileScss(editor.value);
   lastCss=css;
   cssout.textContent=css||'/* nothing compiled yet */';
-  styleTag.textContent=css.replace(/(^|})\s*([^{}@]+)\{/g,(m,a,sel)=>
-    `${a} ${sel.split(',').map(s=>'#preview '+s.trim()).join(', ')}{`);
+  // Scope the student's CSS to the preview so it cannot touch the page. When
+  // the compare unlock is on, the same rules are scoped to the light pane too.
+  const scopeTo = root => css.replace(/(^|})\s*([^{}@]+)\{/g,(m,a,sel)=>
+    `${a} ${sel.split(',').map(s=>root+' '+s.trim()).join(', ')}{`);
+  styleTag.textContent = scopeTo('#preview')
+    + (document.body.dataset.compare === 'on' ? '\n' + scopeTo('#previewLight') : '');
+  const lp = $('#previewLight');
+  if (lp) lp.hidden = document.body.dataset.compare !== 'on';
   paintMeter();
   renderSteps();
 
@@ -950,6 +1001,13 @@ function downloadSubmission(){
 
 /* ---------- wire up ---------- */
 $('#reset').onclick=()=>{editor.value=EXERCISES[active].start;syncGutter();run();saveDraft();toast('Reset to the starting code');};
+$('#reveal').onclick=()=>{
+  const e = EXERCISES[active];
+  if (!owns('reveal')) return toast('Unlock the answer key first');
+  editor.value = e.solution || e.start;
+  syncGutter(); run(); saveDraft();
+  toast('Answer filled in. Read it, then press Start over and try it yourself.');
+};
 $('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(editor.value);toast('Copied');}catch{toast('Could not copy');}};
 $('#tokbtn').onclick=()=>openDrawer(true);
 $('#tokclose').onclick=()=>openDrawer(false);
