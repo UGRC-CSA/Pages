@@ -458,7 +458,8 @@ $ocs-chat-ui-loaded: true !global;
 
   /* Discord-style: hovering someone else's message lifts it slightly and
      reveals the action toolbar. Only when signed in (.can-act on the log). */
-  .chat-messages.can-act .chat-msg:not(.is-self):hover {
+  .chat-messages.can-act .chat-msg:not(.is-self):hover,
+  .chat-messages.can-act .chat-msg.is-self.has-actions:hover {
     background: rgba($text, 0.045);
   }
 
@@ -606,6 +607,11 @@ $ocs-chat-ui-loaded: true !global;
   .chat-messages.can-act .chat-msg:not(.is-self):hover {
     background: rgba($text, 0.07);
     border-color: rgba($text, 0.14);
+  }
+
+  .chat-messages.can-act .chat-msg.is-self.has-actions:hover {
+    background: rgba($accent, 0.13);
+    border-color: rgba($accent, 0.5);
   }
 
   .chat-msg-meta {
@@ -1095,7 +1101,7 @@ $ocs-chat-ui-loaded: true !global;
   &:hover { background: $red; color: #fff; }
 }
 
-/* ── Message hover actions: react / reply / copy ───────────────────── */
+/* ── Message hover actions: react / reply / copy (others), delete (yours) ── */
 .chat-messages.has-msg-actions { position: relative; }
 
 .chat-msg-actions {
@@ -1138,8 +1144,109 @@ $ocs-chat-ui-loaded: true !global;
   svg { display: block; }
   &:hover { background: rgba($text, 0.1); color: $text; }
   &.chat-msg-action-react:hover { color: $orange; }
+  &.chat-msg-action-edit:hover { color: $accent; }
   &.is-done { color: $green; }
 }
+
+/* "(edited)" after a message's text. The words come from CSS so copying or
+   replying to the message doesn't pick them up. */
+.chat-msg-edited {
+  margin-left: 6px;
+  color: $text-muted;
+  font-size: 10.5px;
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+
+  &::after { content: "(edited)"; }
+}
+
+/* Inline edit: the message's text is swapped for a small composer with
+   Save / Cancel underneath. The hover bar steps aside while it's open. */
+.chat-msg.is-editing {
+  > .chat-msg-actions { display: none; }
+  .chat-msg-body { display: none; }
+}
+
+.chat-edit { margin-top: 4px; }
+
+.chat-edit-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.chat-edit-hint {
+  margin-right: auto;
+  color: $text-muted;
+  font-size: 11px;
+}
+
+.chat-edit-error {
+  color: $red;
+  font-size: 12px;
+}
+
+.chat-edit-btn {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid $bg-3;
+  border-radius: 6px;
+  background: transparent;
+  color: $text;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, filter 0.12s;
+
+  &:hover:not(:disabled) { background: rgba($text, 0.08); }
+  &:focus-visible { outline: none; box-shadow: 0 0 0 2px $accent; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.chat-edit-save {
+  border-color: $accent;
+  background: $accent;
+  color: var(--pref-bg-color);
+
+  &:hover:not(:disabled) { background: $accent; filter: brightness(1.12); }
+}
+
+/* Delete is two clicks: the first turns the icon into a red "Delete?" pill,
+   the second deletes. The label only shows while confirming or after a
+   failure. A row mid-delete dims until the server answers. */
+.chat-msg-action-delete {
+  &:hover { background: rgba($red, 0.16); color: $red; }
+
+  .chat-msg-action-label {
+    display: none;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &.is-confirming,
+  &.is-error {
+    width: auto;
+    padding: 0 9px;
+    gap: 5px;
+
+    .chat-msg-action-label { display: inline; }
+  }
+
+  &.is-confirming {
+    background: $red;
+    color: #fff;
+
+    &:hover { background: $red; color: #fff; filter: brightness(1.1); }
+  }
+
+  &.is-error { color: $red; }
+  &.is-busy { opacity: 0.55; cursor: progress; }
+}
+.chat-msg.is-deleting { opacity: 0.5; }
 
 .chat-reaction-picker { z-index: 1200; }
 

@@ -19,8 +19,15 @@
  *       goes through here, so this is the trust boundary — never assume safe.
  *
  *   createMessageActions(container, opts) -> the Discord-style hover toolbar on
- *       other people's messages: Add reaction (local-only for now), Reply
- *       (fills the composer's reply bar), Copy. Gated on setSignedIn(true).
+ *       every message: Add reaction (local-only for now), Reply (fills the
+ *       composer's reply bar), Copy. Your own messages (rows with
+ *       data-msg-self="1") also get Edit (an inline composer; opts.onEdit
+ *       saves) and Delete (a two-step click; opts.onDelete). Gated on
+ *       setSignedIn(true).
+ *
+ *   replaceRichMessageText(container, raw) / markMessageEdited(container, date)
+ *       -> re-render an edited message's text in place (keeping its attachment)
+ *       and show the "(edited)" tag.
  *
  * Plain-text messages sent before this shipped still render correctly: the
  * sanitizer passes text through untouched and the widgets keep `white-space:
@@ -247,6 +254,35 @@ export function renderRichMessage(container, raw, image) {
   renderAttachment(container, image);
 }
 
+// Swaps the text of an already-rendered message for new text, leaving its
+// attachment in place (attachments are the container's .rt-att children and
+// always come after the text). Used when a message is edited.
+export function replaceRichMessageText(container, raw) {
+  const firstAttachment = container.querySelector(':scope > .rt-att');
+  let node = container.firstChild;
+  while (node && node !== firstAttachment) {
+    const next = node.nextSibling;
+    container.removeChild(node);
+    node = next;
+  }
+  container.insertBefore(sanitizeToFragment(raw), firstAttachment);
+}
+
+// Adds (or, with no date, removes) the small "(edited)" tag after a message's
+// text. The words come from CSS (.chat-msg-edited::after) so they never end up
+// in the message's text when it's copied or replied to.
+export function markMessageEdited(container, editedDate) {
+  container.querySelectorAll(':scope > .chat-msg-edited').forEach((el) => el.remove());
+  if (!editedDate) return;
+  const mark = document.createElement('span');
+  mark.className = 'chat-msg-edited';
+  const when = new Date(editedDate);
+  if (!Number.isNaN(when.getTime())) {
+    mark.title = `Edited ${when.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`;
+  }
+  container.insertBefore(mark, container.querySelector(':scope > .rt-att'));
+}
+
 /* ------------------------------------------------------------------ *
  * Attachments
  *
@@ -428,6 +464,13 @@ function fillEmojiGrid(container, onPick) {
 const RTA_REACT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>';
 const RTA_REPLY = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
 const RTA_COPY = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>';
+const RTA_TRASH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+
+const RTA_EDIT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+
+// How long the first click on Delete waits for the confirming second click.
+const DELETE_CONFIRM_MS = 4000;
+const DELETE_ERROR_MS = 2500;
 
 function readJSON(key) {
   try { return JSON.parse(window.localStorage.getItem(key) || '{}') || {}; }
@@ -437,6 +480,18 @@ function readJSON(key) {
 export function createMessageActions(container, opts = {}) {
   const storageKey = opts.storageKey || 'ocs-chat-reactions';
   const onReply = typeof opts.onReply === 'function' ? opts.onReply : () => {};
+  // onDelete(msgEl) -> Promise<boolean>: true once the message is gone (the
+  // caller removes the row), false if it couldn't be deleted. canDelete(msgEl)
+  // lets the caller withhold the button on rows it has no way to delete.
+  const onDelete = typeof opts.onDelete === 'function' ? opts.onDelete : null;
+  const canDelete = typeof opts.canDelete === 'function' ? opts.canDelete : () => true;
+  // onEdit(msgEl, newHtml) -> Promise<boolean>: true once the edit is saved (the
+  // caller re-renders the row), false if it couldn't be. getRaw(msgEl) returns
+  // the message's stored HTML to start from. canEdit(msgEl) works like canDelete.
+  const onEdit = typeof opts.onEdit === 'function' ? opts.onEdit : null;
+  const getRaw = typeof opts.getRaw === 'function' ? opts.getRaw : () => '';
+  const canEdit = typeof opts.canEdit === 'function' ? opts.canEdit : () => true;
+  const editMaxLength = opts.maxLength || MAX_LENGTH_DEFAULT;
   const store = readJSON(storageKey);
   let signedIn = false;
   let picker = null;
@@ -548,15 +603,154 @@ export function createMessageActions(container, opts = {}) {
     setTimeout(() => { btn.classList.remove('is-done'); btn.title = prev; }, 1200);
   }
 
+  // Edit opens the message's text in a compact composer right where it is.
+  // Enter saves, Shift+Enter is a new line, Esc cancels. A reply quote at the
+  // top of the message isn't editable; it's put back in front on save. The
+  // attachment, if any, is never touched.
+  function startEdit(msgEl) {
+    if (!onEdit || msgEl.classList.contains('is-editing')) return;
+    const body = msgEl.querySelector('.chat-msg-body');
+    if (!body) return;
+
+    const raw = getRaw(msgEl);
+    const quoteMatch = /^\s*<blockquote>[\s\S]*?<\/blockquote>/i.exec(raw);
+    const quote = quoteMatch ? quoteMatch[0].trim() : '';
+    const original = (quote ? raw.slice(quoteMatch[0].length) : raw);
+    const originalClean = sanitizeRichText(original).replace(/(?:<br>|\s)+$/g, '').trim();
+
+    const panel = document.createElement('div');
+    panel.className = 'chat-edit';
+    let busy = false;
+
+    const footer = document.createElement('div');
+    footer.className = 'chat-edit-footer';
+    const hint = document.createElement('span');
+    hint.className = 'chat-edit-hint';
+    hint.textContent = 'Esc to cancel · Enter to save';
+    const error = document.createElement('span');
+    error.className = 'chat-edit-error';
+    error.setAttribute('role', 'alert');
+    error.hidden = true;
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'chat-edit-btn';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', close);
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'chat-edit-btn chat-edit-save';
+    saveBtn.textContent = 'Save';
+    saveBtn.addEventListener('click', save);
+    footer.append(hint, error, cancelBtn, saveBtn);
+
+    const composer = createRichComposer({
+      placeholder: 'Edit message…',
+      maxLength: editMaxLength,
+      attachments: false,
+      onSubmit: save,
+      onCancel: close,
+      onInput: refresh,
+    });
+    composer.setHTML(original);
+
+    panel.append(composer.element, footer);
+    msgEl.classList.add('is-editing');
+    body.after(panel);
+    refresh();
+    composer.focusEnd();
+
+    function refresh() {
+      saveBtn.disabled = busy || composer.isEmpty() || composer.isOverLimit();
+    }
+
+    function close() {
+      if (busy) return;
+      panel.remove();
+      msgEl.classList.remove('is-editing');
+    }
+
+    async function save() {
+      if (busy || composer.isEmpty() || composer.isOverLimit()) return;
+      const html = composer.getHTML();
+      if (html === originalClean) { close(); return; } // nothing changed
+      busy = true;
+      composer.setEnabled(false);
+      cancelBtn.disabled = true;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      error.hidden = true;
+      let ok = false;
+      try { ok = await onEdit(msgEl, quote + html); } catch (err) { console.error('Message edit failed', err); }
+      busy = false;
+      if (ok) { close(); return; }
+      composer.setEnabled(true);
+      cancelBtn.disabled = false;
+      saveBtn.textContent = 'Save';
+      error.textContent = 'Couldn’t save your edit. Try again.';
+      error.hidden = false;
+      refresh();
+      composer.focusEnd();
+    }
+  }
+
+  // Delete asks twice: the first click turns the button into a red "Delete?",
+  // the second (within DELETE_CONFIRM_MS, while still hovering) does it. A
+  // failed delete leaves the message in place and says so on the button.
+  function deleteButton(msgEl) {
+    const label = document.createElement('span');
+    label.className = 'chat-msg-action-label';
+    label.textContent = 'Delete?';
+    let confirmTimer = 0;
+    let errorTimer = 0;
+
+    const btn = actionButton('chat-msg-action-delete', RTA_TRASH, 'Delete message', () => {
+      if (btn.classList.contains('is-confirming')) { disarm(); run(); } else arm();
+    });
+    btn.appendChild(label);
+
+    function arm() {
+      clearTimeout(errorTimer);
+      btn.classList.remove('is-error');
+      label.textContent = 'Delete?';
+      btn.classList.add('is-confirming');
+      btn.setAttribute('aria-label', 'Confirm: delete this message');
+      confirmTimer = setTimeout(disarm, DELETE_CONFIRM_MS);
+    }
+
+    function disarm() {
+      clearTimeout(confirmTimer);
+      btn.classList.remove('is-confirming');
+      btn.setAttribute('aria-label', 'Delete message');
+    }
+
+    async function run() {
+      btn.disabled = true;
+      btn.classList.add('is-busy');
+      msgEl.classList.add('is-deleting');
+      let ok = false;
+      try { ok = await onDelete(msgEl); } catch (err) { console.error('Message delete failed', err); }
+      if (ok) return; // the row is gone
+      btn.disabled = false;
+      btn.classList.remove('is-busy');
+      msgEl.classList.remove('is-deleting');
+      label.textContent = 'Couldn’t delete';
+      btn.classList.add('is-error');
+      errorTimer = setTimeout(() => btn.classList.remove('is-error'), DELETE_ERROR_MS);
+    }
+
+    btn.addEventListener('blur', disarm);
+    btn.addEventListener('keydown', (e) => { if (e.key === 'Escape') disarm(); });
+    msgEl.addEventListener('mouseleave', disarm);
+    return btn;
+  }
+
   function decorate(msgEl) {
     if (!msgEl || msgEl.dataset.maDecorated) return;
     msgEl.dataset.maDecorated = '1';
     renderReactions(msgEl);
-    if (!signedIn || msgEl.dataset.msgSelf === '1') return;
+    if (!signedIn) return;
 
-    const bar = document.createElement('div');
-    bar.className = 'chat-msg-actions';
-    bar.append(
+    const buttons = [
       actionButton('chat-msg-action-react', RTA_REACT, 'Add reaction', (btn) => openPicker(btn, msgEl)),
       actionButton('chat-msg-action-reply', RTA_REPLY, 'Reply', () => {
         onReply({ sender: msgEl.dataset.msgSender || 'Someone', text: bodyText(msgEl) });
@@ -567,7 +761,18 @@ export function createMessageActions(container, opts = {}) {
           navigator.clipboard.writeText(text).then(() => flash(btn, 'Copied')).catch(() => {});
         }
       }),
-    );
+    ];
+    // Your own messages get the same actions plus Edit and Delete, last.
+    if (msgEl.dataset.msgSelf === '1') {
+      if (onEdit && canEdit(msgEl)) {
+        buttons.push(actionButton('chat-msg-action-edit', RTA_EDIT, 'Edit message', () => startEdit(msgEl)));
+      }
+      if (onDelete && canDelete(msgEl)) buttons.push(deleteButton(msgEl));
+    }
+
+    const bar = document.createElement('div');
+    bar.className = 'chat-msg-actions';
+    bar.append(...buttons);
     msgEl.appendChild(bar);
     msgEl.classList.add('has-actions');
   }
@@ -605,6 +810,11 @@ export function createRichComposer(opts = {}) {
     // Bulleted/numbered list buttons. Useful in the class chats, where people
     // post structured announcements; noise in a one-to-one conversation.
     lists = true,
+    // The "+" button and image paste / file drop. Off when editing a message:
+    // an edit changes the text only; the attachment stays as it was sent.
+    attachments = true,
+    // Called when Escape is pressed in the editor (used by inline message edit).
+    onCancel = null,
   } = opts;
 
   const root = document.createElement('div');
@@ -664,7 +874,8 @@ export function createRichComposer(opts = {}) {
 
   const inputRow = document.createElement('div');
   inputRow.className = 'rt-input-row';
-  inputRow.append(attachBtn, editor);
+  if (attachments) inputRow.append(attachBtn, editor);
+  else inputRow.append(editor);
 
   root.append(toolbar, replyBar, attachTray, inputRow, fileInput);
 
@@ -1298,6 +1509,11 @@ export function createRichComposer(opts = {}) {
   }
 
   editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && onCancel && !e.isComposing) {
+      e.preventDefault();
+      onCancel();
+      return;
+    }
     if (e.key !== 'Enter' || e.isComposing) return;
     if (e.shiftKey) {
       // Shift+Enter is a soft newline; inside a list that means the next item.
@@ -1334,7 +1550,7 @@ export function createRichComposer(opts = {}) {
     const imageItem = dt && Array.from(dt.items || []).find(
       (it) => it.kind === 'file' && /^image\//i.test(it.type) && !ATTACHMENT_MIME_DENY.test(it.type),
     );
-    if (imageItem && !pendingAttachment) {
+    if (imageItem && attachments && !pendingAttachment) {
       const file = imageItem.getAsFile();
       if (file) { e.preventDefault(); stageFile(file, 'image'); return; }
     }
@@ -1344,7 +1560,7 @@ export function createRichComposer(opts = {}) {
 
   // Drop a file straight onto the composer to stage it.
   root.addEventListener('dragover', (e) => {
-    if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
+    if (attachments && e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
       e.preventDefault();
       root.classList.add('is-dragover');
     }
@@ -1354,6 +1570,7 @@ export function createRichComposer(opts = {}) {
   });
   root.addEventListener('drop', (e) => {
     root.classList.remove('is-dragover');
+    if (!attachments) return;
     const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
     if (!file) return;
     e.preventDefault();
@@ -1369,6 +1586,24 @@ export function createRichComposer(opts = {}) {
     element: root,
     editor,
     focus() { editor.focus(); },
+    // Focus with the caret after the last character (for editing existing text).
+    focusEnd() {
+      editor.focus();
+      const sel = document.getSelection();
+      if (!sel) return;
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    },
+    // Replace the editor's content with (sanitised) message HTML.
+    setHTML(html) {
+      editor.innerHTML = sanitizeRichText(html);
+      savedRange = null;
+      resetTypingFormat();
+      handleChange();
+    },
     clear() {
       editor.innerHTML = '';
       savedRange = null;

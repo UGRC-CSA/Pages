@@ -145,6 +145,8 @@ while preserving all critical instructions. The agent must still communicate wit
 * **端点分支：** localhost 直连 `${protocol}//${host}:8589/ws-chat`，生产环境走 `javaURI + '/ws-chat'`（nginx 转发 8589）。注意：`groups.js` 与 `lesson_chat.html` 中 8589 端口是硬编码的（代码注释标记为待迁移到 config.js）；`assets/js/api/config.js` 已导出 `javaWebSocketURI` 但聊天代码尚未使用。
 * **代码重复警告：** 聊天逻辑存在于多处——规范源是 [assets/js/projects/student-management-groups/groups.js](assets/js/projects/student-management-groups/groups.js)（"CHAT FUNCTIONALITY" 段），但 [_includes/group_dashboard.html](_includes/group_dashboard.html) 与 [_includes/lesson_chat.html](_includes/lesson_chat.html) 内嵌了副本；修改后必须手动同步这些 include，否则行为不一致。
 * **课程聊天约定：** lesson 页面通过 frontmatter `chat: true` 启用，共享 backbone 群组 `"lessons"`，以 `[[lesson:<url>]]` 标记按页面隔离。
+* **删除自己的消息：** 公告/周聊天（`announcement_chat.html`、`week_chat.html`，两处需同步）通过 REST `DELETE /api/groups/chat/{groupId}/messages/{messageId}` 删除，服务端随后广播 `deleteMessageServer`（带 `messageId`）让所有人移除该行；消息行的 `data-msg-id` 来自历史记录的 `id` 或实时事件的 `messageId`，本地预览消息（无 id）只从 localStorage 删除。注意：该后端端点目前没有所有权校验（任何已登录用户知道 id 即可删任意消息），“只有自己的消息显示删除按钮”仅是前端限制。
+* **编辑自己的消息：** 同样在两个聊天 include 中（需同步）。`rich-text.js` 的 `createMessageActions` 提供内联编辑器（`onEdit`/`canEdit`/`getRaw`），保存走 REST `PUT /api/groups/chat/{groupId}/messages/{messageId}`（body `{message}`，Spring 的 `GroupChatApiController.editMessage`，**服务端校验作者**：调用者显示名必须等于消息的 `name`，否则 403），随后广播 `editMessageServer`（`messageId`、新 `message`，`date` 为编辑时间）；消息存储新增 `editedDate` 字段，前端用 `markMessageEdited` 显示 “(edited)”（文字来自 CSS `::after`，不会进入复制/回复文本）。回复引用（开头的 `<blockquote>`）与附件在编辑中保持不变；本地预览消息改写 localStorage 条目。
 
 ## 反模式
 

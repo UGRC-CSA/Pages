@@ -47,7 +47,10 @@
 
 <script type="module">
   import { javaURI, pythonURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
-  import { createRichComposer, renderRichMessage, createMessageActions } from '{{site.baseurl}}/assets/js/chat/rich-text.js';
+  import {
+    createRichComposer, renderRichMessage, createMessageActions,
+    replaceRichMessageText, markMessageEdited,
+  } from '{{site.baseurl}}/assets/js/chat/rich-text.js';
 
   const COURSE = {{ page.course | jsonify }};
   const WEEK_INDEX = {{ index | jsonify }};
@@ -124,11 +127,21 @@
   formEl.classList.add('chat-form--rich');
   formEl.insertBefore(composer.element, sendBtn);
 
-  // Hover actions (react / reply / copy) on other people's messages — enabled
-  // only once resolveCurrentUser() confirms a signed-in user.
+  // Hover actions — react / reply / copy on every message, plus edit and delete
+  // on your own — enabled only once resolveCurrentUser() confirms a signed-in
+  // user. A row can be edited or deleted if the server gave it an id, or if
+  // it's a local preview entry; older messages saved before ids existed have
+  // neither.
+  const isManageable = (row) => !!row.dataset.msgId || row.dataset.msgLocal === '1';
   const msgActions = createMessageActions(messagesEl, {
     storageKey: `ocs-chat-reactions:${GROUP_NAME}`,
     onReply: (target) => composer.setReplyTo(target),
+    onDelete: deleteMessage,
+    canDelete: isManageable,
+    onEdit: editMessage,
+    canEdit: isManageable,
+    getRaw: (row) => row.dataset.msgRaw || '',
+    maxLength: 2000,
   });
 
   function setStatus(text, tone) {
@@ -160,12 +173,18 @@
     return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   }
 
+  // Kept so the placeholder can come back if every message gets deleted.
+  const emptyEl = document.getElementById(`weekChatEmpty-${WC_ID}`);
+
   function clearEmpty() {
-    const empty = document.getElementById(`weekChatEmpty-${WC_ID}`);
-    if (empty) empty.remove();
+    if (emptyEl) emptyEl.remove();
   }
 
-  function appendMessage({ sender, message, date, image }) {
+  function showEmptyIfNoMessages() {
+    if (emptyEl && !messagesEl.querySelector('.chat-msg')) messagesEl.appendChild(emptyEl);
+  }
+
+  function appendMessage({ sender, message, date, image, id, editedDate }) {
     clearEmpty();
     const isSelf = sender === state.currentUserDisplayName;
     const who = isSelf ? 'You' : (sender || 'Unknown');
@@ -176,6 +195,12 @@
     line.dataset.msgKey = eventKey({ sender, date, message, image });
     line.dataset.msgSender = sender || 'Unknown';
     if (isSelf) line.dataset.msgSelf = '1';
+    if (id) line.dataset.msgId = id;
+    else if (state.mode === 'preview') {
+      line.dataset.msgLocal = '1';
+      line.dataset.msgLocalKey = line.dataset.msgKey; // follows the stored entry if it's edited
+    }
+    line.dataset.msgRaw = message || ''; // the stored HTML, which Edit starts from
 
     const meta = document.createElement('div');
     meta.className = 'chat-msg-meta';
@@ -193,6 +218,7 @@
     const body = document.createElement('span');
     body.className = 'chat-msg-body';
     renderRichMessage(body, message, image);
+    if (editedDate) markMessageEdited(body, editedDate);
 
     line.append(meta, body);
     messagesEl.appendChild(line);
@@ -279,6 +305,114 @@
 
   function eventKey(event) {
     return [event?.sender || '', event?.date || '', event?.message || '', String(event?.image || '').length].join('|');
+  }
+
+  /* ── Deleting your own messages ──────────────────────────────────────
+     The backend deletes by message id and then broadcasts deleteMessageServer
+     to everyone in the group, so the row also disappears for other readers
+     (handleIncoming). Like publishing, it goes over REST — the STOMP send
+     path has no delete context. Local preview entries have no id and only
+     ever existed in this browser, so they're just dropped from localStorage. */
+
+  function removeMessageRow(row) {
+    if (!row || !row.isConnected) return;
+    row.remove();
+    showEmptyIfNoMessages();
+  }
+
+  function removeMessageById(id) {
+    if (!id) return;
+    removeMessageRow(messagesEl.querySelector(`.chat-msg[data-msg-id="${CSS.escape(String(id))}"]`));
+  }
+
+  async function deleteMessage(row) {
+    const id = row.dataset.msgId;
+    if (!id) {
+      const entry = readPreviewMessages().find((msg) => eventKey(msg) === row.dataset.msgLocalKey);
+      if (entry) removeFromPreview([entry]);
+      removeMessageRow(row);
+      return true;
+    }
+    if (!state.backboneGroupId) return false;
+    try {
+      const res = await fetch(
+        `${javaURI}/api/groups/chat/${state.backboneGroupId}/messages/${encodeURIComponent(id)}`,
+        { ...fetchOptions, method: 'DELETE' },
+      );
+      if (!res.ok) { console.warn('Week chat: delete HTTP', res.status); return false; }
+    } catch (err) {
+      console.error('Week chat: delete failed', err);
+      return false;
+    }
+    removeMessageRow(row);
+    return true;
+  }
+
+  /* ── Editing your own messages ───────────────────────────────────────
+     Edit (in rich-text.js) opens an inline composer and calls editMessage()
+     with the new HTML. A saved edit goes to the backend over REST, which
+     stores it and broadcasts editMessageServer so every open chat updates
+     (handleIncoming → applyEdit); the editor's own row updates right away.
+     Local preview entries are rewritten in localStorage instead. */
+
+  // Re-renders a row's text in place (its attachment stays) and tags it "(edited)".
+  function applyEdit(row, message, editedDate) {
+    if (!row || !row.isConnected) return;
+    const body = row.querySelector('.chat-msg-body');
+    if (!body) return;
+    replaceRichMessageText(body, message);
+    markMessageEdited(body, editedDate);
+    row.dataset.msgRaw = message;
+
+    // The link card under the text belongs to the old text's first URL.
+    row.querySelectorAll(':scope > .chat-link-preview').forEach((card) => card.remove());
+    const previewUrl = firstUrlIn(message);
+    if (previewUrl) attachLinkPreview(previewUrl, row);
+  }
+
+  function applyEditById(id, message, editedDate) {
+    if (!id) return;
+    applyEdit(messagesEl.querySelector(`.chat-msg[data-msg-id="${CSS.escape(String(id))}"]`), message, editedDate);
+  }
+
+  function updatePreviewMessage(key, message, editedDate) {
+    const messages = readPreviewMessages();
+    const entry = messages.find((msg) => eventKey(msg) === key);
+    if (!entry) return null;
+    entry.message = message;
+    entry.editedDate = editedDate;
+    try {
+      window.localStorage.setItem(PREVIEW_KEY, JSON.stringify(messages));
+    } catch (err) {
+      console.warn('Week chat: could not save edited preview message', err);
+      return null;
+    }
+    return entry;
+  }
+
+  async function editMessage(row, message) {
+    const editedDate = new Date().toISOString();
+    const id = row.dataset.msgId;
+    if (!id) {
+      const entry = updatePreviewMessage(row.dataset.msgLocalKey, message, editedDate);
+      if (!entry) return false;
+      row.dataset.msgLocalKey = eventKey(entry);
+      applyEdit(row, message, editedDate);
+      return true;
+    }
+    if (!state.backboneGroupId) return false;
+    try {
+      const res = await fetch(
+        `${javaURI}/api/groups/chat/${state.backboneGroupId}/messages/${encodeURIComponent(id)}`,
+        { ...fetchOptions, method: 'PUT', body: JSON.stringify({ message }) },
+      );
+      if (!res.ok) { console.warn('Week chat: edit HTTP', res.status); return false; }
+    } catch (err) {
+      console.error('Week chat: edit failed', err);
+      return false;
+    }
+    applyEdit(row, message, editedDate);
+    return true;
   }
 
   /* ── Local preview mode ─────────────────────────────────────────────
@@ -501,7 +635,7 @@
         const key = eventKey({ sender: msg.name, date: msg.date, message: msg.message, image: msg.image });
         if (state.seenKeys.has(key)) return;
         state.seenKeys.add(key);
-        appendMessage({ sender: msg.name, message: msg.message, date: msg.date, image: msg.image });
+        appendMessage({ sender: msg.name, message: msg.message, date: msg.date, image: msg.image, id: msg.id, editedDate: msg.editedDate });
       });
     } catch (err) {
       console.warn('Week chat: history load failed', err);
@@ -509,11 +643,14 @@
   }
 
   function handleIncoming(event) {
-    if (!event || event.context !== 'sendMessageServer') return;
+    if (!event) return;
+    if (event.context === 'deleteMessageServer') { removeMessageById(event.messageId); return; }
+    if (event.context === 'editMessageServer') { applyEditById(event.messageId, event.message, event.date); return; }
+    if (event.context !== 'sendMessageServer') return;
     const key = eventKey(event);
     if (state.seenKeys.has(key)) return;
     state.seenKeys.add(key);
-    appendMessage({ sender: event.sender, message: event.message, date: event.date, image: event.image });
+    appendMessage({ sender: event.sender, message: event.message, date: event.date, image: event.image, id: event.messageId });
   }
 
   function connect() {
