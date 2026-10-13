@@ -1276,6 +1276,9 @@ export function createRichComposer(opts = {}) {
     pruneEmptyRtSpans();
     updatePlaceholder();
     editor.classList.toggle('is-over-limit', textLength() > maxLength);
+    // Lets the stylesheet light up the send button (`.rt-composer.has-content
+    // + .chat-send`) whenever there's text, a list, or an attachment to send.
+    root.classList.toggle('has-content', !isEmpty());
     onInput({ isEmpty: isEmpty(), length: textLength(), overLimit: textLength() > maxLength });
   }
 
