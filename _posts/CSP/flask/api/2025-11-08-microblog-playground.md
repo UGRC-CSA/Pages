@@ -44,11 +44,15 @@ microblog: True
 title: Your Article Title
 description: Brief description of your article.
 author: Your Name
+authors: [your-uid, teammate-uid]
 permalink: /your-path
 ---
 ```
 
 - Set `microblog: True` to activate the feature.
+- Optional: list login uids under `authors:`. Each author gets a direct message when someone posts or replies on the page, and can mark posts resolved. The poster can always resolve their own post.
+- Authors who don't want those DMs can open the Microblog on their page and uncheck **DM me about new posts and replies on this page**. The setting is per author, per page.
+- The panel's **Active** filter (default) hides resolved posts, **History** shows them, and **Mine** shows your own posts.
 
 ### To Test Microblogging
 
@@ -64,6 +68,7 @@ python main.py
 
 - `_includes/microblog_foundation.html` — Code that injects the microblog overlay one the screen.
 - `assets/js/api/microblog.js` — Handles the microblog panel’s interactivity and API calls.
+- `assets/js/api/microblog-notify.js` — Sends the page author DMs through the Spring DM API.
 
 ### API Reference
 
